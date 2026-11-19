@@ -1,0 +1,1233 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Класи неорганічних сполук</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with the task. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --acc: #1f7a8c;
+  --acc-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --acc: #4fb6c9; --acc-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --acc: #4fb6c9; --acc-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+sub { font-size: .62em; line-height: 0; vertical-align: -.25em; }
+sup { font-size: .62em; line-height: 0; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.q { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 600; line-height: 1.4; margin: 0; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 700; font-size: 1.05rem; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: clamp(1.05rem, 1.9vw, 1.3rem); font-weight: 500; }
+.steps li { padding: 4px 0 4px 14px; border-left: 3px solid var(--acc); overflow-wrap: anywhere; min-width: 0; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+/* choice */
+.opts { display: grid; gap: 10px; max-width: 720px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; overflow-wrap: anywhere; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); box-shadow: inset 0 0 0 1px var(--ink); }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+
+/* select all: grid of formulas */
+.cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-width: 760px; }
+.cells .opt { text-align: center; font-size: 1.3rem; }
+
+/* equations with coefficient boxes */
+.eq { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 700; font-size: clamp(1.25rem, 2.6vw, 1.75rem); }
+.eq .sp { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.eq .co { width: 2.6em; text-align: center; font-size: .85em; background: var(--surface); border: 2px solid var(--line); border-radius: 10px; padding: 4px 2px; }
+.eq .co-b { display: inline-block; width: 1.6em; height: 1.4em; border: 2px dashed var(--line); border-radius: 8px; }
+.eq .co-f { color: var(--acc); }
+.eq .arr { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; color: var(--muted); }
+.eq .arr small { font-size: .5em; font-weight: 600; white-space: nowrap; }
+.eq .slot { display: inline-grid; place-items: center; min-width: 2.2em; height: 1.6em; padding: 0 8px; border: 2px dashed var(--acc); border-radius: 8px; color: var(--acc); }
+.scheme { font-weight: 700; font-size: clamp(1.2rem, 2.4vw, 1.6rem); margin: 0; overflow-wrap: anywhere; }
+
+/* find the error */
+.lines { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.line { text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 10px; padding: 8px 14px; font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+button.line { cursor: pointer; }
+.line.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.line.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 420px; font-size: 1.3rem; }
+.ans-row { display: flex; align-items: center; gap: 10px; }
+.unit { font-weight: 700; font-size: 1.3rem; }
+.preview { min-height: 1.6em; font-size: 1.5rem; font-weight: 700; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li > div { min-width: 0; overflow-wrap: anywhere; }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); margin-top: 4px; }
+.review .why > div + div { margin-top: 2px; }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { padding: 22px; gap: 24px; }
+  .cells { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .line, .opt { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Класи неорганічних сполук<small>Хімія · 8 клас · оксиди · основи · кислоти · солі</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="cls">Класи і назви</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="eq">Реакції</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="prob">Задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати розв'язання, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 20;
+const TOPIC = 'Хімія 8 клас — Основні класи неорганічних сполук';
+
+const VM = 22.4;      // молярний об'єм газу (н.у.), л/моль
+
+// Символ: Ar (шкільне округлення)
+const AR = { H:1, Li:7, C:12, N:14, O:16, Na:23, Mg:24, Al:27, Si:28, P:31, S:32, Cl:35.5, K:39, Ca:40, Fe:56, Cu:64, Zn:65, Ag:108, Ba:137 };
+
+/* ---------- утиліти ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const rint = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',').replace('-', '−');   // без зайвих нулів
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const cap = s => s[0].toUpperCase() + s.slice(1);
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const fTxt = s => s.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+// HTML → текст для розбору в таблиці (індекси стають ₂)
+const plain = h => h.replace(/<sub>(\d+)<\/sub>/g, (m, d) => [...d].map(c => SUBD[c]).join('')).replace(/<sub>([^<]*)<\/sub>/g, '$1').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+const isRound2 = x => Math.abs(x * 100 - Math.round(x * 100)) < 1e-6;
+const isRound3 = x => Math.abs(x * 1000 - Math.round(x * 1000)) < 1e-6;
+const ROM = ['', 'I', 'II', 'III', 'IV', 'V', 'VI'];
+
+/* ---------- формули ---------- */
+// Розбір формули: H2SO4, Al2(SO4)3 → { counts, order }
+function group(s) {
+  const st = [[]]; let i = 0;
+  while (i < s.length) {
+    if (s[i] === '(') { st.push([]); i++; continue; }
+    if (s[i] === ')') {
+      if (st.length < 2) return null;
+      const g = st.pop(); i++;
+      const d = s.slice(i).match(/^([1-9]\d*)?/)[0]; i += d.length;
+      if (!g.length) return null;
+      st[st.length - 1].push(...g.map(([e, n]) => [e, n * (d ? +d : 1)]));
+      continue;
+    }
+    const m = s.slice(i).match(/^([A-Z][a-z]?)([1-9]\d*)?/);
+    if (!m || !AR[m[1]]) return null;
+    st[st.length - 1].push([m[1], m[2] ? +m[2] : 1]); i += m[0].length;
+  }
+  return st.length === 1 && st[0].length ? st[0] : null;
+}
+function parseF(s) {
+  const g = s && group(s);
+  if (!g) return null;
+  const counts = {}, order = [];
+  g.forEach(([e, n]) => { if (!(e in counts)) { counts[e] = 0; order.push(e); } counts[e] += n; });
+  return { counts, order };
+}
+const molar = f => { const p = parseF(f); return round(p.order.reduce((a, e) => a + p.counts[e] * AR[e], 0), 2); };
+const sameCounts = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+
+/* ---------- розбір введення ---------- */
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase()
+    .replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-')
+    .replace(/(г\/моль|моль|мл|г|л|%|g|l)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+const latin = s => s.replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]);
+// CuSO4, СuSО4 (кирилиця), CuSO₄, cuso4 → CuSO4. Регістр не важливий: спершу пробуємо двобуквений символ.
+function normF(raw) {
+  const s = latin(String(raw).trim()).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/[\s↓↑]/g, '');
+  let out = '', i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[()\d]/.test(ch)) { out += ch; i++; continue; }
+    if (!/[a-z]/i.test(ch)) return null;
+    const two = ch.toUpperCase() + (s[i + 1] || '').toLowerCase();
+    if (/[a-z]/i.test(s[i + 1] || '') && AR[two]) { out += two; i += 2; continue; }
+    if (!AR[ch.toUpperCase()]) return null;
+    out += ch.toUpperCase(); i++;
+  }
+  return out || null;
+}
+const TOL = { m: x => Math.max(0.01, x * 0.01), V: x => Math.max(0.01, x * 0.01) };
+const near = (k, a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= TOL[k](x); };
+const nearPct = (a, x, tol = 0.2) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= tol; };
+const sameF = (a, f) => { const p = parseF(normF(a ?? '')); return !!p && sameCounts(p.counts, parseF(f).counts); };
+
+/* ---------- речовини ---------- */
+const CAT = {
+  Na: { el:'Na', v:1, n:'натрій' }, K: { el:'K', v:1, n:'калій' }, Ca: { el:'Ca', v:2, n:'кальцій' }, Ba: { el:'Ba', v:2, n:'барій' },
+  Mg: { el:'Mg', v:2, n:'магній' }, Al: { el:'Al', v:3, n:'алюміній' }, Zn: { el:'Zn', v:2, n:'цинк' },
+  Fe2: { el:'Fe', v:2, n:'ферум(II)' }, Fe3: { el:'Fe', v:3, n:'ферум(III)' }, Cu: { el:'Cu', v:2, n:'купрум(II)' }, Ag: { el:'Ag', v:1, n:'аргентум' }
+};
+const AN = {
+  Cl:   { q:1, n:'хлорид', acid:'HCl', an:'хлоридна' },
+  NO3:  { q:1, poly:1, n:'нітрат', acid:'HNO3', an:'нітратна' },
+  SO4:  { q:2, poly:1, n:'сульфат', acid:'H2SO4', an:'сульфатна' },
+  SO3:  { q:2, poly:1, n:'сульфіт', acid:'H2SO3', an:'сульфітна' },
+  CO3:  { q:2, poly:1, n:'карбонат', acid:'H2CO3', an:'карбонатна' },
+  PO4:  { q:3, poly:1, n:'ортофосфат', acid:'H3PO4', an:'ортофосфатна' },
+  S:    { q:2, n:'сульфід', acid:'H2S', an:'сульфідна' },
+  SiO3: { q:2, poly:1, n:'силікат', acid:'H2SiO3', an:'силікатна' }
+};
+// Таблиця розчинності (шкільна): Р — розчинна, Н — нерозчинна, М — малорозчинна, — — не існує / розкладається водою
+const SOL_AN = ['Cl', 'NO3', 'SO4', 'SO3', 'CO3', 'PO4', 'S', 'SiO3'];
+const SOL = {
+  Na:'РРРРРРРР', K:'РРРРРРРР', Ca:'РРМННН—Н', Ba:'РРННННРН', Mg:'РРРММН—Н', Al:'РРР——Н—Н',
+  Zn:'РРРННННН', Fe2:'РРРННННН', Fe3:'РРР——Н—Н', Cu:'РРР——ННН', Ag:'НРМНННН—'
+};
+const BASE_SOL = { Na:'Р', K:'Р', Ba:'Р', Ca:'М', Mg:'Н', Al:'Н', Zn:'Н', Fe2:'Н', Fe3:'Н', Cu:'Н', Ag:'—' };
+const solOf = (c, a) => SOL[c][SOL_AN.indexOf(a)];
+
+const sub = (s, n) => n > 1 ? s + n : s;
+const saltF = (el, v, a) => { const q = AN[a].q, g = gcd(v, q), x = q / g, y = v / g; return sub(el, x) + (y > 1 && AN[a].poly ? `(${a})${y}` : sub(a, y)); };
+const oxideF = (el, v) => { const g = gcd(v, 2); return sub(el, 2 / g) + sub('O', v / g); };
+const baseF = (el, v) => v === 1 ? el + 'OH' : `${el}(OH)${v}`;
+const saltOf = (c, a) => saltF(CAT[c].el, CAT[c].v, a);
+const oxideOf = c => oxideF(CAT[c].el, CAT[c].v);
+const baseOf = c => baseF(CAT[c].el, CAT[c].v);
+
+// Кислотні оксиди: назва, кислота, кислотний залишок, елемент і його валентність
+const AOX = {
+  CO2:  { n:'карбон(IV) оксид', acid:'H2CO3', a:'CO3', el:'C', v:4 },
+  SO2:  { n:'сульфур(IV) оксид', acid:'H2SO3', a:'SO3', el:'S', v:4 },
+  SO3:  { n:'сульфур(VI) оксид', acid:'H2SO4', a:'SO4', el:'S', v:6 },
+  N2O5: { n:'нітроген(V) оксид', acid:'HNO3', a:'NO3', el:'N', v:5 },
+  P2O5: { n:'фосфор(V) оксид', acid:'H3PO4', a:'PO4', el:'P', v:5 },
+  SiO2: { n:'силіцій(IV) оксид', acid:'H2SiO3', a:'SiO3', el:'Si', v:4 }
+};
+const METAL = { Mg:'магній', Al:'алюміній', Zn:'цинк', Fe:'залізо', Cu:'мідь', Ag:'срібло', Na:'натрій', K:'калій', Ca:'кальцій', Ba:'барій' };
+
+// Довідник: формула → { name, kind, form, c, a, sol }
+const INFO = {};
+for (const c in CAT) {
+  const amph = c === 'Zn' || c === 'Al';
+  INFO[oxideOf(c)] = { name: `${CAT[c].n} оксид`, kind: amph ? 'amo' : c === 'Fe3' ? 'oxFe3' : 'bo', form:'oxide', c };
+  if (BASE_SOL[c] !== '—') INFO[baseOf(c)] = { name: `${CAT[c].n} гідроксид`, kind: amph ? 'amh' : ['Na', 'K', 'Ba', 'Ca'].includes(c) ? 'alk' : 'inb', form:'base', c, sol: BASE_SOL[c] };
+  SOL_AN.forEach(a => { if (solOf(c, a) !== '—') INFO[saltOf(c, a)] = { name: `${CAT[c].n} ${AN[a].n}`, kind:'salt', form:'salt', c, a, sol: solOf(c, a) }; });
+}
+for (const a in AN) INFO[AN[a].acid] = { name: `${AN[a].an} кислота`, kind:'acid', a, sol: a === 'SiO3' ? 'Н' : 'Р' };
+for (const o in AOX) INFO[o] = { name: AOX[o].n, kind:'ao', form:'aox' };
+Object.assign(INFO, {
+  Li2O: { name:'літій оксид', kind:'bo' }, LiOH: { name:'літій гідроксид', kind:'alk', sol:'Р' },
+  CO: { name:'карбон(II) оксид', kind:'nso' }, NO: { name:'нітроген(II) оксид', kind:'nso' }, N2O: { name:'нітроген(I) оксид', kind:'nso' },
+  H2: { name:'водень', kind:'simple' }, O2: { name:'кисень', kind:'simple' }, H2O: { name:'вода', kind:'water' },
+  S: { name:'сірка', kind:'simple' }, P: { name:'фосфор', kind:'simple' }, C: { name:'вуглець', kind:'simple' }, Si: { name:'кремній', kind:'simple' }
+});
+for (const m in METAL) INFO[m] = { name: METAL[m], kind:'simple' };
+const nameOf = f => INFO[f] ? INFO[f].name : '';
+
+/* ---------- класифікація ---------- */
+const BO = ['Na2O', 'K2O', 'Li2O', 'CaO', 'BaO', 'MgO', 'CuO', 'FeO'], AO = Object.keys(AOX), AMO = ['ZnO', 'Al2O3'], NSO = ['CO', 'NO', 'N2O'];
+const ALKF = ['NaOH', 'KOH', 'LiOH', 'Ba(OH)2', 'Ca(OH)2'], INB = ['Cu(OH)2', 'Fe(OH)2', 'Mg(OH)2'], AMH = ['Zn(OH)2', 'Al(OH)3'];
+const ACIDS = Object.values(AN).map(a => a.acid);
+const SALTS = Object.keys(INFO).filter(f => INFO[f].kind === 'salt');
+const CLS = {
+  bo:   { n:'основний оксид', pl:'основні оксиди', pool: BO, why:'оксид металу (валентність I–II), йому відповідає основа' },
+  ao:   { n:'кислотний оксид', pl:'кислотні оксиди', pool: AO, why:'оксид неметалу, йому відповідає кислота' },
+  amo:  { n:'амфотерний оксид', pl:'амфотерні оксиди', pool: AMO, why:'реагує і з кислотами, і з лугами' },
+  nso:  { n:'несолетворний оксид', pl:'несолетворні оксиди', pool: NSO, why:'не утворює солей: не реагує ні з кислотами, ні з лугами' },
+  alk:  { n:'луг', pl:'луги', pool: ALKF, why:'розчинна у воді основа' },
+  inb:  { n:'нерозчинна основа', pl:'нерозчинні основи', pool: INB, why:'основа, нерозчинна у воді (див. таблицю розчинності)' },
+  amh:  { n:'амфотерний гідроксид', pl:'амфотерні гідроксиди', pool: AMH, why:'реагує і з кислотами, і з лугами' },
+  acid: { n:'кислота', pl:'кислоти', pool: ACIDS, why:'атоми Гідрогену + кислотний залишок' },
+  salt: { n:'сіль', pl:'солі', pool: SALTS, why:'атоми металу + кислотний залишок' }
+};
+const clsOf = f => Object.keys(CLS).find(k => CLS[k].pool.includes(f));
+const OPT_GROUP = { bo:['bo', 'ao', 'amo', 'nso'], ao:['bo', 'ao', 'amo', 'nso'], amo:['bo', 'ao', 'amo', 'nso'], nso:['bo', 'ao', 'amo', 'nso'],
+  alk:['alk', 'inb', 'amh', 'salt'], inb:['alk', 'inb', 'amh', 'acid'], amh:['alk', 'inb', 'amh', 'bo'], acid:['acid', 'salt', 'alk', 'ao'], salt:['salt', 'acid', 'alk', 'inb'] };
+
+/* ---------- урівнювання ---------- */
+// Коефіцієнти — найменші цілі (метод Гаусса над цілими числами)
+function balance(lhs, rhs) {
+  const sp = [...lhs, ...rhs].map(f => parseF(f).counts), n = sp.length;
+  const els = [...new Set(sp.flatMap(c => Object.keys(c)))];
+  const M = els.map(e => sp.map((c, j) => (c[e] || 0) * (j < lhs.length ? 1 : -1)));
+  const piv = []; let r = 0;
+  for (let c = 0; c < n && r < M.length; c++) {
+    const p = M.findIndex((row, i) => i >= r && row[c]);
+    if (p < 0) continue;
+    [M[r], M[p]] = [M[p], M[r]];
+    for (let i = 0; i < M.length; i++) if (i !== r && M[i][c]) {
+      const a = M[r][c], b = M[i][c];
+      M[i] = M[i].map((x, j) => x * a - M[r][j] * b);
+      const g = M[i].reduce((s, x) => gcd(s, Math.abs(x)), 0) || 1;
+      M[i] = M[i].map(x => x / g);
+    }
+    piv.push(c); r++;
+  }
+  if (n - piv.length !== 1) return null;
+  const free = [...Array(n).keys()].find(c => !piv.includes(c));
+  const L = piv.reduce((l, pc, i) => { const d = Math.abs(M[i][pc]); return l / gcd(l, d) * d; }, 1);
+  const x = Array(n).fill(0); x[free] = L;
+  piv.forEach((pc, i) => { x[pc] = -M[i][free] * L / M[i][pc]; });
+  const g = x.reduce((s, v) => gcd(s, Math.abs(v)), 0);
+  const k = x.map(v => v / g);
+  return k.every(v => v > 0 && Number.isInteger(v)) ? k : null;
+}
+
+/* ---------- реакції ---------- */
+const GAS = new Set(['H2', 'CO2', 'SO2', 'H2S']);
+const isPpt = f => f === 'H2SiO3' || (INFO[f] && ((INFO[f].kind === 'salt' && INFO[f].sol === 'Н') || INFO[f].kind === 'inb' || INFO[f].kind === 'amh'));
+// solid — реакція не в розчині: осад не позначаємо
+function R(lhs, rhs, note, cond = '', solid = false) {
+  return { lhs, rhs, note, cond, k: balance(lhs, rhs),
+    down: new Set(solid ? [] : rhs.filter(isPpt)), up: new Set(lhs.includes('O2') ? [] : rhs.filter(f => GAS.has(f))) };
+}
+const ALKC = ['Na', 'K', 'Ca', 'Ba'];
+const ACT = ['Mg', 'Al', 'Zn', 'Fe2', 'Cu', 'Ag'];   // ряд активності (залізо → сіль Fe(II))
+
+const FAM = {
+  boAcid() {
+    const c = pick(['Na', 'K', 'Ca', 'Ba', 'Mg', 'Cu', 'Fe2', 'Fe3', 'Zn', 'Al']), a = pick(['Cl', 'NO3', 'SO4']);
+    return R([oxideOf(c), AN[a].acid], [saltOf(c, a), 'H2O'], `${c === 'Zn' || c === 'Al' ? 'Амфотерний' : 'Основний'} оксид + кислота → сіль + вода`);
+  },
+  aoAlk() {
+    const o = pick(['CO2', 'SO2', 'SO3', 'N2O5', 'P2O5']), c = pick(ALKC);
+    return R([o, baseOf(c)], [saltOf(c, AOX[o].a), 'H2O'], 'Кислотний оксид + луг → сіль + вода');
+  },
+  boWater() { const c = pick(ALKC); return R([oxideOf(c), 'H2O'], [baseOf(c)], 'Оксид активного металу + вода → луг'); },
+  aoWater() { const o = pick(['SO3', 'SO2', 'N2O5', 'P2O5']); return R([o, 'H2O'], [AOX[o].acid], 'Кислотний оксид + вода → кислота'); },
+  boAo() {
+    const c = pick(['Na', 'K', 'Ca', 'Ba', 'Mg']), o = pick(['CO2', 'SO2', 'SO3', 'N2O5', 'P2O5', 'SiO2']);
+    return R([oxideOf(c), o], [saltOf(c, AOX[o].a)], 'Основний оксид + кислотний оксид → сіль', o === 'SiO2' ? 't°' : '', true);
+  },
+  neutr() {
+    const c = pick(ALKC), a = pick(['Cl', 'NO3', 'SO4', 'PO4']);
+    return R([baseOf(c), AN[a].acid], [saltOf(c, a), 'H2O'], 'Луг + кислота → сіль + вода (нейтралізація)');
+  },
+  insAcid() {
+    const c = pick(['Cu', 'Fe2', 'Fe3', 'Mg', 'Zn', 'Al']), a = pick(['Cl', 'NO3', 'SO4']);
+    return R([baseOf(c), AN[a].acid], [saltOf(c, a), 'H2O'], `${c === 'Zn' || c === 'Al' ? 'Амфотерний гідроксид' : 'Нерозчинна основа'} + кислота → сіль + вода`);
+  },
+  decomp() {
+    const c = pick(['Cu', 'Fe3', 'Mg', 'Zn', 'Al']);
+    return R([baseOf(c)], [oxideOf(c), 'H2O'], 'Нерозчинні гідроксиди під час нагрівання розкладаються на оксид і воду', 't°', true);
+  },
+  carbDecomp() {
+    const c = pick(['Ca', 'Mg']);
+    return R([saltOf(c, 'CO3')], [oxideOf(c), 'CO2'], 'Нерозчинні карбонати під час нагрівання розкладаються на оксид і CO₂', 't°', true);
+  },
+  metAcid() {
+    const c = pick(['Mg', 'Zn', 'Fe2', 'Al']), a = pick(['Cl', 'SO4']), el = CAT[c].el;
+    return R([el, AN[a].acid], [saltOf(c, a), 'H2'], `${cap(METAL[el])} стоїть у ряду активності до водню — витісняє його з кислоти${c === 'Fe2' ? ' (залізо утворює сіль Fe(II))' : ''}`);
+  },
+  metSalt() {
+    for (;;) {
+      const i = rint(0, ACT.length - 2), j = rint(i + 1, ACT.length - 1), a = pick(['Cl', 'NO3', 'SO4']);
+      const c1 = ACT[i], c2 = ACT[j];
+      if (c2 === 'Al' || solOf(c1, a) !== 'Р' || solOf(c2, a) !== 'Р') continue;   // Al-солі в розчині гідролізують — не беремо
+      const m1 = CAT[c1].el, m2 = CAT[c2].el;
+      return R([m1, saltOf(c2, a)], [saltOf(c1, a), m2], `${cap(METAL[m1])} стоїть у ряду активності лівіше, ніж ${METAL[m2]}, — витісняє його з розчину солі`);
+    }
+  },
+  saltAlk() {
+    const c = pick(['Cu', 'Fe2', 'Fe3', 'Mg']), a = pick(['Cl', 'NO3', 'SO4']), b = pick(['Na', 'K']);
+    return R([saltOf(c, a), baseOf(b)], [baseOf(c), saltOf(b, a)], `Обмін: утворюється нерозчинна основа ${fTxt(baseOf(c))}`);
+  },
+  carbAcid() {
+    const c = pick(['Na', 'K', 'Ca', 'Ba']), sol = c === 'Na' || c === 'K';
+    const an = sol ? pick(['CO3', 'CO3', 'SO3', 'S']) : 'CO3', a = pick(sol ? ['Cl', 'NO3', 'SO4'] : ['Cl', 'NO3']);
+    const gas = { CO3:'CO2', SO3:'SO2', S:'H2S' }[an];
+    const note = { CO3:'Карбонатна кислота нестійка — розкладається на CO₂ і воду', SO3:'Сульфітна кислота нестійка — розкладається на SO₂ і воду', S:'Утворюється газ сірководень H₂S' }[an];
+    return R([saltOf(c, an), AN[a].acid], an === 'S' ? [saltOf(c, a), 'H2S'] : [saltOf(c, a), 'H2O', gas], note);
+  },
+  saltAcidPpt() {
+    const v = rint(0, 2);
+    if (v === 0) { const a = pick(['Cl', 'NO3']); return R([saltOf('Ba', a), 'H2SO4'], ['BaSO4', AN[a].acid], 'Обмін: утворюється осад BaSO₄'); }
+    if (v === 1) return R(['AgNO3', 'HCl'], ['AgCl', 'HNO3'], 'Обмін: утворюється осад AgCl');
+    const c = pick(['Na', 'K']), a = pick(['Cl', 'NO3', 'SO4']);
+    return R([saltOf(c, 'SiO3'), AN[a].acid], ['H2SiO3', saltOf(c, a)], 'Обмін: силікатна кислота нерозчинна — випадає в осад');
+  },
+  saltSalt() {
+    for (;;) {
+      const c1 = pick(['Ba', 'Ca', 'Ag']), c2 = pick(['Na', 'K', 'Na', 'K', 'Cu', 'Mg', 'Zn', 'Fe2', 'Al', 'Fe3']);
+      const a1 = pick(['Cl', 'NO3']), a2 = pick(['SO4', 'CO3', 'PO4', 'Cl']);
+      if (c1 === 'Ag' && c2 === 'Fe2') continue;   // Ag⁺ окиснює Fe²⁺
+      if (solOf(c1, a1) !== 'Р' || solOf(c2, a2) !== 'Р' || solOf(c1, a2) !== 'Н' || solOf(c2, a1) !== 'Р') continue;
+      return R([saltOf(c1, a1), saltOf(c2, a2)], [saltOf(c1, a2), saltOf(c2, a1)], `Обмін: утворюється осад ${fTxt(saltOf(c1, a2))}`);
+    }
+  }
+};
+const REACT_FAM = ['boAcid', 'aoAlk', 'boWater', 'aoWater', 'boAo', 'neutr', 'insAcid', 'decomp', 'carbDecomp', 'metAcid', 'metAcid', 'metSalt', 'metSalt', 'saltAlk', 'saltAlk', 'carbAcid', 'carbAcid', 'saltAcidPpt', 'saltSalt', 'saltSalt'];
+const randR = (fams = REACT_FAM) => FAM[pick(fams)]();
+
+const spHTML = (e, f) => fHTML(f) + (e.down.has(f) ? '↓' : e.up.has(f) ? '↑' : '');
+const arrowHTML = c => c ? `<span style="white-space:nowrap">—${c}→</span>` : '→';
+const lhsHTML = e => e.lhs.map(fHTML).join(' + ');
+// k = null — схема без коефіцієнтів
+const eqHTML = (e, k = e.k) => {
+  const side = (fs, off) => fs.map((f, i) => (!k || k[off + i] === 1 ? '' : k[off + i]) + spHTML(e, f)).join(' + ');
+  return `${side(e.lhs, 0)} ${arrowHTML(e.cond)} ${side(e.rhs, e.lhs.length)}`;
+};
+
+/* ---------- генетичні ланцюжки ---------- */
+// «Реагенти = продукти @умова»: перший реагент — ланка ланцюжка, перший продукт — наступна ланка; @# — без умови, тверді речовини
+const CHAINS = [
+  'Ca + O2 = CaO | CaO + H2O = Ca(OH)2 | Ca(OH)2 + CO2 = CaCO3 + H2O | CaCO3 + HCl = CaCl2 + H2O + CO2',
+  'S + O2 = SO2 | SO2 + O2 = SO3 @t°, кат. | SO3 + H2O = H2SO4 | H2SO4 + BaCl2 = BaSO4 + HCl',
+  'Cu + O2 = CuO @t° | CuO + HCl = CuCl2 + H2O | CuCl2 + NaOH = Cu(OH)2 + NaCl | Cu(OH)2 = CuO + H2O @t°',
+  'P + O2 = P2O5 | P2O5 + H2O = H3PO4 | H3PO4 + NaOH = Na3PO4 + H2O | Na3PO4 + AgNO3 = Ag3PO4 + NaNO3',
+  'Mg + O2 = MgO | MgO + H2SO4 = MgSO4 + H2O | MgSO4 + NaOH = Mg(OH)2 + Na2SO4 | Mg(OH)2 + HCl = MgCl2 + H2O',
+  'Na + H2O = NaOH + H2 | NaOH + H2SO4 = Na2SO4 + H2O | Na2SO4 + BaCl2 = NaCl + BaSO4 | NaCl + AgNO3 = AgCl + NaNO3',
+  'Zn + O2 = ZnO @t° | ZnO + HCl = ZnCl2 + H2O | ZnCl2 + NaOH = Zn(OH)2 + NaCl | Zn(OH)2 + H2SO4 = ZnSO4 + H2O',
+  'Ba + O2 = BaO | BaO + H2O = Ba(OH)2 | Ba(OH)2 + HCl = BaCl2 + H2O | BaCl2 + Na2SO4 = BaSO4 + NaCl',
+  'Al + O2 = Al2O3 @t° | Al2O3 + HCl = AlCl3 + H2O | AlCl3 + NaOH = Al(OH)3 + NaCl | Al(OH)3 = Al2O3 + H2O @t°',
+  'Fe + HCl = FeCl2 + H2 | FeCl2 + NaOH = Fe(OH)2 + NaCl | Fe(OH)2 + H2SO4 = FeSO4 + H2O | FeSO4 + Zn = Fe + ZnSO4',
+  'Fe(OH)3 = Fe2O3 + H2O @t° | Fe2O3 + H2SO4 = Fe2(SO4)3 + H2O | Fe2(SO4)3 + NaOH = Fe(OH)3 + Na2SO4 | Fe(OH)3 + HCl = FeCl3 + H2O',
+  'C + O2 = CO2 | CO2 + CaO = CaCO3 @# | CaCO3 = CaO + CO2 @t° | CaO + H2O = Ca(OH)2',
+  'N2O5 + H2O = HNO3 | HNO3 + CuO = Cu(NO3)2 + H2O | Cu(NO3)2 + KOH = Cu(OH)2 + KNO3 | Cu(OH)2 = CuO + H2O @t°',
+  'K + H2O = KOH + H2 | KOH + CO2 = K2CO3 + H2O | K2CO3 + HCl = KCl + H2O + CO2 | KCl + AgNO3 = KNO3 + AgCl',
+  'Si + O2 = SiO2 | SiO2 + NaOH = Na2SiO3 + H2O @t° | Na2SiO3 + HCl = H2SiO3 + NaCl | H2SiO3 = SiO2 + H2O @t°'
+].map(s => {
+  const st = s.split('|').map(x => {
+    const [eq, c] = x.split('@').map(y => y.trim());
+    const [l, r] = eq.split('=').map(side => side.split('+').map(f => f.trim()));
+    return R(l, r, '', c && c !== '#' ? c : '', c !== undefined);
+  });
+  return { st, s: [st[0].lhs[0], ...st.map(x => x.rhs[0])] };
+});
+const stepLab = e => [...e.lhs.slice(1).map(f => '+' + fHTML(f)), e.cond].filter(Boolean).join(', ');
+function chainHTML(ch, hide, show) {
+  return `<div class="eq">${ch.s.map((f, i) => (i ? `<span class="arr"><small>${stepLab(ch.st[i - 1])}</small>→</span>` : '')
+    + (i === hide ? (show ? `<span class="sp co-f">${fHTML(f)}</span>` : '<span class="slot">X</span>') : `<span class="sp">${fHTML(f)}</span>`)).join('')}</div>`;
+}
+
+/* ---------- генератори завдань ---------- */
+// Кожне завдання: type, label, q, fig (HTML), input, unit, right, check(ans), sol[]
+const TYPE = {
+  prop: 'Теорія', cls: 'Клас сполуки', name: 'Назва', fname: 'Формула за назвою', corr: 'Оксид → гідроксид', solub: 'Розчинність',
+  pick: 'Вибери всі', react: 'Продукти реакції', coef: 'Коефіцієнти', possible: 'Можливість реакції', chain: 'Ланцюжок перетворень',
+  err: 'Знайди помилку', wel: 'Масова частка елемента', mass: 'Розрахунок за рівнянням', sol: 'Задача з розчином', impure: 'Домішки', excess: 'Надлишок'
+};
+const choiceOf = (type, label, q, opts, sol, fig = '') => {
+  const order = shuffle(opts.map((h, i) => ({ h, i }))), ri = order.findIndex(o => o.i === 0);
+  return { type, label, q, fig, input: 'choice', opts: order.map(o => ({ html: o.h, txt: plain(o.h) })), right: plain(opts[0]), check: a => a === ri, sol };
+};
+const weighted = w => pick(Object.entries(w).flatMap(([k, n]) => Array(n).fill(k)));
+const nm = f => `${fHTML(f)}${nameOf(f) ? ` (${nameOf(f)})` : ''}`;
+
+// Клас сполуки або основність кислоти
+const BASICITY = ['одноосновна', 'двоосновна', 'триосновна'];
+const acidKind = f => { const p = parseF(f).counts; return `${BASICITY[p.H - 1]}, ${p.O ? 'оксигеновмісна' : 'безоксигенова'}`; };
+function tCls() {
+  if (Math.random() < .2) {
+    const f = pick(ACIDS), right = acidKind(f);
+    const all = BASICITY.flatMap(b => [`${b}, оксигеновмісна`, `${b}, безоксигенова`]).filter(x => x !== right && x !== 'триосновна, безоксигенова');
+    return choiceOf('cls', fTxt(f), `Охарактеризуйте кислоту <b>${fHTML(f)}</b> (${nameOf(f)}).`, [right, ...shuffle(all).slice(0, 3)],
+      [`Основність — це кількість атомів Гідрогену, здатних заміщуватися на метал: у ${fHTML(f)} їх ${parseF(f).counts.H}.`,
+        parseF(f).counts.O ? 'У складі є Оксиген — кислота оксигеновмісна.' : 'Оксигену немає — кислота безоксигенова.']);
+  }
+  const k = weighted({ bo: 4, ao: 4, amo: 2, nso: 1, alk: 3, inb: 3, amh: 2, acid: 3, salt: 3 }), f = pick(CLS[k].pool);
+  return choiceOf('cls', fTxt(f), `До якого класу належить речовина <b>${fHTML(f)}</b>?`, [CLS[k].n, ...shuffle(OPT_GROUP[k].filter(x => x !== k)).map(x => CLS[x].n)],
+    [`${fHTML(f)} — ${nameOf(f)}: ${CLS[k].n} (${CLS[k].why}).`]);
+}
+
+// Назва за формулою: дистрактори — схожі суфікси та інша валентність
+const ALT = {
+  'сульфат':['сульфіт', 'сульфід'], 'сульфіт':['сульфат', 'сульфід'], 'сульфід':['сульфат', 'сульфіт'], 'нітрат':['нітрит', 'нітрид'],
+  'хлорид':['хлорат', 'хлорит'], 'карбонат':['карбід', 'гідрогенкарбонат'], 'ортофосфат':['фосфід', 'фосфіт'], 'силікат':['силіцид'],
+  'оксид':['гідроксид', 'пероксид'], 'гідроксид':['оксид', 'гідрид'],
+  'сульфатна':['сульфітна', 'сульфідна'], 'сульфітна':['сульфатна', 'сульфідна'], 'сульфідна':['сульфатна', 'сульфітна'], 'нітратна':['нітритна'],
+  'хлоридна':['хлоратна'], 'карбонатна':['карбідна'], 'ортофосфатна':['фосфітна'], 'силікатна':['силіцидна']
+};
+const VAL = { '(I)':['(II)'], '(II)':['(III)', '(I)'], '(III)':['(II)'], '(IV)':['(VI)', '(II)'], '(VI)':['(IV)'], '(V)':['(III)'] };
+function nameVariants(name) {
+  const w = name.split(' '), out = [];
+  w.forEach((x, i) => {
+    const put = y => out.push(w.map((z, j) => j === i ? y : z).join(' '));
+    (ALT[x] || []).forEach(put);
+    const m = x.match(/^(.*)(\([IV]+\))$/);
+    if (m) (VAL[m[2]] || []).forEach(y => put(m[1] + y));
+  });
+  return out;
+}
+function tName() {
+  const k = weighted({ salt: 4, bo: 1, ao: 2, alk: 1, inb: 1, acid: 2 });
+  const f = pick(k === 'salt' ? SALTS : k === 'bo' ? [...BO, 'Fe2O3'].filter(x => x !== 'Li2O') : k === 'inb' ? [...INB, 'Fe(OH)3'] : CLS[k].pool), name = nameOf(f);
+  const same = Object.keys(INFO).filter(x => INFO[x].kind === INFO[f].kind && x !== f).map(nameOf);
+  const wrong = [...new Set([...shuffle(nameVariants(name)), ...shuffle(same)])].filter(x => x !== name).slice(0, 3);
+  const sol = [`${fHTML(f)} — ${name}`];
+  if (INFO[f].kind === 'salt') sol.push(`Назва солі: метал (з валентністю, якщо вона змінна) + назва кислотного залишку «${AN[INFO[f].a].n}» (від ${AN[INFO[f].a].an.replace(/на$/, 'ної')} кислоти).`);
+  return choiceOf('name', fTxt(f), `Як називається речовина <b>${fHTML(f)}</b>?`, [name, ...wrong], sol);
+}
+
+// Формула за назвою (з валентностями та НСК)
+function formulaSteps(f) {
+  const m = INFO[f];
+  if (m.form === 'salt') {
+    const v = CAT[m.c].v, q = AN[m.a].q, L = v * q / gcd(v, q);
+    return [`Валентність ${CAT[m.c].el} — ${ROM[v]}, кислотного залишку ${fHTML(m.a)} — ${ROM[q]}`,
+      `НСК(${v}, ${q}) = ${L} → індекси: ${CAT[m.c].el} — ${L / v}, ${fHTML(m.a)} — ${L / q}`];
+  }
+  if (m.form === 'oxide' || m.form === 'aox') {
+    const el = m.form === 'aox' ? AOX[f].el : CAT[m.c].el, v = m.form === 'aox' ? AOX[f].v : CAT[m.c].v, L = v * 2 / gcd(v, 2);
+    return [`Валентність ${el} — ${ROM[v]}, Оксигену — II`, `НСК(${v}, 2) = ${L} → ${el}: ${L / v}, O: ${L / 2}`];
+  }
+  if (m.form === 'base') return [`Валентність ${CAT[m.c].el} — ${ROM[CAT[m.c].v]} → стільки ж гідроксогруп OH`];
+  return [];
+}
+function tFname() {
+  const k = weighted({ salt: 5, oxide: 2, aox: 1, base: 2 });
+  const f = pick(k === 'salt' ? SALTS : Object.keys(INFO).filter(x => INFO[x].form === k));
+  return { type:'fname', label: nameOf(f), q: `Запишіть формулу речовини <b>${nameOf(f)}</b>.`, input:'formula',
+    right: fTxt(f), check: a => sameF(a, f), sol: [...formulaSteps(f), `Формула: <b>${fHTML(f)}</b>`] };
+}
+
+// Оксид → відповідний гідроксид (основа або кислота)
+const ACID_ALT = { H2SO4:['H2SO3', 'H2S'], H2SO3:['H2SO4', 'H2S'], HNO3:['HNO2', 'NH3'], H3PO4:['H3PO3', 'HPO3'], H2CO3:['H2C2O4', 'CH4'], H2SiO3:['H4Si', 'H2SO3'] };
+function tCorr() {
+  if (Math.random() < .5) {
+    const o = pick(AO), right = AOX[o].acid;
+    const wrong = [...new Set([...ACID_ALT[right], ...shuffle(ACIDS.filter(x => x !== right))])].slice(0, 3);
+    return choiceOf('corr', fTxt(o), `Яка кислота відповідає оксиду <b>${fHTML(o)}</b>?`, [fHTML(right), ...wrong.map(fHTML)],
+      [`У ${fHTML(o)} валентність ${AOX[o].el} — ${ROM[AOX[o].v]}; у відповідній кислоті вона така сама: ${fHTML(right)} (${nameOf(right)}).`]);
+  }
+  const c = pick(['Na', 'K', 'Ca', 'Ba', 'Mg', 'Cu', 'Fe2', 'Fe3', 'Zn', 'Al']), { el, v } = CAT[c], o = oxideOf(c), right = baseOf(c);
+  const wrong = [...[1, 2, 3].filter(x => x !== v).map(x => baseF(el, x)), oxideF(el, v === 1 ? 2 : 1)];
+  return choiceOf('corr', fTxt(o), `Який гідроксид відповідає оксиду <b>${fHTML(o)}</b>?`, [fHTML(right), ...wrong.map(fHTML)],
+    [`У ${fHTML(o)} валентність ${el} — ${ROM[v]} → у гідроксиді ${v === 1 ? 'одна група' : v + ' групи'} OH: ${fHTML(right)} (${nameOf(right)}).`]);
+}
+
+// Розчинність за таблицею
+function tSolub() {
+  const pool = [...SALTS, ...Object.keys(INFO).filter(x => INFO[x].form === 'base')];
+  const R_ = pool.filter(x => INFO[x].sol === 'Р'), N_ = pool.filter(x => INFO[x].sol === 'Н'), insol = Math.random() < .6;
+  const right = pick(insol ? N_ : R_), wrong = shuffle(insol ? R_ : N_).slice(0, 3);
+  const word = s => s === 'Р' ? 'розчинна' : 'нерозчинна';
+  return choiceOf('solub', insol ? 'нерозчинна' : 'розчинна', `Яка з речовин <b>${insol ? 'не розчиняється' : 'розчиняється'}</b> у воді?`,
+    [fHTML(right), ...wrong.map(fHTML)], [[right, ...wrong].map(f => `${fHTML(f)} — ${word(INFO[f].sol)}`).join('; '), 'Дивіться таблицю розчинності: «Р» — розчинна, «Н» — нерозчинна.']);
+}
+
+// Виберіть усі речовини класу
+function tPick() {
+  const k = pick(['bo', 'ao', 'alk', 'inb', 'acid', 'salt', 'amph']);
+  const mine = k === 'amph' ? [...AMO, ...AMH] : CLS[k].pool, pl = k === 'amph' ? 'амфотерні сполуки' : CLS[k].pl;
+  const others = [...BO, ...AO, ...AMO, ...ALKF, ...INB, ...AMH, ...ACIDS, ...shuffle(SALTS).slice(0, 8)].filter(f => !mine.includes(f));
+  const n = rint(2, Math.min(4, mine.length)), yes = shuffle(mine).slice(0, n);
+  const items = shuffle([...yes, ...shuffle([...new Set(others)]).slice(0, 8 - n)]);
+  const want = items.map((f, i) => yes.includes(f) ? i : -1).filter(i => i >= 0);
+  return { type:'pick', label: pl, q: `Виберіть <b>усі</b> ${pl}.`, input:'multi', items, want,
+    right: want.map(i => fTxt(items[i])).join(', '), check: a => a.length === want.length && want.every(i => a.includes(i)),
+    sol: items.map(f => { const c = clsOf(f); return `${fHTML(f)} — ${c ? CLS[c].n : nameOf(f)}`; }) };
+}
+
+// Продукти реакції: правильний варіант + «зіпсовані» (інша валентність, H₂ ↔ H₂O, без води)
+const GAS_ALT = { H2:'H2O', H2O:'H2', CO2:'CO', SO2:'SO3', H2S:'S' };
+function mutants(f) {
+  const m = INFO[f];
+  if (m && m.c && m.form) {
+    const { el, v } = CAT[m.c], mk = { salt: x => saltF(el, x, m.a), base: x => baseF(el, x), oxide: x => oxideF(el, x) }[m.form];
+    return [1, 2, 3].filter(x => x !== v).map(mk).filter(x => x !== f);
+  }
+  if (ACID_ALT[f]) return ACID_ALT[f];
+  return [];
+}
+function tReact(e = randR()) {
+  const right = e.rhs.map(fHTML).join(' + '), cands = [];
+  e.rhs.forEach((f, i) => {
+    mutants(f).forEach(g => cands.push(e.rhs.map((x, j) => j === i ? g : x)));
+    if (GAS_ALT[f]) cands.push(e.rhs.map((x, j) => j === i ? GAS_ALT[f] : x));
+  });
+  if (e.rhs.includes('H2O') && e.rhs.length > 1) cands.push(e.rhs.filter(x => x !== 'H2O'));
+  const wrong = [...new Set(shuffle(cands).map(c => c.map(fHTML).join(' + ')))].filter(x => x !== right);
+  if (Math.random() < .5 || wrong.length < 3) wrong.splice(2, 0, 'реакція не відбувається');
+  if (wrong.length < 3) wrong.push([...e.rhs, 'H2'].map(fHTML).join(' + '));
+  return choiceOf('react', plain(lhsHTML(e)), 'Які речовини утворяться?', [right, ...wrong.slice(0, 3)], [e.note, eqHTML(e)],
+    `<p class="scheme">${lhsHTML(e)} ${arrowHTML(e.cond)} ?</p>`);
+}
+
+// Коефіцієнти: реакція з генератора або крок генетичного ланцюжка
+function tCoef(e = Math.random() < .3 ? pick(pick(CHAINS).st) : randR()) {
+  const sol = [e.note, eqHTML(e)].filter(Boolean);
+  return { type:'coef', label: plain(eqHTML(e, null)), q: 'Розставте коефіцієнти (найменші цілі; коефіцієнт 1 теж впишіть).',
+    input:'coef', eq: e, right: plain(eqHTML(e)), check: a => e.k.every((x, i) => parseNum(a[i] ?? '') === x), sol };
+}
+
+// Можливість реакції: реагенти, що не взаємодіють
+const NOREACT = [
+  [['Cu', 'HCl'], 'Мідь стоїть у ряду активності після водню.'], [['Ag', 'H2SO4'], 'Срібло стоїть у ряду активності після водню.'],
+  [['Cu', 'ZnSO4'], 'Мідь менш активна, ніж цинк.'], [['Fe', 'MgCl2'], 'Залізо менш активне, ніж магній.'],
+  [['Ag', 'CuSO4'], 'Срібло менш активне, ніж мідь.'], [['Cu', 'FeSO4'], 'Мідь менш активна, ніж залізо.'], [['Zn', 'MgSO4'], 'Цинк менш активний, ніж магній.'],
+  [['NaCl', 'KNO3'], 'Не утворюється ні осаду, ні газу, ні води.'], [['Na2SO4', 'KCl'], 'Не утворюється ні осаду, ні газу, ні води.'],
+  [['Ba(NO3)2', 'KCl'], 'Не утворюється ні осаду, ні газу, ні води.'], [['ZnSO4', 'NaNO3'], 'Не утворюється ні осаду, ні газу, ні води.'],
+  [['CuCl2', 'KNO3'], 'Не утворюється ні осаду, ні газу, ні води.'], [['Na2SO4', 'HCl'], 'Не утворюється ні осаду, ні газу, ні води.'],
+  [['CO2', 'SO3'], 'Два кислотні оксиди між собою не реагують.'], [['CO2', 'HCl'], 'Кислотний оксид не реагує з кислотою.'],
+  [['SO3', 'HNO3'], 'Кислотний оксид не реагує з кислотою.'], [['CaO', 'NaOH'], 'Основний оксид не реагує з лугом.'],
+  [['Na2O', 'KOH'], 'Основний оксид не реагує з лугом.'], [['MgO', 'KOH'], 'Основний оксид не реагує з лугом.'],
+  [['CuO', 'H2O'], 'Оксиди малоактивних металів з водою не реагують.'], [['Fe2O3', 'H2O'], 'Оксиди малоактивних металів з водою не реагують.'],
+  [['SiO2', 'H2O'], 'SiO₂ (пісок) з водою не реагує.'], [['NaOH', 'KOH'], 'Дві основи між собою не реагують.'],
+  [['Cu(OH)2', 'KCl'], 'Нерозчинні основи із солями не реагують.'], [['Fe(OH)3', 'NaNO3'], 'Нерозчинні основи із солями не реагують.'],
+  [['HCl', 'HNO3'], 'Дві кислоти між собою не реагують.'], [['NaOH', 'Na2SO4'], 'Не утворюється ні осаду, ні газу, ні води.']
+];
+const nrHTML = n => n[0].map(fHTML).join(' + ');
+function tPossible() {
+  const pool = ['boAcid', 'aoAlk', 'boWater', 'neutr', 'insAcid', 'metAcid', 'metSalt', 'saltAlk', 'carbAcid', 'saltAcidPpt', 'saltSalt'];
+  if (Math.random() < .55) {
+    const e = randR(pool), nr = shuffle(NOREACT).slice(0, 3);
+    return choiceOf('possible', 'можлива', 'Яка з реакцій <b>можлива</b>?', [lhsHTML(e), ...nr.map(nrHTML)],
+      [eqHTML(e), e.note, ...nr.map(n => `${nrHTML(n)} — ${n[1]}`)]);
+  }
+  const nr = pick(NOREACT), es = [];
+  while (es.length < 3) { const e = randR(pool); if (!es.some(x => lhsHTML(x) === lhsHTML(e))) es.push(e); }
+  return choiceOf('possible', 'неможлива', 'Яка з реакцій <b>не відбувається</b>?', [nrHTML(nr), ...es.map(lhsHTML)],
+    [`${nrHTML(nr)} — ${nr[1]}`, ...es.map(e => eqHTML(e))]);
+}
+
+// Ланцюжок: знайти пропущену ланку X
+function tChain() {
+  const ch = pick(CHAINS), hide = rint(1, ch.s.length - 2), f = ch.s[hide];
+  return { type:'chain', label: ch.s.map((x, i) => i === hide ? 'X' : fTxt(x)).join(' → '), q: 'Визначте речовину X у ланцюжку перетворень. Запишіть її формулу.',
+    input:'formula', fig: chainHTML(ch, hide, false), figShown: chainHTML(ch, hide, true),
+    right: fTxt(f), check: a => sameF(a, f), sol: ch.st.map(e => eqHTML(e)) };
+}
+
+// Теоретичні питання: перша відповідь правильна
+const PROP = [
+  ['Оксиди — це:', ['сполуки двох елементів, один з яких — Оксиген', 'сполуки металу з гідроксогрупами', 'сполуки Гідрогену з кислотним залишком', 'будь-які речовини, що містять Оксиген'], 'Оксид — бінарна сполука з Оксигеном (валентність II): CaO, SO₂.'],
+  ['Основи — це сполуки, що складаються з:', ['атомів металу та гідроксогруп', 'атомів Гідрогену та кислотного залишку', 'атомів металу та кислотного залишку', 'двох елементів, один з яких — Оксиген'], 'Основа: Me(OH)ₙ, наприклад NaOH, Cu(OH)₂.'],
+  ['Кислоти — це сполуки, що складаються з:', ['атомів Гідрогену, здатних заміщуватися на метал, і кислотного залишку', 'атомів металу та гідроксогруп', 'атомів металу та кислотного залишку', 'неметалу та Оксигену'], 'HCl, H₂SO₄: Гідроген + кислотний залишок.'],
+  ['Солі — це сполуки, що складаються з:', ['атомів металу та кислотного залишку', 'атомів Гідрогену та кислотного залишку', 'атомів металу та гідроксогруп', 'двох неметалів'], 'NaCl, CuSO₄: метал + кислотний залишок.'],
+  ['Луги — це:', ['розчинні у воді основи', 'усі основи', 'нерозчинні основи', 'оксигеновмісні кислоти'], 'Луги: NaOH, KOH, Ba(OH)₂, Ca(OH)₂.'],
+  ['Колір фенолфталеїну в розчині лугу:', ['малиновий', 'безбарвний', 'синій', 'жовтий'], 'У лужному середовищі фенолфталеїн малиновий, у кислому й нейтральному — безбарвний.'],
+  ['Колір лакмусу в розчині кислоти:', ['червоний', 'синій', 'фіолетовий', 'малиновий'], 'Кислота — червоний, луг — синій, нейтральне середовище — фіолетовий.'],
+  ['Колір лакмусу в розчині лугу:', ['синій', 'червоний', 'фіолетовий', 'безбарвний'], 'У лужному середовищі лакмус синіє.'],
+  ['Колір метилоранжу в розчині кислоти:', ['рожевий (червоний)', 'жовтий', 'оранжевий', 'синій'], 'Кислота — рожевий, луг — жовтий, нейтральне — оранжевий.'],
+  ['Реакція між кислотою і основою називається реакцією:', ['нейтралізації', 'розкладу', 'заміщення', 'сполучення'], 'NaOH + HCl → NaCl + H₂O — нейтралізація.'],
+  ['Амфотерні гідроксиди реагують:', ['і з кислотами, і з лугами', 'лише з кислотами', 'лише з лугами', 'лише з водою'], 'Zn(OH)₂, Al(OH)₃ виявляють і основні, і кислотні властивості.'],
+  ['Реакція обміну в розчині відбувається, якщо:', ['утворюється осад, газ або вода', 'обидві речовини розчинні', 'утворюються дві розчинні солі', 'реагенти — тверді речовини'], 'Правило Бертолле: осад↓, газ↑ або вода.'],
+  ['Які метали витісняють водень з хлоридної кислоти?', ['ті, що стоять у ряду активності до водню', 'ті, що стоять після водню', 'усі метали', 'лише срібло й мідь'], 'Mg, Zn, Fe реагують з HCl; Cu, Ag — ні.'],
+  ['Метал витісняє інший метал з розчину його солі, якщо:', ['він стоїть у ряду активності лівіше', 'він стоїть у ряду активності правіше', 'у нього більша атомна маса', 'сіль нерозчинна'], 'Fe + CuSO₄ → FeSO₄ + Cu: залізо активніше за мідь.'],
+  ['Яка кислота безоксигенова?', ['HCl', 'H₂SO₄', 'HNO₃', 'H₃PO₄'], 'У HCl немає Оксигену.'],
+  ['Яка кислота нестійка й розкладається на воду та вуглекислий газ?', ['H₂CO₃', 'H₂SO₄', 'HCl', 'H₃PO₄'], 'H₂CO₃ → H₂O + CO₂↑'],
+  ['Яка кислота нерозчинна у воді?', ['H₂SiO₃', 'H₂SO₄', 'HNO₃', 'H₃PO₄'], 'Силікатна кислота випадає в осад.'],
+  ['Який оксид не взаємодіє з водою?', ['SiO₂', 'SO₃', 'CaO', 'Na₂O'], 'Пісок SiO₂ у воді не розчиняється і з нею не реагує.'],
+  ['Який оксид несолетворний?', ['CO', 'CO₂', 'SO₂', 'CaO'], 'CO, NO, N₂O не утворюють солей.'],
+  ['Яка основа розкладається під час нагрівання?', ['Cu(OH)₂', 'NaOH', 'KOH', 'Ba(OH)₂'], 'Нерозчинні основи розкладаються: Cu(OH)₂ → CuO + H₂O. Луги (NaOH, KOH, Ba(OH)₂) — ні.'],
+  ['Продукти розкладу нерозчинної основи під час нагрівання:', ['оксид металу і вода', 'метал і вода', 'метал, водень і кисень', 'сіль і вода'], 'Fe(OH)₂ → FeO + H₂O.'],
+  ['Що утвориться, якщо CO₂ пропустити через вапняну воду Ca(OH)₂?', ['CaCO₃ — розчин каламутніє', 'CaO', 'CaC₂', 'CaSO₄'], 'Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O — якісна реакція на CO₂.'],
+  ['Реактив для виявлення сульфат-йонів:', ['BaCl₂ (білий осад BaSO₄)', 'AgNO₃', 'NaOH', 'фенолфталеїн'], 'Ba²⁺ + SO₄²⁻ → BaSO₄↓'],
+  ['Реактив для виявлення хлорид-йонів:', ['AgNO₃ (білий сирнистий осад AgCl)', 'BaCl₂', 'NaOH', 'лакмус'], 'Ag⁺ + Cl⁻ → AgCl↓'],
+  ['Якого кольору осад Cu(OH)₂?', ['блакитний', 'бурий', 'білий', 'жовтий'], 'CuSO₄ + 2NaOH → Cu(OH)₂↓ (блакитний).'],
+  ['Якого кольору осад Fe(OH)₃?', ['бурий', 'блакитний', 'білий', 'зелений'], 'Fe(OH)₃ — бурий осад.'],
+  ['Основність кислоти визначає:', ['кількість атомів Гідрогену, здатних заміщуватися на метал', 'кількість атомів Оксигену', 'молярна маса кислоти', 'колір індикатора'], 'H₃PO₄ — триосновна, H₂SO₄ — двоосновна, HCl — одноосновна.'],
+  ['Солі сульфідної кислоти H₂S називаються:', ['сульфіди', 'сульфати', 'сульфіти', 'сульфони'], 'Na₂S — натрій сульфід.'],
+  ['Солі сульфітної кислоти H₂SO₃ називаються:', ['сульфіти', 'сульфати', 'сульфіди', 'сульфури'], 'Na₂SO₃ — натрій сульфіт.'],
+  ['Як правильно розбавляти сульфатну кислоту?', ['лити кислоту у воду тонким струменем', 'лити воду в кислоту', 'швидко змішати в будь-якому порядку', 'спершу нагріти кислоту'], 'Під час розчинення виділяється багато тепла — вода може закипіти й розбризкати кислоту.'],
+  ['Які оксиди реагують з водою з утворенням лугів?', ['оксиди лужних і лужноземельних металів', 'усі оксиди металів', 'оксиди неметалів', 'амфотерні оксиди'], 'Na₂O, K₂O, CaO, BaO + H₂O → луг; CuO, FeO — ні.']
+];
+const tProp = (i = Math.random() * PROP.length | 0) => { const [q, o, why] = PROP[i]; return choiceOf('prop', plain(q), q, o, [why]); };
+
+/* ---------- знайди помилку ---------- */
+const ERRORS = [
+  { task:'Класифікуйте оксиди CO₂, CaO, ZnO.', lines:['CO₂ — кислотний оксид', 'CaO — основний оксид', 'ZnO — основний оксид'], bad:2,
+    why:'ZnO — амфотерний оксид: реагує і з кислотами, і з лугами.' },
+  { task:'Складіть формулу алюміній сульфату.', lines:['Валентність Al — III, SO₄ — II', 'НСК(3, 2) = 6', 'Формула: Al₃(SO₄)₂'], bad:2,
+    why:'Індекс Al = 6 : 3 = 2, індекс SO₄ = 6 : 2 = 3: Al₂(SO₄)₃.' },
+  { task:'Чи реагує мідь з хлоридною кислотою?', lines:['Метали, що стоять у ряду активності до H, витісняють водень з кислот', 'Мідь стоїть у ряду активності до водню', 'Отже, Cu + 2HCl → CuCl₂ + H₂↑'], bad:1,
+    why:'Мідь стоїть після водню, тому з хлоридною кислотою не реагує.' },
+  { task:'Обчисліть молярну масу Ca(OH)₂.', lines:['Ca(OH)₂: 1 атом Ca і 2 групи OH', 'M = 40 + 16 + 1·2', '= 58 г/моль'], bad:1,
+    why:'Індекс 2 стосується всієї групи OH: M = 40 + (16 + 1)·2 = 74 г/моль.' },
+  { task:'Що утвориться: SO₂ + H₂O → ?', lines:['SO₂ — кислотний оксид', 'Кислотний оксид + вода → кислота', 'SO₂ + H₂O → H₂SO₄'], bad:2,
+    why:'У SO₂ Сульфур чотиривалентний — утворюється сульфітна кислота H₂SO₃.' },
+  { task:'Допишіть: CuSO₄ + NaOH → ?', lines:['Це реакція обміну', 'CuSO₄ + 2NaOH → Cu(OH)₂ + Na₂SO₄', 'Реакція відбувається, бо виділяється газ'], bad:2,
+    why:'Газу немає: реакція йде, бо Cu(OH)₂ — нерозчинна основа (блакитний осад).' },
+  { task:'Що утвориться, якщо залізо помістити в хлоридну кислоту?', lines:['Залізо стоїть у ряду активності до водню', 'Утворюються сіль і водень', '2Fe + 6HCl → 2FeCl₃ + 3H₂↑'], bad:2,
+    why:'З хлоридною кислотою залізо утворює сіль Fe(II): Fe + 2HCl → FeCl₂ + H₂↑.' },
+  { task:'Складіть рівняння нейтралізації H₂SO₄ і NaOH.', lines:['Продукти — сіль і вода', 'Сіль — Na₂SO₄', 'H₂SO₄ + NaOH → Na₂SO₄ + H₂O'], bad:2,
+    why:'Рівняння не врівноважене: H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O.' },
+  { task:'Класифікуйте основи NaOH, Cu(OH)₂, Ba(OH)₂.', lines:['NaOH — луг', 'Cu(OH)₂ — луг', 'Ba(OH)₂ — луг'], bad:1,
+    why:'Cu(OH)₂ нерозчинний у воді — це нерозчинна основа.' },
+  { task:'Яка маса солі утвориться з 0,2 моль CuO і надлишку H₂SO₄?', lines:['CuO + H₂SO₄ → CuSO₄ + H₂O', 'n(CuSO₄) = n(CuO) = 0,2 моль', 'm(CuSO₄) = 0,2 · 80 = 16 г'], bad:2,
+    why:'80 г/моль — це M(CuO). M(CuSO₄) = 160 г/моль, m = 0,2 · 160 = 32 г.' },
+  { task:'Чи відбувається реакція NaCl + KNO₃?', lines:['Обидві солі розчинні', 'Можливі продукти NaNO₃ і KCl — теж розчинні', 'Реакція відбувається, бо утворюються нові солі'], bad:2,
+    why:'Немає ні осаду, ні газу, ні води — реакція обміну не відбувається.' },
+  { task:'Яка кислота відповідає оксиду P₂O₅?', lines:['У P₂O₅ валентність Фосфору — V', 'У кислоті валентність P має бути такою самою', 'Це H₃PO₃'], bad:2,
+    why:'Валентність V у ортофосфатній кислоті H₃PO₄.' },
+  { task:'Які гідроксиди розкладаються під час нагрівання?', lines:['Cu(OH)₂ —t°→ CuO + H₂O', '2Fe(OH)₃ —t°→ Fe₂O₃ + 3H₂O', '2NaOH —t°→ Na₂O + H₂O'], bad:2,
+    why:'Луги NaOH, KOH під час нагрівання не розкладаються — плавляться.' },
+  { task:'Допишіть: Na₂CO₃ + 2HCl → ?', lines:['Це реакція обміну', 'Утворюється H₂CO₃, яка одразу розкладається', 'Продукти: 2NaCl + H₂O + CO↑'], bad:2,
+    why:'H₂CO₃ розкладається на воду і вуглекислий газ CO₂, а не CO.' },
+  { task:'Чи реагує CO₂ з HCl?', lines:['CO₂ — кислотний оксид', 'Кислотні оксиди реагують з лугами та основними оксидами', 'Отже, CO₂ реагує з HCl'], bad:2,
+    why:'HCl — кислота, а кислотний оксид з кислотами не реагує.' },
+  { task:'Обчисліть масову частку Оксигену в CaCO₃.', lines:['M(CaCO₃) = 40 + 12 + 48 = 100 г/моль', 'w(O) = 16 / 100', '= 16 %'], bad:1,
+    why:'Атомів O три: w(O) = 48 / 100 = 48 %.' },
+  { task:'Складіть формулу ферум(III) оксиду.', lines:['Валентність Fe — III, O — II', 'НСК(3, 2) = 6', 'Формула: Fe₃O₂'], bad:2,
+    why:'Fe: 6 : 3 = 2, O: 6 : 2 = 3 → Fe₂O₃.' },
+  { task:'Назвіть сіль Na₂SO₃.', lines:['Na — метал, SO₃ — кислотний залишок', 'SO₃ — залишок сульфатної кислоти', 'Назва: натрій сульфат'], bad:1,
+    why:'SO₃ — залишок сульфітної кислоти H₂SO₃: натрій сульфіт. Сульфат — це SO₄.' }
+];
+function tErr(i = Math.random() * ERRORS.length | 0) {
+  const e = ERRORS[i];
+  return { type:'err', label: e.task, q: e.task, input:'err', lines: e.lines, right: e.lines[e.bad], check: a => a === e.bad, sol: [e.why] };
+}
+
+/* ---------- задачі ---------- */
+const NICE = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 0.8, 1, 1.2, 1.5, 2];
+const isGas = f => GAS.has(f);
+const nonW = fs => fs.map((f, i) => i).filter(i => fs[i] !== 'H2O' && fs[i] !== 'O2');
+const amt = (f, n) => isGas(f) ? n * VM : n * molar(f);    // г або л
+const unitOf = f => isGas(f) ? 'л' : 'г';
+const qty = f => isGas(f) ? 'об\'єм (н.у.)' : 'масу';
+const verbOf = f => isGas(f) ? 'виділиться' : 'утвориться';
+const ratio = (e, gi, ai) => [e.k[gi], e.k[e.lhs.length + ai]];
+const nLine = (f, n, val) => isGas(f) ? `n(${fHTML(f)}) = ${fmt(val)} / 22,4 = ${fmt(n, 3)} моль`
+  : `M(${fHTML(f)}) = ${fmt(molar(f))} г/моль, n(${fHTML(f)}) = ${fmt(val)} / ${fmt(molar(f))} = ${fmt(n, 3)} моль`;
+const outLines = (X, Y, kG, kA, nG, nA) => [
+  kA === kG ? `За рівнянням n(${fHTML(Y)}) = n(${fHTML(X)}) = ${fmt(nA, 3)} моль` : `За рівнянням n(${fHTML(Y)}) = ${kA}/${kG} · ${fmt(nG, 3)} = ${fmt(nA, 3)} моль`,
+  isGas(Y) ? `V(${fHTML(Y)}) = ${fmt(nA, 3)} · 22,4 = ${fmt(nA * VM)} л` : `M(${fHTML(Y)}) = ${fmt(molar(Y))} г/моль, m(${fHTML(Y)}) = ${fmt(nA, 3)} · ${fmt(molar(Y))} = ${fmt(nA * molar(Y))} г`
+];
+const answerOf = (type, label, q, fig, Y, x, sol) => ({ type, label, q, fig, input:'num', unit: unitOf(Y),
+  right: `${fmt(x)} ${unitOf(Y)}`, check: a => near(isGas(Y) ? 'V' : 'm', a, x), sol });
+const schemeFig = e => `<p class="scheme">${eqHTML(e, null)}</p>`;
+// Надлишок багатоосновної кислоти чи кислотного оксиду з лугом дає кислу сіль — такі умови не беремо
+const badExcess = (e, gi) => { const p = e.lhs.filter((f, i) => i !== gi);
+  return p.some(f => ['CO2', 'SO2', 'P2O5', 'H3PO4'].includes(f)) || (p.includes('H2SO4') && e.lhs.some(f => INFO[f] && INFO[f].kind === 'alk')); };
+const partners = (e, gi) => e.lhs.filter((f, i) => i !== gi && f !== 'H2O').map(fHTML).join(', ');
+
+// Маса / об'єм продукту за масою реагенту
+function tMass() {
+  const fams = ['boAcid', 'aoAlk', 'boWater', 'neutr', 'insAcid', 'decomp', 'carbDecomp', 'metAcid', 'metAcid', 'metSalt', 'saltAlk', 'carbAcid', 'saltAcidPpt', 'saltSalt'];
+  for (;;) {
+    const e = randR(fams), gi = pick(nonW(e.lhs)), ai = pick(nonW(e.rhs)), [kG, kA] = ratio(e, gi, ai);
+    const base = pick(NICE), nG = kG * base, nA = kA * base, X = e.lhs[gi], Y = e.rhs[ai], val = round(amt(X, nG), 6);
+    if (!isRound2(val) || val > 400 || !isRound3(nG) || badExcess(e, gi)) continue;
+    const p = partners(e, gi), x = amt(Y, nA);
+    return answerOf('mass', `${fmt(val)} ${unitOf(X)} ${fTxt(X)} → ${fTxt(Y)}`,
+      `Обчисліть ${qty(Y)} ${nm(Y)}, що ${verbOf(Y)}, якщо в реакцію вступило ${fmt(val)} ${unitOf(X)} ${nm(X)}${p ? ` (${p} — у надлишку)` : ''}.`,
+      schemeFig(e), Y, x, [eqHTML(e), nLine(X, nG, val), ...outLines(X, Y, kG, kA, nG, nA)]);
+  }
+}
+
+// Реагент у розчині з масовою часткою
+const canSol = f => INFO[f] && ((INFO[f].kind === 'acid' && ['HCl', 'HNO3', 'H2SO4', 'H3PO4'].includes(f)) || (INFO[f].kind === 'alk' && f !== 'Ca(OH)2') || (INFO[f].kind === 'salt' && INFO[f].sol === 'Р'));
+function tSolTask() {
+  const fams = ['neutr', 'boAcid', 'insAcid', 'metAcid', 'metSalt', 'saltAlk', 'saltSalt', 'carbAcid', 'saltAcidPpt'];
+  for (;;) {
+    const e = randR(fams), gis = e.lhs.map((f, i) => i).filter(i => canSol(e.lhs[i]));
+    if (!gis.length) continue;
+    const gi = pick(gis), ai = pick(nonW(e.rhs)), [kG, kA] = ratio(e, gi, ai), X = e.lhs[gi], Y = e.rhs[ai];
+    const base = pick(NICE), nG = kG * base, nA = kA * base, mX = round(nG * molar(X), 6), w = pick([2, 4, 5, 8, 10, 12, 15, 20, 25]), ms = round(mX * 100 / w, 6);
+    if (!isRound2(mX) || !isRound2(ms) || ms > 1000 || ms < 20 || badExcess(e, gi)) continue;
+    const x = amt(Y, nA);
+    return answerOf('sol', `${fmt(ms)} г розчину ${fTxt(X)}, ${w} % → ${fTxt(Y)}`,
+      `До ${fmt(ms)} г розчину ${nm(X)} з масовою часткою розчиненої речовини ${w} % додали надлишок ${partners(e, gi)}. Обчисліть ${qty(Y)} ${fHTML(Y)}, що ${verbOf(Y)}.`,
+      schemeFig(e), Y, x, [eqHTML(e), `m(${fHTML(X)}) = m(розчину) · w = ${fmt(ms)} · ${fmt(w / 100)} = ${fmt(mX)} г`, nLine(X, nG, mX), ...outLines(X, Y, kG, kA, nG, nA)]);
+  }
+}
+
+// Технічний зразок з домішками
+function tImpure() {
+  const fams = ['carbDecomp', 'carbAcid', 'metAcid', 'metAcid', 'decomp'];
+  for (;;) {
+    const e = randR(fams), X = e.lhs[0];
+    if (INFO[X].kind === 'salt' && INFO[X].sol !== 'Н' && INFO[X].sol !== 'М') continue;   // лише тверді зразки
+    const ai = e.rhs.findIndex(isGas) >= 0 ? e.rhs.findIndex(isGas) : pick(nonW(e.rhs)), [kG, kA] = ratio(e, 0, ai), Y = e.rhs[ai];
+    const base = pick(NICE), nG = kG * base, nA = kA * base, m = round(nG * molar(X), 6), p = pick([4, 5, 8, 10, 12, 15, 20, 25]), mt = round(m * 100 / (100 - p), 6);
+    if (!isRound2(m) || !isRound2(mt) || mt > 500) continue;
+    const act = e.lhs.length === 1 ? 'прожарили' : `обробили надлишком ${partners(e, 0)}`, x = amt(Y, nA);
+    return answerOf('impure', `${fmt(mt)} г ${fTxt(X)}, ${p} % домішок → ${fTxt(Y)}`,
+      `${fmt(mt)} г технічного зразка ${nm(X)}, що містить ${p} % домішок, ${act}. Обчисліть ${qty(Y)} ${fHTML(Y)}, що ${verbOf(Y)}. Домішки не реагують.`,
+      schemeFig(e), Y, x, [eqHTML(e), `w(${fHTML(X)}) = 100 % − ${p} % = ${100 - p} %, m(${fHTML(X)}) = ${fmt(mt)} · ${fmt((100 - p) / 100)} = ${fmt(m)} г`, nLine(X, nG, m), ...outLines(X, Y, kG, kA, nG, nA)]);
+  }
+}
+
+// Один з реагентів у надлишку
+function tExcess() {
+  const fams = ['neutr', 'boAcid', 'insAcid', 'metAcid', 'metSalt', 'saltAlk', 'saltSalt', 'carbAcid', 'saltAcidPpt'];
+  for (;;) {
+    const e = randR(fams);
+    if (e.lhs.length !== 2) continue;
+    const li = rint(0, 1), oi = 1 - li, ai = pick(nonW(e.rhs)), L = e.lhs[li], O = e.lhs[oi], Y = e.rhs[ai];
+    const base = pick(NICE), f = pick([1.5, 2, 2.5, 3]), nL = e.k[li] * base, nO = e.k[oi] * base * f, nA = e.k[e.lhs.length + ai] * base;
+    const mL = round(nL * molar(L), 6), mO = round(nO * molar(O), 6);
+    if (!isRound2(mL) || !isRound2(mO) || mL > 400 || mO > 400 || !isRound3(nO) || badExcess(e, li)) continue;
+    const [m1, m2, f1, f2, n1, n2, k1, k2] = li === 0 ? [mL, mO, L, O, nL, nO, e.k[0], e.k[1]] : [mO, mL, O, L, nO, nL, e.k[0], e.k[1]];
+    const x = amt(Y, nA);
+    return answerOf('excess', `${fmt(m1)} г ${fTxt(f1)} + ${fmt(m2)} г ${fTxt(f2)} → ${fTxt(Y)}`,
+      `Для реакції взяли ${fmt(m1)} г ${nm(f1)} і ${fmt(m2)} г ${nm(f2)}. Обчисліть ${qty(Y)} ${fHTML(Y)}, що ${verbOf(Y)}.`, schemeFig(e), Y, x,
+      [eqHTML(e), nLine(f1, n1, m1), nLine(f2, n2, m2),
+        `Порівнюємо n/коефіцієнт: ${fHTML(f1)} — ${fmt(n1, 3)}/${k1} = ${fmt(n1 / k1, 3)}, ${fHTML(f2)} — ${fmt(n2, 3)}/${k2} = ${fmt(n2 / k2, 3)}`,
+        `${fHTML(O)} у надлишку, розрахунок ведемо за ${fHTML(L)}`, ...outLines(L, Y, e.k[li], e.k[e.lhs.length + ai], nL, nA)]);
+  }
+}
+
+// Масова частка елемента в сполуці
+function tWel() {
+  const f = pick([...SALTS, ...SALTS, ...BO, ...AO, ...ALKF, ...INB, ...ACIDS, ...AMO]), p = parseF(f), M = molar(f);
+  const el = pick(p.order.filter(x => x !== 'H' || p.order.length === 2 || INFO[f].kind === 'acid')), n = p.counts[el], w = n * AR[el] / M * 100;
+  return { type:'wel', label: `w(${el}) у ${fTxt(f)}`, q: `Обчисліть масову частку елемента <b>${el}</b> у сполуці ${nm(f)}.`, input:'num', unit:'%',
+    right: `${fmt(w, 1)} %`, check: a => nearPct(a, w),
+    sol: [`M(${fHTML(f)}) = ${p.order.map(x => `${p.counts[x] > 1 ? p.counts[x] + '·' : ''}${fmt(AR[x])}`).join(' + ')} = ${fmt(M)} г/моль`,
+      `w(${el}) = ${n > 1 ? n + '·' : ''}${fmt(AR[el])} / ${fmt(M)} · 100 % ≈ ${fmt(w, 1)} %`] };
+}
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  cls: { kind: 'all', t: null, shown: false },
+  eq: { kind: 'all', t: null, shown: false },
+  prob: { kind: 'all', t: null, shown: false },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+const stepsHTML = sol => `<ol class="steps">${sol.map(s => `<li>${s}</li>`).join('')}</ol>`;
+
+// Рівняння: 'blank' — порожні клітинки, 'filled' — з відповіддю, 'input' — поля для учня
+function coefHTML(t, mode) {
+  const e = t.eq;
+  const sp = (f, i) => {
+    const box = mode === 'input' ? `<input class="co" data-c="${i}" inputmode="numeric" autocomplete="off" aria-label="Коефіцієнт перед ${fTxt(f)}" value="${esc(t.ans[i] ?? '')}">`
+      : mode === 'filled' ? `<b class="co-f">${e.k[i]}</b>` : '<span class="co-b"></span>';
+    return `<span class="sp">${box}<span>${spHTML(e, f)}</span></span>`;
+  };
+  const side = (fs, off) => fs.map((f, i) => sp(f, off + i)).join('<span>+</span>');
+  return `<div class="eq">${side(e.lhs, 0)}<span class="arr">${e.cond ? `<small>${e.cond}</small>` : ''}→</span>${side(e.rhs, e.lhs.length)}</div>`;
+}
+
+/* ---------- тренажери ---------- */
+const GEN_TABS = {
+  cls: { kinds: [['all', 'Усі'], ['cls', 'Клас'], ['name', 'Назва'], ['fname', 'Формула'], ['corr', 'Оксид → гідроксид'], ['solub', 'Розчинність'], ['pick', 'Вибери всі'], ['prop', 'Теорія']],
+    gen: k => ({ cls: tCls, name: tName, fname: tFname, corr: tCorr, solub: tSolub, pick: tPick, prop: () => tProp() })[k === 'all' ? pick(['cls', 'cls', 'name', 'fname', 'corr', 'solub', 'pick', 'prop']) : k]() },
+  eq: { kinds: [['all', 'Усі'], ['react', 'Продукти'], ['coef', 'Коефіцієнти'], ['possible', 'Чи можлива'], ['chain', 'Ланцюжки']],
+    gen: k => ({ react: () => tReact(), coef: () => tCoef(), possible: tPossible, chain: tChain })[k === 'all' ? pick(['react', 'react', 'coef', 'coef', 'possible', 'chain']) : k]() },
+  prob: { kinds: [['all', 'Усі'], ['mass', 'За рівнянням'], ['sol', 'Розчини'], ['impure', 'Домішки'], ['excess', 'Надлишок'], ['wel', 'Масова частка']],
+    gen: k => ({ mass: tMass, sol: tSolTask, impure: tImpure, excess: tExcess, wel: tWel })[k === 'all' ? pick(['mass', 'mass', 'sol', 'impure', 'excess', 'wel']) : k]() }
+};
+function renderProb() {
+  const st = S[S.mode];
+  if (!st.t) st.t = GEN_TABS[S.mode].gen(st.kind);
+  const t = st.t;
+  const body = t.input === 'choice' ? `<div class="opts">${t.opts.map(o => `<div class="opt">${o.html}</div>`).join('')}</div>`
+    : t.input === 'multi' ? `<div class="cells">${t.items.map((f, i) => `<div class="opt${st.shown && t.want.includes(i) ? ' right' : ''}">${fHTML(f)}</div>`).join('')}</div>` : '';
+  stage.innerHTML = `
+    <div class="task">
+      <div class="seg" role="group" aria-label="Тип завдань">${GEN_TABS[S.mode].kinds.map(([k, l]) =>
+        `<button data-kind="${k}" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+      <p class="q">${t.q}</p>
+      ${(st.shown && t.figShown) || t.fig || ''}
+      ${t.input === 'coef' ? coefHTML(t, st.shown ? 'filled' : 'blank') : ''}
+      ${body}
+      ${st.shown ? `${stepsHTML(t.sol)}<div class="note ok">Відповідь: <strong>${esc(t.right)}</strong></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.kind = b.dataset.kind; nextProb(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextProb() : showProb();
+}
+function showProb() { S[S.mode].shown = true; renderProb(); }
+function nextProb() { const st = S[S.mode]; st.shown = false; st.t = GEN_TABS[S.mode].gen(st.kind); renderProb(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Учень розв'язав так. У якому рядку помилка?</p>
+        <p class="q">${e.task}</p>
+      </div>
+      <div class="lines">${e.lines.map((l, i) => `<div class="line${st.shown && i === e.bad ? ' wrong' : ''}">${l}</div>`).join('')}</div>
+      ${st.shown ? `<div class="note bad">${e.why}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+// Бали за завдання залежно від складності (разом 37)
+const PTS = { prop: 1, cls: 1, name: 1, fname: 1, corr: 1, solub: 1, pick: 2, react: 2, coef: 2, possible: 2, chain: 2, err: 2, wel: 2, mass: 3, sol: 3, impure: 3, excess: 3 };
+
+// Дві реакції / два розрахунки — з різних типів
+function distinct(gen, n, key) {
+  const out = [];
+  for (let g = 0; out.length < n && g < 200; g++) { const t = gen(); if (!out.some(x => key(x) === key(t)) || g > 150) out.push(t); }
+  return out;
+}
+
+// Від простого до складного
+function makeTest() {
+  const [p1, p2] = shuffle(PROP.map((_, i) => i));
+  const tasks = [tProp(p1), tCls(), tName(), tFname(), tCorr(), tSolub(), tProp(p2), tPick(),
+    ...distinct(() => tReact(), 2, t => t.sol[0]), ...distinct(() => tCoef(), 2, t => t.sol[0]), tPossible(), tChain(), tErr(), tWel(),
+    ...distinct(tMass, 2, t => t.sol[0].replace(/<[^>]+>|\d/g, '').slice(0, 6)), tSolTask(), (pick([tImpure, tExcess]))()];
+  return tasks.map(t => ({ ...t, pts: PTS[t.type], ans: t.input === 'choice' || t.input === 'err' ? null : t.input === 'coef' ? {} : t.input === 'multi' ? [] : '' }));
+}
+
+function answered(t) {
+  if (t.input === 'choice' || t.input === 'err') return t.ans !== null;
+  if (t.input === 'coef') return [...t.eq.lhs, ...t.eq.rhs].every((_, i) => String(t.ans[i] ?? '').trim() !== '');
+  if (t.input === 'multi') return t.ans.length > 0;
+  return t.ans.trim() !== '';
+}
+
+function givenText(t) {
+  if (t.input === 'choice') return t.opts[t.ans].txt;
+  if (t.input === 'err') return t.lines[t.ans];
+  if (t.input === 'coef') return plain(eqHTML(t.eq, t.eq.k.map((_, i) => String(t.ans[i]).trim() === '1' ? 1 : String(t.ans[i]).trim())));
+  if (t.input === 'multi') return t.ans.slice().sort((a, b) => a - b).map(i => fTxt(t.items[i])).join(', ');
+  return t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+}
+function grade(t) {
+  return { ok: t.check(t.ans), label: TYPE[t.type] + (t.label ? ' · ' + t.label : ''), given: givenText(t), right: t.right, sol: t.sol };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Основні класи неорганічних сполук</h1></div>
+      <div class="facts"><span class="chip">Оксиди</span><span class="chip">Основи</span><span class="chip">Кислоти</span><span class="chip">Солі</span><span class="chip">V<sub>m</sub> = 22,4 л/моль</span></div>
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="8-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Класифікація та назви сполук, розчинність, рівняння реакцій, генетичні ланцюжки, пошук помилок, розрахункові задачі.</li>
+        <li>Користуйтеся таблицею розчинності та рядом активності металів. Ar: H — 1, O — 16, S — 32, Cl — 35,5, Cu — 64, Ca — 40 (повний список — у періодичній системі).</li>
+        <li>Формули пишіть латиницею: Al2(SO4)3 (індекси — звичайними цифрами). Десяткові дроби можна писати з комою.</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+// Показує, як програма прочитала формулу
+function fPreview(raw) {
+  if (!raw.trim()) return '';
+  const f = normF(raw);
+  return parseF(f) ? fHTML(f) : '<p class="hint">Не вдалося прочитати формулу. Приклад: Al2(SO4)3</p>';
+}
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  let body = '';
+  if (t.input === 'num' || t.input === 'formula') {
+    const f = t.input === 'formula';
+    body = `
+      <div class="ans-row">
+        <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"${f ? '' : ' inputmode="decimal"'}
+          placeholder="${f ? 'Наприклад, CuSO4' : 'Число'}" aria-label="Відповідь" value="${esc(t.ans)}">
+        ${t.unit ? `<span class="unit">${t.unit}</span>` : ''}
+      </div>
+      ${f ? `<div class="preview" id="t-prev" aria-live="polite">${fPreview(t.ans)}</div>` : ''}
+      <p class="hint">${f ? 'Латиницею, індекси — звичайними цифрами: Ca(OH)2' : 'Десятковий дріб можна писати з комою: 0,25'}</p>`;
+  } else if (t.input === 'choice') {
+    body = `<div class="opts">${t.opts.map((o, i) =>
+      `<button class="opt" data-o="${i}" aria-pressed="${t.ans === i}">${o.html}</button>`).join('')}</div>`;
+  } else if (t.input === 'multi') {
+    body = `<div class="cells">${t.items.map((f, i) =>
+      `<button class="opt" data-m="${i}" aria-pressed="${t.ans.includes(i)}">${fHTML(f)}</button>`).join('')}</div>
+      <p class="hint">Правильних відповідей може бути кілька. Повторне натискання знімає вибір.</p>`;
+  } else if (t.input === 'coef') {
+    body = coefHTML(t, 'input');
+  } else {
+    body = `
+      <p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>
+      <div class="lines">${t.lines.map((l, i) =>
+        `<button class="line${t.ans === i ? ' picked' : ''}" data-l="${i}" aria-pressed="${t.ans === i}">${l}</button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      <p class="q">${t.q}</p>
+      ${t.fig || ''}
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    const prev = document.getElementById('t-prev');
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); if (prev) prev.innerHTML = fPreview(t.ans); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  const cos = stage.querySelectorAll('[data-c]');
+  cos.forEach((c, i) => {
+    c.oninput = () => { t.ans[c.dataset.c] = c.value; next.disabled = !answered(t); };
+    c.onkeydown = e => { if (e.key === 'Enter') { if (cos[i + 1]) cos[i + 1].focus(); else goNext(); } };
+  });
+  if (cos.length) cos[0].focus();
+  stage.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.o; renderTask(); stage.querySelector(`[data-o="${b.dataset.o}"]`).focus();
+  });
+  stage.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.m, k = t.ans.indexOf(i);
+    if (k >= 0) t.ans.splice(k, 1); else t.ans.push(i);
+    renderTask(); stage.querySelector(`[data-m="${i}"]`).focus();
+  });
+  stage.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.l; renderTask(); stage.querySelector(`[data-l="${b.dataset.l}"]`).focus();
+  });
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${esc(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, cls: renderProb, eq: renderProb, prob: renderProb, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const st = S[S.mode], err = S.mode === 'err';
+  if (e.key === 'ArrowRight') { e.preventDefault(); err ? nextErr() : nextProb(); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); st.shown ? (err ? nextErr() : nextProb()) : (err ? showErr() : showProb()); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>

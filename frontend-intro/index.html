@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Що таке фронтенд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Ознайомча сторінка «Що таке фронтенд». Каркас і токени — як у сайтах-тестах. Три мови мають свої кольори: HTML теплий, CSS синій, JS жовтий. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --html: #d9653b;  --html-soft: #fbe6dc;
+  --css: #2f6fd6;   --css-soft: #dde8fb;
+  --js: #a67c00;    --js-soft: #fbf0c9;
+  --ok: #2f8a4c;    --ok-soft: #dcf1e2;
+  --bad: #c23b3b;   --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --code-bg: #141a22; --code-ink: #dbe3ec; --code-muted: #6f7d8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --html: #f08a62; --html-soft: #3a2419; --css: #6fa0f0; --css-soft: #18263d; --js: #e8c14a; --js-soft: #352c10;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    --code-bg: #0b1016;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --html: #f08a62; --html-soft: #3a2419; --css: #6fa0f0; --css-soft: #18263d; --js: #e8c14a; --js-soft: #352c10;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  --code-bg: #0b1016;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: 48px;
+}
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+/* top bar */
+.bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 0; background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1rem; white-space: nowrap; }
+.nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a {
+  flex: none; text-decoration: none; color: var(--muted); font-weight: 600; font-size: .9rem;
+  padding: 8px 12px; border-radius: 9px;
+}
+.nav a:hover { background: var(--surface); color: var(--ink); }
+.nav a.on { background: var(--ink); color: var(--bg); }
+.icon-btn { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* sections */
+.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: 24px; }
+.sec > * { min-width: 0; }
+.kicker { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.lead { font-size: 1.1rem; color: var(--muted); margin: 0; max-width: 62ch; }
+.sec p { margin: 0; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.tag-html { color: var(--html); } .tag-css { color: var(--css); } .tag-js { color: var(--js); }
+b.tag-html, b.tag-css, b.tag-js { font-weight: 700; }
+
+/* pages: one section at a time */
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pager-n { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.btn:disabled { opacity: .35; cursor: default; }
+.sec.cur { animation: pageIn .25s ease; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } }
+
+/* hero */
+.hero { padding-block: 56px; background:
+  radial-gradient(circle at 92% 10%, var(--css-soft), transparent 40%),
+  radial-gradient(circle at 8% 100%, var(--html-soft), transparent 45%), var(--surface); }
+.hero .h { font-size: clamp(2rem, 6vw, 3.6rem); max-width: 16ch; }
+.hero .lead { font-size: 1.2rem; }
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.trio-item { border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.trio-item strong { font-family: var(--f-display); font-size: 1.3rem; }
+.trio-item span { color: var(--muted); font-size: 1rem; }
+.trio-item.html { background: var(--html-soft); } .trio-item.html strong { color: var(--html); }
+.trio-item.css { background: var(--css-soft); } .trio-item.css strong { color: var(--css); }
+.trio-item.js { background: var(--js-soft); } .trio-item.js strong { color: var(--js); }
+
+/* segmented control */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 4px; align-self: flex-start; }
+.seg button { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* buttons */
+.btn { border: 0; border-radius: 12px; padding: 12px 20px; font-weight: 600; cursor: pointer; background: var(--ink); color: var(--bg); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn:active { transform: translateY(1px); }
+
+/* demo card — those styles are what CSS "adds" in the layers demo */
+.demo { border: 2px dashed var(--line); border-radius: 18px; padding: 28px; min-height: 320px; display: grid; place-items: center; background: var(--bg); position: relative; }
+.card {
+  width: min(100%, 300px); background: var(--surface); border-radius: 22px; padding: 28px 24px;
+  text-align: center; box-shadow: 0 14px 40px rgba(21, 32, 46, .14); display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.card .avatar { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-size: 52px; background: linear-gradient(135deg, #ffd8a8, #ffb3c1); }
+.card h3 { font-family: var(--f-display); font-size: 1.35rem; margin: 6px 0 0; }
+.card p { color: var(--muted); font-size: 1rem; }
+.card .row { display: flex; gap: 8px; margin-top: 8px; }
+.card button { border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 600; cursor: pointer; background: #ffe1e8; color: #b3264f; }
+.card button.pet { background: var(--ink); color: var(--bg); }
+.card .purr { font-weight: 700; color: var(--html); }
+.card.liked .like { background: #e8335f; color: #fff; }
+.card .avatar.wiggle { animation: wiggle .5s ease; }
+@keyframes wiggle { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+
+/* layer "HTML only": throw away all our CSS and fall back to browser defaults */
+.demo[data-layer="html"] { background: #fff; color: #000; border-color: var(--html); place-items: start; }
+.demo[data-layer="html"] .card,
+.demo[data-layer="html"] .card * { all: revert; }
+.demo[data-layer="css"] { border-color: var(--css); }
+.demo[data-layer="js"] { border-color: var(--js); border-style: solid; }
+.toast {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 10px; font-size: .9rem; font-weight: 600;
+  white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis;
+}
+.layer-note { border-radius: 14px; padding: 18px 20px; font-size: 1.05rem; }
+.layer-note[data-layer="html"] { background: var(--html-soft); }
+.layer-note[data-layer="css"] { background: var(--css-soft); }
+.layer-note[data-layer="js"] { background: var(--js-soft); }
+.layer-note strong { display: block; font-family: var(--f-display); font-size: 1.1rem; margin-bottom: 6px; }
+
+/* code */
+.code {
+  background: var(--code-bg); color: var(--code-ink); border-radius: 14px; padding: 18px 0;
+  font-family: var(--f-mono); font-size: .92rem; line-height: 1.7; overflow-x: auto; margin: 0; tab-size: 2;
+}
+.code .ln { display: block; padding: 0 20px; white-space: pre; border-left: 3px solid transparent; cursor: default; }
+.code .ln[data-part] { cursor: pointer; }
+.code .ln.hl { background: rgba(255, 255, 255, .08); border-left-color: var(--html); }
+.code .t { color: #ff9e7a; } .code .a { color: #9cc4ff; } .code .s { color: #b7e39a; } .code .c { color: var(--code-muted); }
+.code .p { color: #9cc4ff; } .code .v { color: #ffd479; } .code .f { color: #e6b3ff; }
+.card [data-part].hl, .card.hl { outline: 3px solid var(--html); outline-offset: 4px; border-radius: 10px; }
+.card.hl { border-radius: 22px; }
+.hint { font-size: .95rem; color: var(--muted); }
+
+/* CSS playground */
+.pg-stage { background: var(--bg); border-radius: 18px; min-height: 260px; display: grid; place-items: center; padding: 24px; overflow: hidden; }
+.pg-btn { border: 0; cursor: pointer; font-weight: 700; color: #fff; transition: all .2s ease; max-width: 100%; }
+.controls { display: grid; gap: 14px; }
+.ctl { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 3.5em; align-items: center; gap: 12px; font-size: .98rem; }
+.ctl output { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); text-align: right; }
+.ctl input[type="range"] { width: 100%; accent-color: var(--css); }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; padding: 0; }
+.swatch[aria-pressed="true"] { border-color: var(--ink); }
+
+/* JS examples */
+.js-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.js-box { border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.js-box h3 { margin: 0; font-size: 1.1rem; }
+.js-box .code { font-size: .8rem; padding: 12px 0; }
+.js-box .code .ln { padding: 0 14px; }
+.lamp { width: 70px; height: 70px; border-radius: 50%; background: #3a4250; margin: 6px auto; transition: background .25s, box-shadow .25s; }
+.lamp.on { background: #ffd447; box-shadow: 0 0 40px 12px rgba(255, 212, 71, .6); }
+.big-num { font-family: var(--f-display); font-size: 2.6rem; text-align: center; line-height: 1; }
+.field { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.hello { font-family: var(--f-display); font-size: 1.2rem; min-height: 1.6em; text-align: center; overflow-wrap: anywhere; }
+.magic { border: 2px solid var(--js); background: var(--js-soft); border-radius: 16px; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; justify-content: space-between; }
+.magic p { max-width: 60ch; }
+body.editing .sec { outline: 2px dashed var(--js); outline-offset: -8px; }
+
+/* live editor */
+.editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.editor textarea {
+  width: 100%; min-height: 360px; resize: vertical; border: 0; border-radius: 14px; padding: 18px 20px;
+  background: var(--code-bg); color: var(--code-ink); font-family: var(--f-mono); font-size: .92rem; line-height: 1.6; tab-size: 2;
+}
+.editor iframe { width: 100%; min-height: 360px; height: 100%; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* devtools */
+.keys { display: flex; flex-wrap: wrap; gap: 12px; }
+.key-card { border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px; }
+.key-card span { color: var(--muted); font-size: .9rem; }
+kbd { font-family: var(--f-mono); font-size: .9rem; background: var(--bg); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 7px; padding: 2px 8px; white-space: nowrap; }
+.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+
+/* frontend vs backend */
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.flow-node { border: 2px solid var(--line); border-radius: 16px; padding: 20px; text-align: center; display: flex; flex-direction: column; gap: 6px; transition: border-color .2s, background .2s, transform .2s; }
+.flow-node .emoji { font-size: 2.4rem; }
+.flow-node strong { font-family: var(--f-display); font-size: 1.05rem; }
+.flow-node span { color: var(--muted); font-size: .95rem; }
+.flow-node.active { border-color: var(--ok); background: var(--ok-soft); transform: translateY(-4px); }
+.flow-log { min-height: 3em; font-size: 1.05rem; font-weight: 600; }
+
+/* profession */
+.tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.tool { border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.tool .emoji { font-size: 1.8rem; }
+.tool strong { font-size: 1.05rem; }
+.tool span { color: var(--muted); font-size: .95rem; }
+.path { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.path span { border-radius: 999px; padding: 8px 16px; font-weight: 600; background: var(--bg); border: 1px solid var(--line); }
+.path i { font-style: normal; color: var(--muted); }
+
+/* quiz */
+.quiz { display: grid; gap: 20px; }
+.q { display: grid; gap: 10px; }
+.q-title { font-weight: 700; font-size: 1.1rem; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+.opt.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.opt:disabled { cursor: default; }
+.q-why { font-size: .98rem; color: var(--muted); }
+.score { font-family: var(--f-display); font-size: 1.4rem; }
+
+.foot { text-align: center; color: var(--muted); font-size: .95rem; }
+
+@media (max-width: 960px) {
+  .js-grid { grid-template-columns: minmax(0, 1fr); }
+  .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .cols, .editor { grid-template-columns: minmax(0, 1fr); }
+  .editor textarea, .editor iframe { min-height: 260px; }
+}
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .sec { padding: 24px 18px; border-radius: 16px; }
+  .hero { padding-block: 32px; }
+  .trio, .flow { grid-template-columns: minmax(0, 1fr); }
+  .tools { grid-template-columns: minmax(0, 1fr); }
+  .ctl { grid-template-columns: minmax(0, 1fr) 3.5em; }
+  .ctl > span { grid-column: 1 / -1; }
+  .brand { display: none; }
+  .demo { padding: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="bar">
+    <div class="brand">Фронтенд 101</div>
+    <nav class="nav" aria-label="Розділи">
+      <a href="#start">Старт</a>
+      <a href="#layers">3 мови</a>
+      <a href="#html">HTML</a>
+      <a href="#css">CSS</a>
+      <a href="#js">JS</a>
+      <a href="#try">Спробуй</a>
+      <a href="#devtools">Секрет</a>
+      <a href="#backend">Бекенд</a>
+      <a href="#quiz">Тест</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Змінити тему">🌓</button>
+  </header>
+
+  <!-- 0. start -->
+  <section class="sec hero" id="start">
+    <p class="kicker">Знайомство з професією</p>
+    <h1 class="h">Що таке фронтенд-розробка?</h1>
+    <p class="lead">Фронтенд — це все, що ти бачиш на сайті й чого торкаєшся. Сайт роблять три мови:</p>
+    <div class="trio">
+      <div class="trio-item html"><strong>HTML</strong><span>Скелет: що є на сторінці — заголовки, тексти, кнопки</span></div>
+      <div class="trio-item css"><strong>CSS</strong><span>Одяг і макіяж: кольори, шрифти, розміри, розташування</span></div>
+      <div class="trio-item js"><strong>JavaScript</strong><span>Мозок і м'язи: що відбувається, коли ти натискаєш</span></div>
+    </div>
+  </section>
+
+  <!-- 1. layers -->
+  <section class="sec" id="layers">
+    <p class="kicker">Крок 1 · Три мови сайту</p>
+    <h2 class="h">Збери картку по шарах</h2>
+    <p class="lead">Перемикай шари й тисни кнопки на картці.</p>
+    <div class="seg" role="group" aria-label="Шари">
+      <button type="button" data-layer="html" aria-pressed="true">Тільки HTML</button>
+      <button type="button" data-layer="css" aria-pressed="false">+ CSS</button>
+      <button type="button" data-layer="js" aria-pressed="false">+ JavaScript</button>
+    </div>
+    <div class="cols">
+      <div class="demo" id="demo" data-layer="html">
+        <article class="card" id="petCard">
+          <div class="avatar">🐱</div>
+          <h3>Кіт Пиріжок</h3>
+          <p>Люблю спати, коробки й сонечко.</p>
+          <div class="row">
+            <button type="button" class="like">♥ <span class="likes">0</span></button>
+            <button type="button" class="pet">Погладити</button>
+          </div>
+          <p class="purr" hidden>Мрррр! 😻</p>
+        </article>
+        <div class="toast" id="toast" hidden></div>
+      </div>
+      <div class="layer-note" id="layerNote" data-layer="html"></div>
+    </div>
+  </section>
+
+  <!-- 2. html -->
+  <section class="sec" id="html">
+    <p class="kicker">Крок 2 · <span class="tag-html">HTML</span></p>
+    <h2 class="h">HTML — це скелет сторінки</h2>
+    <p class="lead">Код складається з тегів: <code>&lt;h3&gt;</code> — заголовок, <code>&lt;p&gt;</code> — текст, <code>&lt;button&gt;</code> — кнопка.</p>
+    <div class="cols">
+      <div class="stack">
+        <pre class="code" id="htmlCode" aria-label="HTML-код картки"></pre>
+        <p class="hint">Наведи на рядок коду — побачиш, яка частина картки йому відповідає. Працює і навпаки.</p>
+      </div>
+      <div class="demo" data-layer="css" style="min-height:0">
+        <article class="card" id="mapCard">
+          <div class="avatar" data-part="avatar">🐱</div>
+          <h3 data-part="h3">Кіт Пиріжок</h3>
+          <p data-part="p">Люблю спати, коробки й сонечко.</p>
+          <div class="row">
+            <button type="button" class="like" data-part="like">♥ 0</button>
+            <button type="button" class="pet" data-part="pet">Погладити</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. css -->
+  <section class="sec" id="css">
+    <p class="kicker">Крок 3 · <span class="tag-css">CSS</span></p>
+    <h2 class="h">CSS — дизайн: колір, форма, розмір</h2>
+    <p class="lead">Покрути повзунки — поруч пишеться справжній CSS-код.</p>
+    <div class="cols">
+      <div class="stack">
+        <div class="pg-stage"><button type="button" class="pg-btn" id="pgBtn">Натисни мене</button></div>
+        <div class="controls">
+          <div class="ctl"><span>Колір</span><div class="swatches" id="swatches"></div><output></output></div>
+          <label class="ctl"><span>Закруглення</span><input type="range" id="rRadius" min="0" max="40" value="12"><output for="rRadius"></output></label>
+          <label class="ctl"><span>Розмір тексту</span><input type="range" id="rFont" min="14" max="40" value="20"><output for="rFont"></output></label>
+          <label class="ctl"><span>Відступи</span><input type="range" id="rPad" min="4" max="40" value="14"><output for="rPad"></output></label>
+          <label class="ctl"><span>Тінь</span><input type="range" id="rShadow" min="0" max="30" value="6"><output for="rShadow"></output></label>
+          <label class="ctl"><span>Нахил</span><input type="range" id="rRotate" min="-20" max="20" value="0"><output for="rRotate"></output></label>
+        </div>
+      </div>
+      <div class="stack">
+        <pre class="code" id="cssCode" aria-live="polite"></pre>
+              </div>
+    </div>
+  </section>
+
+  <!-- 4. js -->
+  <section class="sec" id="js">
+    <p class="kicker">Крок 4 · <span class="tag-js">JavaScript</span></p>
+    <h2 class="h">JavaScript — поведінка</h2>
+    <p class="lead">JavaScript реагує на твої дії й змінює сторінку.</p>
+    <div class="js-grid">
+      <div class="js-box">
+        <h3>💡 Вимикач</h3>
+        <div class="lamp" id="lamp"></div>
+        <button type="button" class="btn" id="lampBtn">Увімкнути</button>
+        <pre class="code" data-code="lamp"></pre>
+      </div>
+      <div class="js-box">
+        <h3>🔢 Лічильник</h3>
+        <div class="big-num" id="count">0</div>
+        <button type="button" class="btn" id="countBtn">+1</button>
+        <pre class="code" data-code="count"></pre>
+      </div>
+      <div class="js-box">
+        <h3>👋 Привітання</h3>
+        <input class="field" id="nameInput" placeholder="Напиши своє ім'я" autocomplete="off">
+        <div class="hello" id="hello"></div>
+        <pre class="code" data-code="hello"></pre>
+      </div>
+    </div>
+    <div class="magic">
+      <p><b>Чарівний режим:</b> <code>document.designMode = 'on'</code> — і будь-який текст на сторінці можна редагувати. Увімкни й клікни на заголовок!</p>
+      <button type="button" class="btn" id="magicBtn">Увімкнути редагування</button>
+    </div>
+  </section>
+
+  <!-- 5. try -->
+  <section class="sec" id="try">
+    <p class="kicker">Крок 5 · Твоя черга</p>
+    <h2 class="h">Спробуй сама: живий редактор</h2>
+    <p class="lead">Зміни код — результат оновиться одразу. Кнопки повертають готові приклади.</p>
+    <div class="presets" id="presets"></div>
+    <div class="editor">
+      <textarea id="src" spellcheck="false" aria-label="Код"></textarea>
+      <iframe id="out" title="Результат" sandbox="allow-scripts"></iframe>
+    </div>
+    <p class="hint">Ідеї: заміни <code>#d9653b</code> на <code>hotpink</code>, допиши ще один <code>&lt;p&gt;</code> з текстом, зміни <code>font-size</code>.</p>
+  </section>
+
+  <!-- 6. devtools -->
+  <section class="sec" id="devtools">
+    <p class="kicker">Крок 6 · Секрет розробників</p>
+    <h2 class="h">Код будь-якого сайту можна подивитися</h2>
+    <p class="lead">Інструменти розробника (DevTools) є в кожному браузері.</p>
+    <div class="keys">
+      <div class="key-card"><span>Windows</span><div><kbd>F12</kbd> або <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></div></div>
+      <div class="key-card"><span>Mac</span><div><kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd></div></div>
+      <div class="key-card"><span>Будь-де</span><div>Права кнопка миші → «Перевірити» / «Inspect»</div></div>
+    </div>
+    <ol class="steps">
+      <li>Відкрий будь-який сайт і натисни праву кнопку на заголовку → «Перевірити».</li>
+      <li>Двічі клікни на текст у коді й напиши щось своє — сайт зміниться.</li>
+      <li>Не хвилюйся: зміни бачиш лише ти, і вони зникнуть після оновлення сторінки.</li>
+    </ol>
+  </section>
+
+  <!-- 7. backend -->
+  <section class="sec" id="backend">
+    <p class="kicker">Крок 7 · Фронтенд і бекенд</p>
+    <h2 class="h">Сайт — як ресторан</h2>
+    <p class="lead">Фронтенд — зал, який бачить гість. Бекенд — кухня, де зберігаються дані.</p>
+    <div class="flow">
+      <div class="flow-node" data-node="0"><div class="emoji">🧑‍💻</div><strong>Фронтенд</strong><span>Зал ресторану: сайт у твоєму браузері</span></div>
+      <div class="flow-node" data-node="1"><div class="emoji">🛵</div><strong>Інтернет</strong><span>Офіціант: несе запит і відповідь</span></div>
+      <div class="flow-node" data-node="2"><div class="emoji">🗄️</div><strong>Бекенд</strong><span>Кухня: сервер і база даних</span></div>
+    </div>
+    <div class="flow-log" id="flowLog" aria-live="polite">Натисни кнопку — подивимось, що відбувається, коли ти ставиш лайк у соцмережі.</div>
+    <button type="button" class="btn" id="flowBtn" style="align-self:flex-start">Поставити ♥ лайк</button>
+  </section>
+
+
+  <!-- 9. quiz -->
+  <section class="sec" id="quiz">
+    <p class="kicker">Крок 8 · Перевір себе</p>
+    <h2 class="h">Міні-тест</h2>
+    <div class="quiz" id="quizBox"></div>
+    <div class="score" id="score" aria-live="polite"></div>
+  </section>
+
+  <div class="pager">
+    <button type="button" class="btn ghost" id="prevBtn">← Назад</button>
+    <span class="pager-n" id="pageN"></span>
+    <button type="button" class="btn" id="nextBtn">Далі →</button>
+  </div>
+
+  <p class="foot">Цю сторінку зроблено тими самими HTML, CSS і JavaScript, про які ти щойно дізналася 🙂</p>
+</div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* theme */
+$('#themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+});
+
+/* pages */
+const pages = $$('.sec'), navLinks = $$('.nav a');
+let cur = 0;
+function go(i, push = true) {
+  cur = Math.max(0, Math.min(pages.length - 1, i));
+  pages.forEach((p, pi) => { p.hidden = pi !== cur; p.classList.toggle('cur', pi === cur); });
+  navLinks.forEach(a => {
+    const on = a.getAttribute('href') === '#' + pages[cur].id;
+    a.classList.toggle('on', on);
+    if (on) a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+  $('#prevBtn').disabled = cur === 0;
+  $('#nextBtn').disabled = cur === pages.length - 1;
+  $('#pageN').textContent = `${cur + 1} / ${pages.length}`;
+  if (push) history.replaceState(null, '', '#' + pages[cur].id);
+  window.scrollTo(0, 0);
+}
+const pageFromHash = () => Math.max(0, pages.findIndex(p => '#' + p.id === location.hash));
+navLinks.forEach(a => a.addEventListener('click', e => { e.preventDefault(); go(pages.findIndex(p => '#' + p.id === a.getAttribute('href'))); }));
+$('#prevBtn').addEventListener('click', () => go(cur - 1));
+$('#nextBtn').addEventListener('click', () => go(cur + 1));
+document.addEventListener('keydown', e => {
+  if (document.designMode === 'on' || e.target.closest('input, textarea') || e.altKey || e.metaKey || e.ctrlKey) return;
+  if (e.key === 'ArrowRight') go(cur + 1);
+  if (e.key === 'ArrowLeft') go(cur - 1);
+});
+go(pageFromHash(), false);
+
+/* 1. layers */
+const NOTES = {
+  html: ['Тільки HTML', 'Є весь вміст: картинка, заголовок, текст, кнопки. Але виглядає як документ 1995 року — браузер показує все стандартним шрифтом, одне під одним. Кнопки не працюють.'],
+  css: ['HTML + CSS', 'Той самий HTML, але CSS додав кольори, закруглення, тінь, шрифт і вирівнювання по центру. Гарно! Але натисни кнопку — нічого не станеться.'],
+  js: ['HTML + CSS + JavaScript', 'Тепер картка живе: лайк рахує кліки, кіт реагує на погладжування. Це і є сучасний сайт — три мови разом.'],
+};
+const demo = $('#demo'), note = $('#layerNote'), toast = $('#toast'), pet = $('#petCard');
+let likes = 0, liked = false, toastTimer;
+function setLayer(layer) {
+  demo.dataset.layer = layer;
+  note.dataset.layer = layer;
+  note.innerHTML = `<strong>${NOTES[layer][0]}</strong>${NOTES[layer][1]}`;
+  $$('#layers .seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.layer === layer));
+  toast.hidden = true;
+}
+$$('#layers .seg button').forEach(b => b.addEventListener('click', () => setLayer(b.dataset.layer)));
+setLayer('html');
+function showToast(text) {
+  toast.textContent = text; toast.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 1800);
+}
+pet.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (demo.dataset.layer !== 'js') { showToast('Без JavaScript кнопка нічого не робить'); return; }
+  if (btn.classList.contains('like')) {
+    liked = !liked; likes += liked ? 1 : -1;
+    $('.likes', pet).textContent = likes;
+    pet.classList.toggle('liked', liked);
+  } else {
+    const av = $('.avatar', pet), purr = $('.purr', pet);
+    av.classList.remove('wiggle'); void av.offsetWidth; av.classList.add('wiggle');
+    purr.hidden = false;
+    clearTimeout(pet._purr); pet._purr = setTimeout(() => { purr.hidden = true; }, 1500);
+  }
+});
+
+/* code highlighting */
+function hlHtml(s) {
+  return esc(s)
+    .replace(/(&lt;\/?)([a-z0-9]+)/g, '$1<span class="t">$2</span>')
+    .replace(/([a-z-]+)=(&quot;.*?&quot;)/g, '<span class="a">$1</span>=<span class="s">$2</span>');
+}
+function hlJs(s) {
+  if (s.trim().startsWith('//')) return `<span class="c">${esc(s)}</span>`;
+  return esc(s)
+    .replace(/(&#39;|')([^']*)(&#39;|')/g, '<span class="s">\'$2\'</span>')
+    .replace(/\b(const|let|function|if|else)\b/g, '<span class="t">$1</span>')
+    .replace(/\.(\w+)(?=\()/g, '.<span class="f">$1</span>');
+}
+function renderCode(el, lines, hl) {
+  el.innerHTML = lines.map(l => {
+    const [text, part] = Array.isArray(l) ? l : [l];
+    return `<span class="ln"${part ? ` data-part="${part}"` : ''}>${hl(text) || ' '}</span>`;
+  }).join('');
+}
+
+/* 2. html mapping */
+renderCode($('#htmlCode'), [
+  ['<article class="card">', 'card'],
+  ['  <div class="avatar">🐱</div>', 'avatar'],
+  ['  <h3>Кіт Пиріжок</h3>', 'h3'],
+  ['  <p>Люблю спати, коробки й сонечко.</p>', 'p'],
+  ['  <button>♥ 0</button>', 'like'],
+  ['  <button>Погладити</button>', 'pet'],
+  ['</article>', 'card'],
+], hlHtml);
+const mapCard = $('#mapCard');
+function mapHl(part) {
+  $$('#htmlCode .ln').forEach(l => l.classList.toggle('hl', l.dataset.part === part));
+  mapCard.classList.toggle('hl', part === 'card');
+  $$('[data-part]', mapCard).forEach(el => el.classList.toggle('hl', el.dataset.part === part));
+}
+function mapBind(root, getPart) {
+  root.addEventListener('mouseover', e => mapHl(getPart(e.target)));
+  root.addEventListener('mouseleave', () => mapHl(null));
+  root.addEventListener('click', e => mapHl(getPart(e.target)));
+}
+mapBind($('#htmlCode'), t => t.closest('.ln')?.dataset.part ?? null);
+mapBind(mapCard, t => t.closest('[data-part]')?.dataset.part ?? 'card');
+
+/* 3. css playground */
+const COLORS = ['#d9653b', '#2f6fd6', '#2f8a4c', '#8e44ad', '#e8335f', '#15202e'];
+let color = COLORS[1];
+const sw = $('#swatches');
+COLORS.forEach(c => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'swatch'; b.style.background = c; b.setAttribute('aria-label', c);
+  b.addEventListener('click', () => { color = c; updatePg(); });
+  sw.append(b);
+});
+const R = id => +$('#' + id).value;
+function updatePg() {
+  const r = R('rRadius'), f = R('rFont'), p = R('rPad'), sh = R('rShadow'), rot = R('rRotate');
+  const shadow = sh ? `0 ${sh}px ${sh * 2}px rgba(0, 0, 0, .25)` : 'none';
+  Object.assign($('#pgBtn').style, {
+    background: color, borderRadius: r + 'px', fontSize: f + 'px',
+    padding: `${p}px ${p * 2}px`, boxShadow: shadow, transform: `rotate(${rot}deg)`,
+  });
+  $$('.swatch').forEach(b => b.setAttribute('aria-pressed', b.getAttribute('aria-label') === color));
+  $$('.ctl output[for]').forEach(o => {
+    const v = R(o.htmlFor);
+    o.textContent = o.htmlFor === 'rRotate' ? v + '°' : v + 'px';
+  });
+  const decl = [
+    ['background', color], ['border-radius', r + 'px'], ['font-size', f + 'px'],
+    ['padding', `${p}px ${p * 2}px`], ['box-shadow', shadow], ['transform', `rotate(${rot}deg)`],
+  ];
+  $('#cssCode').innerHTML =
+    `<span class="ln"><span class="t">.button</span> {</span>` +
+    decl.map(([k, v]) => `<span class="ln">  <span class="p">${k}</span>: <span class="v">${esc(v)}</span>;</span>`).join('') +
+    `<span class="ln">}</span>`;
+}
+$$('.controls input').forEach(i => i.addEventListener('input', updatePg));
+$('#pgBtn').addEventListener('click', () => { $('#rRotate').value = Math.round(Math.random() * 40 - 20); updatePg(); });
+updatePg();
+
+/* 4. js examples */
+const JS_CODE = {
+  lamp: ["button.onclick = () => {", "  lamp.classList.toggle('on');", "};"],
+  count: ["let n = 0;", "button.onclick = () => {", "  n = n + 1;", "  number.textContent = n;", "};"],
+  hello: ["input.oninput = () => {", "  hello.textContent =", "    'Привіт, ' + input.value + '!';", "};"],
+};
+$$('[data-code]').forEach(el => renderCode(el, JS_CODE[el.dataset.code], hlJs));
+$('#lampBtn').addEventListener('click', e => {
+  const on = $('#lamp').classList.toggle('on');
+  e.currentTarget.textContent = on ? 'Вимкнути' : 'Увімкнути';
+});
+let n = 0;
+$('#countBtn').addEventListener('click', () => { $('#count').textContent = ++n; });
+$('#nameInput').addEventListener('input', e => {
+  const v = e.target.value.trim();
+  $('#hello').textContent = v ? `Привіт, ${v}! 👋` : '';
+});
+$('#magicBtn').addEventListener('click', e => {
+  const on = document.designMode !== 'on';
+  document.designMode = on ? 'on' : 'off';
+  document.body.classList.toggle('editing', on);
+  e.currentTarget.textContent = on ? 'Вимкнути редагування' : 'Увімкнути редагування';
+});
+
+/* 5. live editor */
+const PRESETS = {
+  'Привітання': `<h1>Привіт, світе!</h1>
+<p>Це мій перший сайт.</p>
+
+<style>
+  body {
+    font-family: sans-serif;
+    background: #fdf2e9;
+    text-align: center;
+    padding: 40px;
+  }
+  h1 {
+    color: #d9653b;
+    font-size: 48px;
+  }
+</style>`,
+  'Серце': `<div class="heart">❤️</div>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    background: #1d1d2b;
+  }
+  .heart {
+    font-size: 120px;
+    animation: beat 1s infinite;
+  }
+  @keyframes beat {
+    50% { transform: scale(1.3); }
+  }
+</style>`,
+  'Кнопка з JS': `<button onclick="clickMe()">Натисни мене</button>
+<p id="text"></p>
+
+<style>
+  body { font-family: sans-serif; text-align: center; padding: 40px; }
+  button {
+    font-size: 24px;
+    padding: 14px 28px;
+    border: 0;
+    border-radius: 14px;
+    background: #8e44ad;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  function clickMe() {
+    const emoji = ['🎉', '🌈', '🦄', '🍕', '⭐'];
+    const random = emoji[Math.floor(Math.random() * emoji.length)];
+    document.getElementById('text').textContent = 'Ура! ' + random;
+  }
+<\/script>`,
+};
+const src = $('#src'), out = $('#out');
+let renderTimer;
+const renderOut = () => { out.srcdoc = '<meta charset="utf-8">' + src.value; };
+function loadPreset(name) {
+  src.value = PRESETS[name];
+  renderOut();
+  $$('#presets button').forEach(b => b.setAttribute('aria-pressed', b.textContent === name));
+}
+Object.keys(PRESETS).forEach(name => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn ghost'; b.textContent = name;
+  b.addEventListener('click', () => loadPreset(name));
+  $('#presets').append(b);
+});
+src.addEventListener('input', () => { clearTimeout(renderTimer); renderTimer = setTimeout(renderOut, 250); });
+src.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  e.preventDefault();
+  src.setRangeText('  ', src.selectionStart, src.selectionEnd, 'end');
+  src.dispatchEvent(new Event('input'));
+});
+loadPreset('Привітання');
+
+/* 7. frontend → backend flow */
+const FLOW = [
+  [0, '1. Ти натискаєш ♥. JavaScript на фронтенді ловить клік і готує запит «користувач поставив лайк фото №123».'],
+  [1, '2. Запит летить через інтернет на сервер — як офіціант несе замовлення на кухню.'],
+  [2, '3. Бекенд перевіряє, хто ти, і записує лайк у базу даних.'],
+  [1, '4. Сервер відправляє відповідь назад: «готово, тепер лайків 124».'],
+  [0, '5. Фронтенд отримує відповідь і зафарбовує сердечко червоним ❤️. Усе це — менш ніж за секунду!'],
+];
+let flowRunning = false;
+$('#flowBtn').addEventListener('click', async e => {
+  if (flowRunning) return;
+  flowRunning = true; e.currentTarget.disabled = true;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  for (const [node, text] of FLOW) {
+    $$('.flow-node').forEach(el => el.classList.toggle('active', +el.dataset.node === node));
+    $('#flowLog').textContent = text;
+    await wait(2200);
+  }
+  $$('.flow-node').forEach(el => el.classList.remove('active'));
+  e.currentTarget.disabled = false; e.currentTarget.textContent = 'Ще раз';
+  flowRunning = false;
+});
+
+/* 9. quiz */
+const QUIZ = [
+  ['Яка мова відповідає за колір кнопки?', ['HTML', 'CSS', 'JavaScript'], 1, 'Кольори, шрифти й розміри — це CSS.'],
+  ['Що робить так, щоб лайк рахував кліки?', ['HTML', 'CSS', 'JavaScript'], 2, 'Реакція на дії користувача — робота JavaScript.'],
+  ['Тег <h1> у HTML — це…', ['Картинка', 'Заголовок', 'Кнопка'], 1, 'h — від heading, «заголовок». Картинка — <img>, кнопка — <button>.'],
+  ['Де зберігаються твої повідомлення в месенджері?', ['На фронтенді', 'На бекенді', 'У CSS'], 1, 'Дані зберігає сервер (бекенд) у базі даних. Фронтенд лише показує їх.'],
+  ['Як подивитися код будь-якого сайту?', ['Не можна', 'F12 / «Перевірити»', 'Написати власнику'], 1, 'DevTools є в кожному браузері — розробники користуються ними щодня.'],
+];
+let answered = 0, right = 0;
+QUIZ.forEach(([q, opts, ok, why], qi) => {
+  const box = document.createElement('div');
+  box.className = 'q';
+  box.innerHTML = `<div class="q-title">${qi + 1}. ${esc(q)}</div><div class="opts"></div><div class="q-why" hidden></div>`;
+  opts.forEach((o, oi) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'opt'; b.textContent = o;
+    b.addEventListener('click', () => {
+      $$('.opt', box).forEach((x, xi) => {
+        x.disabled = true;
+        if (xi === ok) x.classList.add('right');
+      });
+      if (oi !== ok) b.classList.add('wrong'); else right++;
+      const w = $('.q-why', box); w.textContent = (oi === ok ? '✓ Правильно! ' : '✗ Ні. ') + why; w.hidden = false;
+      if (++answered === QUIZ.length) {
+        $('#score').textContent = `${right} з ${QUIZ.length} — ${right === QUIZ.length ? 'ти вже думаєш як фронтенд-розробниця! 🎉' : right >= 3 ? 'чудово! 👏' : 'гарний початок, прогорни сторінку ще раз 🙂'}`;
+      }
+    });
+    $('.opts', box).append(b);
+  });
+  $('#quizBox').append(box);
+});
+</script>
+</body>
+</html>

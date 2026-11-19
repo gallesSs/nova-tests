@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Алкани</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with the task. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --acc: #1f7a8c;
+  --acc-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --acc: #4fb6c9; --acc-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --acc: #4fb6c9; --acc-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+sub { font-size: .62em; line-height: 0; vertical-align: -.25em; }
+sup { font-size: .62em; line-height: 0; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.q { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 600; line-height: 1.4; margin: 0; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 700; font-size: 1.05rem; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: clamp(1.05rem, 1.9vw, 1.3rem); font-weight: 500; }
+.steps li { padding: 4px 0 4px 14px; border-left: 3px solid var(--acc); overflow-wrap: anywhere; min-width: 0; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+/* choice */
+.opts { display: grid; gap: 10px; max-width: 720px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; overflow-wrap: anywhere; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* structural formula: atoms and bonds on a grid */
+.fig { max-width: 100%; overflow-x: auto; padding: 4px 0; }
+.mol { display: inline-grid; align-items: center; justify-items: center; font-weight: 700; font-size: clamp(.95rem, 3.6vw, 1.7rem); line-height: 1.25; white-space: nowrap; }
+.mol .bd { color: var(--muted); font-weight: 500; }
+.mol .bd.h { justify-self: stretch; width: .6em; height: 2px; background: var(--muted); }
+.mol .row { justify-self: stretch; display: flex; align-items: center; justify-content: center; }
+.mol .row::before, .mol .row::after { content: ""; flex: 1; height: 2px; }
+.mol .row.l::before, .mol .row.r::after { background: var(--muted); }
+.mol .on { color: var(--acc); }
+.mol .on sup { color: var(--bad); font-size: .55em; vertical-align: .9em; margin-left: 1px; }
+.why .mol, .steps .mol { font-size: 1.05rem; }
+
+/* equations with coefficient boxes */
+.eq { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-weight: 700; font-size: clamp(1.25rem, 2.6vw, 1.75rem); }
+.eq .sp { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.eq .co { width: 2.6em; text-align: center; font-size: .85em; background: var(--surface); border: 2px solid var(--line); border-radius: 10px; padding: 4px 2px; }
+.eq .co-b { display: inline-block; width: 1.6em; height: 1.4em; border: 2px dashed var(--line); border-radius: 8px; }
+.eq .co-f { color: var(--acc); }
+.eq .arr { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; color: var(--muted); }
+.eq .arr small { font-size: .5em; font-weight: 600; }
+
+/* ordering */
+.order { display: flex; flex-wrap: wrap; gap: 10px; }
+.ord { position: relative; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; }
+.ord[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); }
+.ord b { display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; margin-right: 8px; border-radius: 99px; background: var(--ink); color: var(--bg); font-size: .85em; }
+.ord-line { font-size: 1.2rem; font-weight: 600; min-height: 1.5em; }
+
+/* find the error */
+.lines { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.line { text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 10px; padding: 8px 14px; font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+button.line { cursor: pointer; }
+.line.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.line.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 420px; font-size: 1.3rem; }
+.ans-row { display: flex; align-items: center; gap: 10px; }
+.unit { font-weight: 700; font-size: 1.3rem; }
+.preview { min-height: 1.6em; font-size: 1.5rem; font-weight: 700; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li > div { min-width: 0; overflow-wrap: anywhere; }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); margin-top: 4px; }
+.review .why > div + div { margin-top: 2px; }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { padding: 22px; gap: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .line, .opt, .ord { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Алкани<small>Хімія · 10 клас · C<sub>n</sub>H<sub>2n+2</sub></small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="nom">Номенклатура</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="eq">Рівняння</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="prob">Задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати розв'язання, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 14;
+const TOPIC = 'Хімія 10 клас — Алкани';
+
+const VM = 22.4;      // молярний об'єм газу (н.у.), л/моль
+
+// Символ: Ar (шкільне округлення)
+const AR = { H:1, Be:9, C:12, O:16, Na:23, Al:27, Cl:35.5, Br:80 };
+
+/* ---------- утиліти ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const rint = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',').replace('-', '−');   // без зайвих нулів
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const fTxt = s => s.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+// HTML → текст для розбору в таблиці (індекси стають ₂)
+const plain = h => h.replace(/<sub>(\d+)<\/sub>/g, (m, d) => [...d].map(c => SUBD[c]).join('')).replace(/<sub>([^<]*)<\/sub>/g, '$1').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+const isRound2 = x => Math.abs(x * 100 - Math.round(x * 100)) < 1e-6;
+const alk = n => n === 1 ? 'CH4' : `C${n}H${2 * n + 2}`;
+const Malk = n => 14 * n + 2;
+
+/* ---------- формули ---------- */
+// Розбір формули: H2SO4, Al(OH)3, CH3-CH(CH3)-CH3 → { counts, order }
+function group(s) {
+  const st = [[]]; let i = 0;
+  while (i < s.length) {
+    if (s[i] === '(') { st.push([]); i++; continue; }
+    if (s[i] === ')') {
+      if (st.length < 2) return null;
+      const g = st.pop(); i++;
+      const d = s.slice(i).match(/^([1-9]\d*)?/)[0]; i += d.length;
+      if (!g.length) return null;
+      st[st.length - 1].push(...g.map(([e, n]) => [e, n * (d ? +d : 1)]));
+      continue;
+    }
+    const m = s.slice(i).match(/^([A-Z][a-z]?)([1-9]\d*)?/);
+    if (!m || !AR[m[1]]) return null;
+    st[st.length - 1].push([m[1], m[2] ? +m[2] : 1]); i += m[0].length;
+  }
+  return st.length === 1 && st[0].length ? st[0] : null;
+}
+function parseF(s) {
+  const g = group(s);
+  if (!g) return null;
+  const counts = {}, order = [];
+  g.forEach(([e, n]) => { if (!(e in counts)) { counts[e] = 0; order.push(e); } counts[e] += n; });
+  return { counts, order };
+}
+const molar = f => { const p = parseF(f); return round(p.order.reduce((a, e) => a + p.counts[e] * AR[e], 0), 2); };
+const sameCounts = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+
+/* ---------- розбір введення ---------- */
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase()
+    .replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-')
+    .replace(/(г\/моль|моль|мл|г|л|%|g|l)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+const latin = s => s.replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]);
+// C3H8, С3Н8 (кирилиця), C₃H₈, c3h8, CH3-CH2-CH3
+const normF = raw => latin(raw.trim()).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/[-–—−\s]/g, '')
+  .replace(/^([a-z])/, c => c.toUpperCase()).replace(/([^a-z])([ch])/g, (m, a, b) => a + b.toUpperCase());
+const TOL = { m: x => Math.max(0.01, x * 0.01), V: x => Math.max(0.01, x * 0.01), M: () => 0.5 };
+const near = (k, a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= TOL[k](x); };
+const nearPct = (a, x, tol = 0.2) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= tol; };
+const sameF = (a, f) => { const p = parseF(normF(a ?? '')); return !!p && sameCounts(p.counts, parseF(f).counts); };
+
+/* ---------- номенклатура ---------- */
+const ROOT = ['', 'метан', 'етан', 'пропан', 'бутан', 'пентан', 'гексан', 'гептан', 'октан', 'нонан', 'декан'];
+const ALK = ['', 'метил', 'етил', 'пропіл', 'бутил'];
+const ABC = { 1: 2, 2: 1, 3: 3, 4: 0 };   // алфавітний порядок: бутил, етил, метил, пропіл
+const MULT = ['', '', 'ди', 'три', 'тетра'];
+const gen = n => ROOT[n] + 'у';            // родовий відмінок: пентану
+
+// Молекула: горизонтальний ланцюг L атомів + прямі бокові ланцюги вгору/вниз
+function build(L, br) {
+  const adj = [];
+  for (let i = 0; i < L; i++) adj.push(i ? [i - 1] : []);
+  for (let i = 0; i < L - 1; i++) adj[i].push(i + 1);
+  br.forEach(b => {
+    b.ids = [];
+    let prev = b.pos;
+    for (let j = 0; j < b.len; j++) {
+      const id = adj.length; adj.push([prev]); adj[prev].push(id); b.ids.push(id); prev = id;
+    }
+  });
+  return { L, br, adj, n: adj.length };
+}
+
+function pathBetween(adj, a, b) {
+  const par = new Map([[a, -1]]), q = [a];
+  while (q.length) { const v = q.shift(); for (const u of adj[v]) if (!par.has(u)) { par.set(u, v); q.push(u); } }
+  const p = [];
+  for (let v = b; v !== -1; v = par.get(v)) p.push(v);
+  return p.reverse();
+}
+
+// Замісники відносно ланцюга: [{loc, k}], k = 0 — розгалужений замісник
+function subsOf(adj, chain) {
+  const on = new Set(chain), subs = [];
+  chain.forEach((c, i) => adj[c].forEach(nb => {
+    if (on.has(nb)) return;
+    let prev = c, cur = nb, k = 1;
+    for (;;) {
+      const nx = adj[cur].filter(x => x !== prev);
+      if (!nx.length) break;
+      if (nx.length > 1) { k = 0; break; }
+      prev = cur; cur = nx[0]; k++;
+    }
+    subs.push({ loc: i + 1, k });
+  }));
+  return subs;
+}
+const locs = subs => subs.map(s => s.loc).sort((a, b) => a - b);
+const alphaLocs = subs => subs.slice().sort((a, b) => ABC[a.k] - ABC[b.k] || a.loc - b.loc).map(s => s.loc);
+function cmpVec(a, b) { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; }
+// Краща нумерація/ланцюг: більше замісників → найменші локанти → перший за алфавітом отримує менший номер
+const cmpCand = (A, B) => B.subs.length - A.subs.length || cmpVec(locs(A.subs), locs(B.subs)) || cmpVec(alphaLocs(A.subs), alphaLocs(B.subs));
+
+function nameStr(subs, L, opt = {}) {
+  const g = {};
+  subs.forEach(s => (g[s.k] = g[s.k] || []).push(s.loc));
+  let keys = Object.keys(g).map(Number).sort((a, b) => ABC[a] - ABC[b]);
+  if (opt.badOrder) keys = keys.reverse();
+  return keys.map(k => {
+    const l = g[k].sort((a, b) => a - b);
+    return (opt.noRepeat ? [...new Set(l)] : l).join(',') + '-' + MULT[l.length] + ALK[k];
+  }).join('-') + ROOT[L];
+}
+
+// Систематична назва: { name, chain, subs, L } або null, якщо замісник розгалужений
+function iupac(mol) {
+  const { adj } = mol;
+  if (mol.n === 1) return { name: 'метан', chain: [0], subs: [], L: 1 };
+  const leaves = adj.map((a, i) => a.length === 1 ? i : -1).filter(i => i >= 0);
+  const paths = [];
+  leaves.forEach(a => leaves.forEach(b => { if (a !== b) paths.push(pathBetween(adj, a, b)); }));
+  const L = Math.max(...paths.map(p => p.length));
+  const best = paths.filter(p => p.length === L).map(chain => ({ chain, subs: subsOf(adj, chain) })).sort(cmpCand)[0];
+  if (L > 10 || best.subs.some(s => !s.k)) return null;
+  return { name: nameStr(best.subs, L), chain: best.chain, subs: best.subs, L };
+}
+
+function genMol({ C = null, minL = 3, maxL = 7, maxC = 10, trick = .2, branched = true } = {}) {
+  for (;;) {
+    const L = rint(minL, maxL), br = [], used = new Set();
+    const nb = L === 3 ? pick([1, 1, 2]) : pick([1, 1, 2, 2, 2, 3]);
+    for (let j = 0; j < nb; j++) {
+      const pos = L > 2 && Math.random() > trick ? rint(1, L - 2) : pick([0, L - 1]);
+      const dir = !used.has(pos + 'u') && (used.has(pos + 'd') || Math.random() < .5) ? 'u' : !used.has(pos + 'd') ? 'd' : null;
+      if (!dir) continue;
+      used.add(pos + dir);
+      br.push({ pos, dir, len: pick([1, 1, 1, 1, 2, 2, 3]) });
+    }
+    const total = L + br.reduce((a, b) => a + b.len, 0);
+    if (total > maxC || (C && total !== C)) continue;
+    const mol = build(L, br), nm = iupac(mol);
+    if (!nm || (branched && !nm.subs.length)) continue;
+    mol.iu = nm;
+    return mol;
+  }
+}
+
+// Скорочена структурна формула на сітці; loc — Map(id → номер атома головного ланцюга)
+function structHTML(mol, loc = null) {
+  const up = Math.max(0, ...mol.br.filter(b => b.dir === 'u').map(b => b.len));
+  const cells = [];
+  const lab = id => { const h = 4 - mol.adj[id].length; return h ? `CH${h > 1 ? `<sub>${h}</sub>` : ''}` : 'C'; };
+  // Атоми головного рядка тягнуть лінії зв'язку до країв своєї колонки (вона може бути ширшою через CH3 над/під ним)
+  const at = (id, r, c, side = '') => cells.push(`<span class="${loc && loc.has(id) ? 'on' : ''}${side}" style="grid-area:${r + 1}/${c + 1}"><span>${lab(id)}${loc && loc.has(id) ? `<sup>${loc.get(id)}</sup>` : ''}</span></span>`);
+  const bd = (s, r, c) => cells.push(`<span class="bd${s ? '' : ' h'}" style="grid-area:${r + 1}/${c + 1}">${s}</span>`);
+  for (let i = 0; i < mol.L; i++) {
+    at(i, 2 * up, 2 * i, ` row${i ? ' l' : ''}${i < mol.L - 1 ? ' r' : ''}`);
+    if (i < mol.L - 1) bd('', 2 * up, 2 * i + 1);
+  }
+  mol.br.forEach(b => b.ids.forEach((id, j) => {
+    const r = b.dir === 'u' ? 2 * up - 2 * (j + 1) : 2 * up + 2 * (j + 1);
+    at(id, r, 2 * b.pos);
+    bd('|', b.dir === 'u' ? r + 1 : r - 1, 2 * b.pos);
+  }));
+  return `<div class="fig"><div class="mol" role="img" aria-label="Структурна формула">${cells.join('')}</div></div>`;
+}
+const chainMap = mol => new Map(mol.iu.chain.map((id, i) => [id, i + 1]));
+const molF = mol => alk(mol.n);
+
+function nomSteps(mol) {
+  const { L, subs, name } = mol.iu;
+  const sol = [structHTML(mol, chainMap(mol)), `Найдовший ланцюг — ${L} атомів C (виділено кольором) → основа «${ROOT[L]}».`];
+  if (subs.length) {
+    sol.push(`Нумеруємо з того кінця, ближче до якого розгалуження: ${subs.slice().sort((a, b) => a.loc - b.loc).map(s => `${ALK[s.k]} при C${s.loc}`).join(', ')}.`);
+    sol.push('Замісники — за алфавітом, однакові — з префіксом ди-, три-; номер ставимо для кожного.');
+  }
+  sol.push(`Назва: <b>${name}</b>`);
+  return sol;
+}
+
+/* ---------- генератори завдань ---------- */
+// Кожне завдання: type, label, q, fig (HTML), input, unit, right, check(ans), sol[]
+const TYPE = {
+  prop: 'Теорія', homo: 'Загальна формула', fname: 'Формула за назвою', molar: 'Молярна маса', nom: 'Назва за структурою',
+  isomer: 'Ізомери', coef: 'Коефіцієнти', react: 'Продукт реакції', order: 'Температура кипіння', err: 'Знайди помилку',
+  wc: 'Масова частка', comb: 'Горіння', find: 'Формула алкану', mix: 'Суміш газів'
+};
+const choiceOf = (type, label, q, opts, sol, fig = '') => {
+  const order = shuffle(opts.map((h, i) => ({ h, i }))), ri = order.findIndex(o => o.i === 0);
+  return { type, label, q, fig, input: 'choice', opts: order.map(o => ({ html: o.h, txt: plain(o.h) })), right: plain(opts[0]), check: a => a === ri, sol };
+};
+
+// Назва за структурною формулою
+function tNom() {
+  const mol = genMol(), { name, subs, L } = mol.iu;
+  const horiz = [...Array(mol.L).keys()], hs = subsOf(mol.adj, horiz), hr = subsOf(mol.adj, horiz.slice().reverse());
+  const hBest = cmpCand({ subs: hs }, { subs: hr }) <= 0 ? hs : hr;
+  const rev = subs.map(s => ({ ...s, loc: L + 1 - s.loc }));
+  const pool = [nameStr(rev, L), nameStr(hBest, mol.L), nameStr(hBest === hs ? hr : hs, mol.L)];
+  if (new Set(subs.map(s => s.k)).size > 1) pool.push(nameStr(subs, L, { badOrder: true }));
+  if (subs.length > new Set(subs.map(s => s.k)).size && subs.some((s, i) => subs.some((t, j) => i !== j && t.k === s.k && t.loc === s.loc)))
+    pool.push(nameStr(subs, L, { noRepeat: true }));
+  // Запасні: зсунуті номери, інший замісник, сусідня основа
+  const shift = subs.map(s => ({ ...s, loc: Math.min(s.loc + 1, L - 1) })), swap = subs.map(s => ({ ...s, k: s.k === 1 ? 2 : 1 }));
+  pool.push(...shuffle([nameStr(shift, L), nameStr(swap, L), ...[L + 1, L - 1, L + 2].filter(x => x <= 10 && x > Math.max(...locs(subs))).map(x => nameStr(subs, x))]));
+  const wrong = [...new Set(pool)].filter(x => x !== name).slice(0, 3);
+  return choiceOf('nom', name, 'Як називається речовина за систематичною номенклатурою?', [name, ...wrong], nomSteps(mol), structHTML(mol));
+}
+
+// Яка речовина НЕ є ізомером
+function tIsomer() {
+  const n = pick([6, 7]), names = [], mols = [];
+  while (mols.length < 3) { const m = genMol({ C: n }); if (!names.includes(m.iu.name)) { names.push(m.iu.name); mols.push(m); } }
+  let odd;
+  do odd = genMol({ C: n + pick([-1, 1]) }); while (names.includes(odd.iu.name));
+  const sol = [odd, ...mols].map(m => `${m.iu.name} — ${fHTML(molF(m))}`);
+  sol.push(`Ізомери мають однаковий склад ${fHTML(alk(n))}, але різну будову. Зайва — ${odd.iu.name}.`);
+  return choiceOf('isomer', `не ізомер ${gen(n)}`, `Яка з речовин <b>не є</b> ізомером ${gen(n)}?`, [odd.iu.name, ...names], sol);
+}
+
+const nameMol = () => Math.random() < .35 ? (n => ({ name: ROOT[n], n, steps: [`${ROOT[n]} — нерозгалужений алкан з ${n} атомами C`] }))(rint(3, 10))
+  : (m => ({ name: m.iu.name, n: m.n, steps: [`Основа «${ROOT[m.iu.L]}» — ${m.iu.L} атомів C; замісники: ${m.iu.subs.map(s => `${ALK[s.k]} (${s.k} C)`).join(', ')}`,
+      `Разом атомів C: ${m.iu.L} + ${m.iu.subs.map(s => s.k).join(' + ')} = ${m.n}`] }))(genMol());
+
+function tFname() {
+  const x = nameMol(), f = alk(x.n);
+  return { type:'fname', label: x.name, q: `Запишіть молекулярну формулу речовини <b>${x.name}</b>.`, input:'formula',
+    right: fTxt(f), check: a => sameF(a, f), sol: [...x.steps, `C<sub>n</sub>H<sub>2n+2</sub>: n = ${x.n} → ${fHTML(f)}`] };
+}
+
+function tMolar() {
+  const x = nameMol(), f = alk(x.n), M = Malk(x.n);
+  return { type:'molar', label: x.name, q: `Обчисліть молярну масу речовини <b>${x.name}</b>.`, input:'num', unit:'г/моль',
+    right: `${M} г/моль`, check: a => near('M', a, M),
+    sol: [...x.steps, `Формула ${fHTML(f)}`, `M = ${x.n}·12 + ${2 * x.n + 2}·1 = ${M} г/моль`] };
+}
+
+function tHomo() {
+  if (Math.random() < .5) {
+    const n = rint(3, 10), c = n === 1 ? 'C' : `C${n}`;
+    const w = [`${c}H${2 * n}`, `${c}H${2 * n - 2}`, n >= 6 ? `${c}H${2 * n - 6}` : `${c}H${2 * n - 4}`];
+    return choiceOf('homo', `алкан з ${n} атомами C`, 'Яка формула відповідає алкану?', [fHTML(alk(n)), ...w.map(fHTML)],
+      [`Загальна формула алканів C<sub>n</sub>H<sub>2n+2</sub>: n = ${n} → H = 2·${n} + 2 = ${2 * n + 2}`]);
+  }
+  const n = rint(3, 8), m = pick([...Array(10).keys()].map(i => i + 1).filter(i => i !== n));
+  const UN = ['етен (етилен)', 'етин (ацетилен)', 'пропен', 'бензен', 'циклопропан', 'бут-1-ен', 'циклогексан'];
+  return choiceOf('homo', `гомолог ${gen(n)}`, `Яка речовина є гомологом ${gen(n)}?`, [ROOT[m], ...shuffle(UN).slice(0, 3)],
+    [`Гомологи — речовини одного класу, що відрізняються на групи CH<sub>2</sub>. ${ROOT[m][0].toUpperCase() + ROOT[m].slice(1)} (${fHTML(alk(m))}) — теж алкан.`]);
+}
+
+// Теоретичні питання: перша відповідь правильна
+const PROP = [
+  ['Загальна формула алканів:', ['C<sub>n</sub>H<sub>2n+2</sub>', 'C<sub>n</sub>H<sub>2n</sub>', 'C<sub>n</sub>H<sub>2n−2</sub>', 'C<sub>n</sub>H<sub>2n−6</sub>'], 'Алкани — насичені ациклічні вуглеводні C<sub>n</sub>H<sub>2n+2</sub>.'],
+  ['Тип гібридизації атомів Карбону в алканах:', ['sp<sup>3</sup>', 'sp<sup>2</sup>', 'sp', 'немає гібридизації'], 'Кожен атом C утворює 4 σ-зв\'язки — sp³-гібридизація.'],
+  ['Валентний кут H–C–H у молекулі метану:', ['109°28′', '120°', '180°', '90°'], 'sp³-гібридні орбіталі напрямлені до вершин тетраедра — 109°28′.'],
+  ['Яку просторову форму має молекула метану?', ['тетраедр', 'плоский квадрат', 'лінійна', 'плоский трикутник'], 'Атом C у центрі тетраедра, атоми H — у вершинах.'],
+  ['Які ковалентні зв\'язки є в молекулах алканів?', ['лише σ-зв\'язки', 'σ- і π-зв\'язки', 'лише π-зв\'язки', 'йонні зв\'язки'], 'Усі зв\'язки в алканах одинарні, тобто σ.'],
+  ['Найхарактерніший тип реакцій для алканів:', ['заміщення', 'приєднання', 'полімеризація', 'гідратація'], 'Насичені молекули не приєднують — атоми H заміщуються (галогенування).'],
+  ['Гомологічна різниця — це група:', ['CH<sub>2</sub>', 'CH<sub>3</sub>', 'CH', 'C<sub>2</sub>H<sub>4</sub>'], 'Сусідні гомологи відрізняються на CH₂.'],
+  ['Агрегатний стан бутану за н.у.:', ['газ', 'рідина', 'тверда речовина', 'залежить від тиску в балоні'], 'C₁–C₄ — гази, C₅–C₁₅ — рідини, від C₁₆ — тверді.'],
+  ['Агрегатний стан октану за н.у.:', ['рідина', 'газ', 'тверда речовина', 'плазма'], 'C₅–C₁₅ — рідини.'],
+  ['Парафін — це суміш:', ['твердих алканів', 'газоподібних алканів', 'алкенів', 'жирних кислот'], 'Парафін — тверді алкани приблизно C₁₈–C₃₅.'],
+  ['Найпростіший алкан, що має ізомери:', ['бутан', 'пропан', 'етан', 'пентан'], 'C₄H₁₀: бутан і 2-метилпропан.'],
+  ['Скільки структурних ізомерів має C<sub>5</sub>H<sub>12</sub>?', ['3', '2', '4', '5'], 'Пентан, 2-метилбутан, 2,2-диметилпропан.'],
+  ['Скільки структурних ізомерів має C<sub>6</sub>H<sub>14</sub>?', ['5', '4', '6', '3'], 'Гексан, 2-метилпентан, 3-метилпентан, 2,2-диметилбутан, 2,3-диметилбутан.'],
+  ['Головний компонент природного газу:', ['метан', 'етан', 'пропан', 'бутан'], 'У природному газі до 98 % метану.'],
+  ['Розчинність алканів у воді:', ['практично нерозчинні', 'добре розчинні', 'розчиняються з виділенням газу', 'розчиняються лише нижчі'], 'Молекули алканів неполярні, тому з водою не змішуються.'],
+  ['Як змінюється температура кипіння в ряду метан → декан?', ['зростає', 'спадає', 'не змінюється', 'спочатку зростає, потім спадає'], 'Більша молекула — сильніша міжмолекулярна взаємодія.'],
+  ['Як розгалуження ланцюга впливає на температуру кипіння ізомерів?', ['знижує її', 'підвищує її', 'не впливає', 'робить речовину твердою'], 'Розгалужені молекули компактніші, площа контакту менша.'],
+  ['Чи знебарвлюють алкани бромну воду та розчин KMnO<sub>4</sub>?', ['ні, за звичайних умов не реагують', 'так, обидва', 'лише бромну воду', 'лише розчин KMnO₄'], 'Це якісна відмінність алканів від ненасичених вуглеводнів.'],
+  ['Яку суміш закачують у побутові газові балони?', ['пропан-бутанову', 'метан-етанову', 'водень і кисень', 'азот і метан'], 'Пропан і бутан легко зріджуються під тиском.'],
+  ['Реакція Вюрца дає змогу:', ['подовжити карбоновий ланцюг', 'розщепити алкан', 'одержати алкен', 'добути метан із солі'], '2R–Hal + 2Na → R–R + 2NaHal.'],
+  ['Крекінг алканів — це:', ['розщеплення довгих молекул на коротші', 'горіння алканів', 'приєднання водню', 'утворення полімерів'], 'C₈H₁₈ → C₄H₁₀ + C₄H₈ — алкан і алкен.'],
+  ['Октанове число 100 за визначенням має:', ['2,2,4-триметилпентан (ізооктан)', 'гептан', 'октан', 'метан'], 'Ізооктан — 100, н-гептан — 0.'],
+  ['Галогенування метану відбувається за умови:', ['освітлення (hν) або нагрівання', 'дії води', 'низької температури в темряві', 'каталізатора Pt без нагрівання'], 'Реакція йде за радикальним механізмом під дією світла.'],
+  ['Метан утворюється в природі:', ['під час гниття рослинних решток без доступу повітря', 'під час фотосинтезу', 'під час горіння', 'під час розкладу води'], 'Болотний (рудниковий) газ — метан.']
+];
+const tProp = (i = Math.random() * PROP.length | 0) => { const [q, o, why] = PROP[i]; return choiceOf('prop', plain(q), q, o, [why]); };
+
+/* ---------- рівняння ---------- */
+// Коефіцієнти — найменші цілі
+const EQS = [
+  { lhs:['CH4','Cl2'], rhs:['CCl4','HCl'], k:[1,4,1,4], cond:'hν', note:'Повне хлорування метану' },
+  { lhs:['C2H6','Cl2'], rhs:['C2Cl6','HCl'], k:[1,6,1,6], cond:'hν', note:'Повне хлорування етану' },
+  { lhs:['CH3Cl','Na'], rhs:['C2H6','NaCl'], k:[2,2,1,2], cond:'', note:'Реакція Вюрца' },
+  { lhs:['C2H5Br','Na'], rhs:['C4H10','NaBr'], k:[2,2,1,2], cond:'', note:'Реакція Вюрца' },
+  { lhs:['CH4'], rhs:['C2H2','H2'], k:[2,1,3], cond:'1500 °C', note:'Добування ацетилену' },
+  { lhs:['CH4'], rhs:['C','H2'], k:[1,1,2], cond:'1000 °C', note:'Розклад метану' },
+  { lhs:['CH4','O2'], rhs:['CO','H2O'], k:[2,3,2,4], cond:'', note:'Неповне горіння метану' },
+  { lhs:['C3H8','O2'], rhs:['CO','H2O'], k:[2,7,6,8], cond:'', note:'Неповне горіння пропану' },
+  { lhs:['CH4','O2'], rhs:['C','H2O'], k:[1,1,1,2], cond:'', note:'Горіння за нестачі кисню (сажа)' },
+  { lhs:['Al4C3','H2O'], rhs:['Al(OH)3','CH4'], k:[1,12,4,3], cond:'', note:'Добування метану з карбіду алюмінію' },
+  { lhs:['Be2C','H2O'], rhs:['Be(OH)2','CH4'], k:[1,4,2,1], cond:'', note:'Добування метану з карбіду берилію' },
+  { lhs:['CH4','H2O'], rhs:['CO','H2'], k:[1,1,1,3], cond:'t°, кат.', note:'Конверсія метану (синтез-газ)' },
+  { lhs:['C','H2'], rhs:['CH4'], k:[1,2,1], cond:'t°, p, кат.', note:'Синтез метану з простих речовин' },
+  { lhs:['CO','H2'], rhs:['CH4','H2O'], k:[1,3,1,1], cond:'t°, кат.', note:'Одержання метану із синтез-газу' }
+];
+function combEq(n) {
+  const k = n % 2 ? [1, (3 * n + 1) / 2, n, n + 1] : [2, 3 * n + 1, 2 * n, 2 * n + 2];
+  return { lhs:[alk(n), 'O2'], rhs:['CO2', 'H2O'], k, cond:'', note:`Повне горіння ${n <= 10 ? gen(n) : 'алкану'}` };
+}
+const eqHTML = (e, k = e.k) => {
+  const side = (fs, off) => fs.map((f, i) => (k[off + i] === 1 ? '' : k[off + i]) + fHTML(f)).join(' + ');
+  return `${side(e.lhs, 0)} ${e.cond ? `<span style="white-space:nowrap">—${e.cond}→</span>` : '→'} ${side(e.rhs, e.lhs.length)}`;
+};
+
+function tCoef(comb = Math.random() < .5) {
+  const n = rint(1, 10), e = comb ? combEq(n) : pick(EQS);
+  const sol = [];
+  if (comb) {
+    const [a, o2, c, h] = e.k;
+    sol.push(`C: ${n} ${n === 1 ? 'атом' : n < 5 ? 'атоми' : 'атомів'} → ${n} CO<sub>2</sub>; H: ${2 * n + 2} → ${n + 1} H<sub>2</sub>O`,
+      `O праворуч: ${n}·2 + ${n + 1} = ${3 * n + 1} → O<sub>2</sub>: ${3 * n + 1}/2${a === 2 ? ` = ${fmt((3 * n + 1) / 2, 1)}` : ` = ${o2}`}`);
+    if (a === 2) sol.push(`Дробовий коефіцієнт — множимо все на 2: ${a}, ${o2}, ${c}, ${h}`);
+  } else sol.push(e.note);
+  sol.push(eqHTML(e));
+  return { type:'coef', label: plain(eqHTML(e, e.k.map(() => 1))), q: 'Розставте коефіцієнти (найменші цілі; коефіцієнт 1 теж впишіть).',
+    input:'coef', eq: e, right: plain(eqHTML(e)), check: a => e.k.every((x, i) => parseNum(a[i] ?? '') === x), sol };
+}
+
+// Продукт реакції: перша відповідь правильна
+const REACT = [
+  ['CH<sub>4</sub> + Cl<sub>2</sub> —hν→ <b>X</b> + HCl', ['CH<sub>3</sub>Cl', 'CH<sub>2</sub>Cl<sub>2</sub>', 'C<sub>2</sub>H<sub>5</sub>Cl', 'CCl<sub>4</sub>'], 'Заміщується один атом H на Cl: хлорометан CH₃Cl.'],
+  ['2CH<sub>3</sub>Cl + 2Na → <b>X</b> + 2NaCl', ['C<sub>2</sub>H<sub>6</sub>', 'CH<sub>4</sub>', 'C<sub>2</sub>H<sub>4</sub>', 'C<sub>3</sub>H<sub>8</sub>'], 'Реакція Вюрца: два радикали CH₃ сполучаються — етан.'],
+  ['2C<sub>2</sub>H<sub>5</sub>Cl + 2Na → <b>X</b> + 2NaCl', ['C<sub>4</sub>H<sub>10</sub>', 'C<sub>3</sub>H<sub>8</sub>', 'C<sub>2</sub>H<sub>6</sub>', 'C<sub>4</sub>H<sub>8</sub>'], 'C₂H₅–C₂H₅ = бутан C₄H₁₀.'],
+  ['C<sub>2</sub>H<sub>6</sub> —t°, кат.→ <b>X</b> + H<sub>2</sub>', ['C<sub>2</sub>H<sub>4</sub>', 'C<sub>2</sub>H<sub>2</sub>', 'CH<sub>4</sub>', 'C<sub>3</sub>H<sub>6</sub>'], 'Дегідрування: відщеплюється H₂, утворюється етен.'],
+  ['C<sub>8</sub>H<sub>18</sub> —t°→ C<sub>4</sub>H<sub>10</sub> + <b>X</b>', ['C<sub>4</sub>H<sub>8</sub>', 'C<sub>4</sub>H<sub>10</sub>', 'C<sub>8</sub>H<sub>16</sub>', 'C<sub>4</sub>H<sub>6</sub>'], 'Крекінг: C₈H₁₈ − C₄H₁₀ = C₄H₈ (алкен).'],
+  ['Al<sub>4</sub>C<sub>3</sub> + 12H<sub>2</sub>O → 4Al(OH)<sub>3</sub> + 3<b>X</b>', ['CH<sub>4</sub>', 'C<sub>2</sub>H<sub>2</sub>', 'C<sub>3</sub>H<sub>8</sub>', 'CO<sub>2</sub>'], 'Карбід алюмінію з водою дає метан.'],
+  ['CH<sub>3</sub>COONa + NaOH —t°→ <b>X</b> + Na<sub>2</sub>CO<sub>3</sub>', ['CH<sub>4</sub>', 'C<sub>2</sub>H<sub>6</sub>', 'CH<sub>3</sub>OH', 'CO<sub>2</sub>'], 'Сплавлення ацетату натрію з лугом — лабораторний спосіб добування метану.'],
+  ['CH<sub>4</sub> —1500 °C→ <b>X</b> + 3H<sub>2</sub>', ['C<sub>2</sub>H<sub>2</sub> (з 2CH₄)', 'C<sub>2</sub>H<sub>4</sub>', 'C', 'C<sub>2</sub>H<sub>6</sub>'], '2CH₄ → C₂H₂ + 3H₂ — так добувають ацетилен.'],
+  ['CH<sub>4</sub> + H<sub>2</sub>O —t°, кат.→ CO + 3<b>X</b>', ['H<sub>2</sub>', 'O<sub>2</sub>', 'CH<sub>3</sub>OH', 'C'], 'Конверсія метану дає синтез-газ CO + H₂.'],
+  ['Бутан —AlCl₃, t°→ <b>X</b> (ізомеризація)', ['2-метилпропан', '2-метилбутан', 'бут-1-ен', 'циклобутан'], 'Ізомеризація не змінює склад C₄H₁₀ — утворюється розгалужений ізомер.'],
+  ['C<sub>n</sub>H<sub>2n+2</sub> + O<sub>2</sub> (надлишок) → <b>X</b>', ['CO<sub>2</sub> і H<sub>2</sub>O', 'CO і H<sub>2</sub>', 'C і H<sub>2</sub>O', 'CO<sub>2</sub> і H<sub>2</sub>'], 'Повне горіння будь-якого вуглеводню дає CO₂ і H₂O.'],
+  ['Пропан + бромна вода → <b>X</b>', ['реакція не відбувається', '1,2-дибромопропан', '2-бромопропан', 'пропен'], 'Алкани не знебарвлюють бромну воду — немає π-зв\'язків.'],
+  ['CH<sub>3</sub>Cl + Cl<sub>2</sub> —hν→ <b>X</b> + HCl', ['CH<sub>2</sub>Cl<sub>2</sub>', 'CCl<sub>4</sub>', 'C<sub>2</sub>H<sub>5</sub>Cl', 'CH<sub>4</sub>'], 'Друга стадія хлорування — дихлорометан.']
+];
+const tReact = (i = Math.random() * REACT.length | 0) => { const [q, o, why] = REACT[i]; return choiceOf('react', plain(q), 'Що є речовиною X?', o, [why], `<p class="q">${q}</p>`); };
+
+/* ---------- температура кипіння ---------- */
+const BP = { 'метан': -161.5, 'етан': -88.6, 'пропан': -42.1, 'бутан': -0.5, 'пентан': 36.1, 'гексан': 68.7, 'гептан': 98.4, 'октан': 125.7, 'нонан': 150.8, 'декан': 174.1,
+  '2-метилпропан': -11.7, '2-метилбутан': 27.8, '2,2-диметилпропан': 9.5, '2-метилпентан': 60.3 };
+function tOrder() {
+  const iso = Math.random() < .45;
+  const names = iso ? shuffle(['пентан', '2-метилбутан', '2,2-диметилпропан', pick(['бутан', 'гексан', '2-метилпентан', '2-метилпропан'])])
+    : shuffle(ROOT.slice(1)).slice(0, 4);
+  const asc = Math.random() < .6, sorted = names.slice().sort((a, b) => asc ? BP[a] - BP[b] : BP[b] - BP[a]);
+  const want = sorted.map(x => names.indexOf(x));
+  return { type:'order', label: asc ? 'за зростанням' : 'за спаданням', q: `Розташуйте речовини за <b>${asc ? 'зростанням' : 'спаданням'}</b> температури кипіння. Натискайте по черзі.`,
+    input:'order', items: names, right: sorted.join(' → '), check: a => a.length === want.length && a.every((x, i) => x === want[i]),
+    sol: [sorted.map(x => `${x} (${fmt(BP[x], 1)} °C)`).join(' → '),
+      iso ? 'Чим більша молекула, тим вища t<sub>кип</sub>; серед ізомерів розгалужені киплять нижче.' : 'Чим довший ланцюг (більша M), тим вища t<sub>кип</sub>.'] };
+}
+
+/* ---------- знайди помилку ---------- */
+const ERRORS = [
+  { task:'Назвіть речовину CH₃–CH(CH₃)–CH₂–CH₃.', lines:['Найдовший ланцюг — 4 атоми C: бутан', 'Нумеруємо справа: метил при C3', 'Назва: 3-метилбутан'], bad:1,
+    why:'Нумерують з того кінця, ближче до якого розгалуження: метил при C2 — 2-метилбутан.' },
+  { task:'Назвіть речовину CH₃–CH(C₂H₅)–CH₂–CH₃.', lines:['Головний ланцюг — 4 атоми C: бутан', 'Етил при C2', 'Назва: 2-етилбутан'], bad:0,
+    why:'Найдовший ланцюг проходить через етил — 5 атомів C. Правильно: 3-метилпентан.' },
+  { task:'Назвіть речовину CH₃–C(CH₃)₂–CH₂–CH₃.', lines:['Головний ланцюг — 4 атоми C: бутан', 'Дві метильні групи при C2', 'Назва: 2-диметилбутан'], bad:2,
+    why:'Номер ставлять для кожного замісника: 2,2-диметилбутан.' },
+  { task:'Розставте коефіцієнти: C₃H₈ + O₂ → CO₂ + H₂O.', lines:['C: 3 → 3CO₂', 'H: 8 → 4H₂O', 'O праворуч: 3·2 + 4 = 10 → 10O₂'], bad:2,
+    why:'10 атомів O — це 5 молекул O₂: C₃H₈ + 5O₂ → 3CO₂ + 4H₂O.' },
+  { task:'Обчисліть молярну масу бутану.', lines:['Бутан C₄H₁₀', 'M = 4·12 + 10·1', '= 48 + 10 = 68 г/моль'], bad:2,
+    why:'48 + 10 = 58 г/моль.' },
+  { task:'Запишіть формулу гексану.', lines:['Алкани: CₙH₂ₙ₊₂', 'n = 6', 'Гексан — C₆H₁₂'], bad:2,
+    why:'H = 2·6 + 2 = 14: C₆H₁₄. C₆H₁₂ — формула гексену або циклогексану.' },
+  { task:'Охарактеризуйте реакцію CH₄ + Cl₂ → CH₃Cl + HCl.', lines:['Відбувається на світлі (hν)', 'Тип реакції — приєднання', 'Продукт — хлорометан'], bad:1,
+    why:'Атом H заміщується на Cl — це реакція заміщення.' },
+  { task:'Опишіть будову молекули етану.', lines:['Етан — насичений вуглеводень', 'Атоми C у стані sp²-гібридизації', 'Усі зв\'язки — σ'], bad:1,
+    why:'В алканах атоми C у стані sp³-гібридизації (кут 109°28′).' },
+  { task:'Який об\'єм кисню потрібен для спалювання 10 л метану (н.у.)?', lines:['CH₄ + 2O₂ → CO₂ + 2H₂O', 'V(O₂) = V(CH₄) / 2 = 5 л'], bad:1,
+    why:'За рівнянням кисню вдвічі більше: V(O₂) = 2 · 10 = 20 л.' },
+  { task:'Назвіть ізомери C₅H₁₂.', lines:['пентан', '2-метилбутан', '3-метилбутан'], bad:2,
+    why:'3-метилбутан — це той самий 2-метилбутан (неправильна нумерація). Третій ізомер — 2,2-диметилпропан.' },
+  { task:'D(H₂) алкану = 15. Визначте формулу.', lines:['M = D · M(H₂) = 15 · 1 = 15 г/моль', '14n + 2 = 15', 'n ≈ 1 → CH₄'], bad:0,
+    why:'M(H₂) = 2 г/моль: M = 30 г/моль, 14n + 2 = 30, n = 2 — етан C₂H₆.' },
+  { task:'Що утвориться: 2C₂H₅Cl + 2Na → ? + 2NaCl', lines:['Реакція Вюрца: сполучаються два радикали C₂H₅', 'Утворюється C₂H₅–C₂H₅', 'Це пропан C₃H₈'], bad:2,
+    why:'C₂H₅–C₂H₅ = C₄H₁₀ — бутан.' },
+  { task:'Обчисліть масову частку Карбону в метані.', lines:['M(CH₄) = 12 + 4 = 16 г/моль', 'w(C) = 12 / 16', '= 0,75 = 7,5 %'], bad:2,
+    why:'0,75 = 75 %.' },
+  { task:'Порівняйте температури кипіння пентану і 2,2-диметилпропану.', lines:['Обидві речовини — C₅H₁₂, ізомери', 'Розгалужена молекула більша, тому кипить вище', 't кип(2,2-диметилпропану) > t кип(пентану)'], bad:1,
+    why:'Розгалужена молекула компактніша, міжмолекулярна взаємодія слабша — кипить нижче (9,5 °C проти 36,1 °C).' }
+];
+function tErr(i = Math.random() * ERRORS.length | 0) {
+  const e = ERRORS[i];
+  return { type:'err', label: e.task, q: e.task, input:'err', lines: e.lines, right: e.lines[e.bad], check: a => a === e.bad, sol: [e.why] };
+}
+
+/* ---------- задачі ---------- */
+const NICE = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 0.8, 1, 1.2, 1.5, 2, 2.5, 3];
+const VOLS = [1, 2, 3, 4, 5, 5.6, 6, 8, 10, 11.2, 12, 15, 20, 22.4, 30, 50];
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+function tWc() {
+  const n = rint(1, 10), f = alk(n), M = Malk(n), H = Math.random() < .35;
+  const w = (H ? (2 * n + 2) : 12 * n) / M * 100;
+  return { type:'wc', label: `w(${H ? 'H' : 'C'}) у ${ROOT[n]}і`, q: `Обчисліть масову частку ${H ? 'Гідрогену' : 'Карбону'} в ${ROOT[n]}і.`, input:'num', unit:'%',
+    right: `${fmt(w, 1)} %`, check: a => nearPct(a, w),
+    sol: [`${cap(ROOT[n])} — ${fHTML(f)}, M = ${n}·12 + ${2 * n + 2} = ${M} г/моль`,
+      H ? `w(H) = ${2 * n + 2}·1 / ${M} · 100 % ≈ ${fmt(w, 1)} %` : `w(C) = ${n}·12 / ${M} · 100 % ≈ ${fmt(w, 1)} %`] };
+}
+
+function tComb(kind = pick(['vo2', 'air', 'h2o', 'co2'])) {
+  if (kind === 'vo2' || kind === 'air') {
+    const n = rint(1, 4), V = pick(VOLS), k = (3 * n + 1) / 2, VO = V * k, Va = VO / 0.21;
+    const sol = [eqHTML(combEq(n)), `Для газів об'єми відносяться як коефіцієнти: V(O<sub>2</sub>) = ${fmt(k, 1)} · V(${fHTML(alk(n))}) = ${fmt(k, 1)} · ${fmt(V)} = ${fmt(VO)} л`];
+    if (kind === 'air') sol.push(`V(повітря) = V(O<sub>2</sub>) / φ(O<sub>2</sub>) = ${fmt(VO)} / 0,21 ≈ ${fmt(Va, 1)} л`);
+    return { type:'comb', label: `${fmt(V)} л ${ROOT[n]}у → V(${kind === 'air' ? 'повітря' : 'O₂'})`,
+      q: kind === 'air' ? `Який об'єм повітря (н.у.) потрібен для повного спалювання ${fmt(V)} л ${gen(n)}? Об'ємна частка кисню в повітрі — 21 %.`
+        : `Який об'єм кисню (н.у.) потрібен для повного спалювання ${fmt(V)} л ${gen(n)}?`,
+      input:'num', unit:'л', right: `${fmt(kind === 'air' ? Va : VO, 1)} л`, check: a => near('V', a, kind === 'air' ? Va : VO), sol };
+  }
+  for (;;) {
+    const n = rint(1, 8), na = pick(NICE), M = Malk(n), m = round(na * M, 6);
+    if (!isRound2(m) || m > 500) continue;
+    const H2O = kind === 'h2o', x = round(H2O ? na * (n + 1) * 18 : na * n * VM, 6);
+    if (!isRound2(x)) continue;
+    const e = combEq(n), [a, , c, h] = e.k;
+    return { type:'comb', label: `${fmt(m)} г ${ROOT[n]}у → ${H2O ? 'm(H₂O)' : 'V(CO₂)'}`,
+      q: H2O ? `Яка маса води утвориться під час повного згоряння ${fmt(m)} г ${gen(n)}?` : `Який об'єм вуглекислого газу (н.у.) утвориться під час повного згоряння ${fmt(m)} г ${gen(n)}?`,
+      input:'num', unit: H2O ? 'г' : 'л', right: `${fmt(x)} ${H2O ? 'г' : 'л'}`, check: v => near(H2O ? 'm' : 'V', v, x),
+      sol: [eqHTML(e), `M(${fHTML(alk(n))}) = ${M} г/моль, n = ${fmt(m)} / ${M} = ${fmt(na, 3)} моль`,
+        H2O ? `n(H<sub>2</sub>O) = ${h}/${a} · ${fmt(na, 3)} = ${fmt(na * (n + 1), 3)} моль, m = ${fmt(na * (n + 1), 3)} · 18 = ${fmt(x)} г`
+            : `n(CO<sub>2</sub>) = ${c}/${a} · ${fmt(na, 3)} = ${fmt(na * n, 3)} моль, V = ${fmt(na * n, 3)} · 22,4 = ${fmt(x)} л`] };
+  }
+}
+
+// Визначити формулу алкану
+function tFind(kind = pick(['dh2', 'dair', 'wc', 'vol', 'mass'])) {
+  const base = (label, q, sol, n) => ({ type:'find', label, q: q + ' Визначте молекулярну формулу алкану.', input:'formula',
+    right: fTxt(alk(n)), check: a => sameF(a, alk(n)), sol: [...sol, `Формула: ${fHTML(alk(n))} (${ROOT[n]})`] });
+  if (kind === 'dh2') {
+    const n = rint(2, 9), D = Malk(n) / 2;
+    return base(`D(H₂) = ${fmt(D)}`, `Відносна густина алкану за воднем дорівнює ${fmt(D)}.`,
+      [`M = D · M(H<sub>2</sub>) = ${fmt(D)} · 2 = ${Malk(n)} г/моль`, `14n + 2 = ${Malk(n)} → n = ${n}`], n);
+  }
+  if (kind === 'dair') {
+    const n = rint(1, 8), D = round(Malk(n) / 29, 2), M = D * 29;
+    return base(`D(пов.) = ${fmt(D)}`, `Відносна густина алкану за повітрям дорівнює ${fmt(D)}.`,
+      [`M = D · 29 = ${fmt(D)} · 29 ≈ ${fmt(M, 1)} г/моль`, `14n + 2 = ${Malk(n)} → n = ${n}`], n);
+  }
+  if (kind === 'wc') {
+    const n = rint(1, 7), w = round(12 * n / Malk(n) * 100, 2);
+    return base(`w(C) = ${fmt(w)} %`, `Масова частка Карбону в алкані становить ${fmt(w)} %.`,
+      [`w(C) = 12n / (14n + 2) = ${fmt(w / 100, 4)}`, `12n = ${fmt(w / 100, 4)}·(14n + 2) → n = ${n}`], n);
+  }
+  if (kind === 'vol') {
+    const n = rint(1, 4), V = pick(VOLS.filter(v => v <= 22.4)), Vc = round(V * n, 6);
+    return base(`${fmt(V)} л → ${fmt(Vc)} л CO₂`, `Під час повного спалювання ${fmt(V)} л газоподібного алкану утворилося ${fmt(Vc)} л вуглекислого газу (н.у.).`,
+      [`C<sub>n</sub>H<sub>2n+2</sub> → n CO<sub>2</sub>: з 1 об'єму алкану — n об'ємів CO<sub>2</sub>`, `n = ${fmt(Vc)} / ${fmt(V)} = ${n}`], n);
+  }
+  for (;;) {
+    const n = rint(1, 8), na = pick(NICE), m = round(na * Malk(n), 6), V = round(na * n * VM, 6);
+    if (!isRound2(m) || !isRound2(V) || m > 300) continue;
+    return base(`${fmt(m)} г → ${fmt(V)} л CO₂`, `Під час повного згоряння ${fmt(m)} г алкану утворилося ${fmt(V)} л вуглекислого газу (н.у.).`,
+      [`n(CO<sub>2</sub>) = ${fmt(V)} / 22,4 = ${fmt(na * n, 3)} моль = n(C)`, `m(C) = ${fmt(na * n, 3)} · 12 = ${fmt(na * n * 12)} г, m(H) = ${fmt(m)} − ${fmt(na * n * 12)} = ${fmt(na * (2 * n + 2))} г → n(H) = ${fmt(na * (2 * n + 2), 3)} моль`,
+        `C : H = ${fmt(na * n, 3)} : ${fmt(na * (2 * n + 2), 3)} = ${n} : ${2 * n + 2}`], n);
+  }
+}
+
+// Суміш метану з етаном/пропаном: витрата кисню → склад
+function tMix() {
+  const B = pick([2, 3]), kB = (3 * B + 1) / 2, V1 = pick([1, 2, 3, 4, 5, 6, 8, 10]), V2 = pick([1, 2, 3, 4, 5, 6, 8, 10]);
+  const V = V1 + V2, VO = 2 * V1 + kB * V2, askV = Math.random() < .5, phi = V1 / V * 100;
+  return { type:'mix', label: `CH₄ + ${fTxt(alk(B))}, ${fmt(V)} л, ${fmt(VO)} л O₂`,
+    q: `На повне спалювання ${fmt(V)} л суміші метану та ${gen(B)} витратили ${fmt(VO)} л кисню (н.у.). Обчисліть ${askV ? 'об\'єм метану в суміші' : 'об\'ємну частку метану в суміші'}.`,
+    input:'num', unit: askV ? 'л' : '%', right: askV ? `${fmt(V1)} л` : `${fmt(phi, 1)} %`, check: a => askV ? near('V', a, V1) : nearPct(a, phi, 0.5),
+    sol: [eqHTML(combEq(1)), eqHTML(combEq(B)),
+      `Нехай V(CH<sub>4</sub>) = x, V(${fHTML(alk(B))}) = y: x + y = ${fmt(V)}; 2x + ${fmt(kB, 1)}y = ${fmt(VO)}`,
+      `y = (${fmt(VO)} − 2·${fmt(V)}) / (${fmt(kB, 1)} − 2) = ${fmt(V2)} л, x = ${fmt(V1)} л`,
+      ...(askV ? [] : [`φ(CH<sub>4</sub>) = ${fmt(V1)} / ${fmt(V)} · 100 % ≈ ${fmt(phi, 1)} %`])] };
+}
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  nom: { kind: 'all', t: null, shown: false },
+  eq: { kind: 'all', t: null, shown: false },
+  prob: { kind: 'all', t: null, shown: false },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+const stepsHTML = sol => `<ol class="steps">${sol.map(s => `<li>${s}</li>`).join('')}</ol>`;
+
+// Рівняння: 'blank' — порожні клітинки, 'filled' — з відповіддю, 'input' — поля для учня
+function coefHTML(t, mode) {
+  const e = t.eq;
+  const sp = (f, i) => {
+    const box = mode === 'input' ? `<input class="co" data-c="${i}" inputmode="numeric" autocomplete="off" aria-label="Коефіцієнт перед ${fTxt(f)}" value="${esc(t.ans[i] ?? '')}">`
+      : mode === 'filled' ? `<b class="co-f">${e.k[i]}</b>` : '<span class="co-b"></span>';
+    return `<span class="sp">${box}<span>${fHTML(f)}</span></span>`;
+  };
+  const side = (fs, off) => fs.map((f, i) => sp(f, off + i)).join('<span>+</span>');
+  return `<div class="eq">${side(e.lhs, 0)}<span class="arr">${e.cond ? `<small>${e.cond}</small>` : ''}→</span>${side(e.rhs, e.lhs.length)}</div>`;
+}
+
+/* ---------- тренажери ---------- */
+const GEN_TABS = {
+  nom: { kinds: [['all', 'Усі'], ['nom', 'Назва за структурою'], ['isomer', 'Ізомери'], ['fname', 'Формула за назвою']],
+    gen: k => ({ nom: tNom, isomer: tIsomer, fname: tFname })[k === 'all' ? pick(['nom', 'nom', 'nom', 'isomer', 'fname']) : k]() },
+  eq: { kinds: [['all', 'Усі'], ['comb', 'Горіння'], ['other', 'Інші реакції'], ['react', 'Продукт реакції']],
+    gen: k => ({ comb: () => tCoef(true), other: () => tCoef(false), react: () => tReact() })[k === 'all' ? pick(['comb', 'other', 'react']) : k]() },
+  prob: { kinds: [['all', 'Усі'], ['comb', 'Горіння'], ['find', 'Формула алкану'], ['wc', 'Масова частка'], ['mix', 'Суміші'], ['order', 't кипіння']],
+    gen: k => ({ comb: () => tComb(), find: () => tFind(), wc: tWc, mix: tMix, order: tOrder })[k === 'all' ? pick(['comb', 'comb', 'find', 'find', 'wc', 'mix', 'order']) : k]() }
+};
+function renderProb() {
+  const st = S[S.mode];
+  if (!st.t) st.t = GEN_TABS[S.mode].gen(st.kind);
+  const t = st.t;
+  const body = t.input === 'choice' ? `<div class="opts">${t.opts.map(o => `<div class="opt">${o.html}</div>`).join('')}</div>`
+    : t.input === 'order' ? `<div class="order">${t.items.map(x => `<div class="ord">${x}</div>`).join('')}</div>` : '';
+  stage.innerHTML = `
+    <div class="task">
+      <div class="seg" role="group" aria-label="Тип завдань">${GEN_TABS[S.mode].kinds.map(([k, l]) =>
+        `<button data-kind="${k}" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+      ${t.fig || ''}
+      <p class="q">${t.q}</p>
+      ${t.input === 'coef' ? coefHTML(t, st.shown ? 'filled' : 'blank') : ''}
+      ${body}
+      ${st.shown ? `${stepsHTML(t.sol)}<div class="note ok">Відповідь: <strong>${esc(t.right)}</strong></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.kind = b.dataset.kind; nextProb(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextProb() : showProb();
+}
+function showProb() { S[S.mode].shown = true; renderProb(); }
+function nextProb() { const st = S[S.mode]; st.shown = false; st.t = GEN_TABS[S.mode].gen(st.kind); renderProb(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Учень розв'язав так. У якому рядку помилка?</p>
+        <p class="q">${e.task}</p>
+      </div>
+      <div class="lines">${e.lines.map((l, i) => `<div class="line${st.shown && i === e.bad ? ' wrong' : ''}">${l}</div>`).join('')}</div>
+      ${st.shown ? `<div class="note bad">${e.why}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+// Бали за завдання залежно від складності (разом 27)
+const PTS = { prop: 1, homo: 1, fname: 1, molar: 1, nom: 2, isomer: 2, coef: 2, react: 2, order: 2, err: 2, wc: 2, comb: 3, find: 3, mix: 3 };
+
+// Від простого до складного
+function makeTest() {
+  const tasks = [tProp(), tHomo(), tFname(), tMolar(), tNom(), tIsomer(), tCoef(), tReact(), tOrder(), tErr(), tWc(), tComb(), tFind(), (pick([tMix, () => tComb('air')]))()];
+  return tasks.map(t => ({ ...t, pts: PTS[t.type], ans: t.input === 'choice' || t.input === 'err' ? null : t.input === 'coef' ? {} : t.input === 'order' ? [] : '' }));
+}
+
+function answered(t) {
+  if (t.input === 'choice' || t.input === 'err') return t.ans !== null;
+  if (t.input === 'coef') return [...t.eq.lhs, ...t.eq.rhs].every((_, i) => String(t.ans[i] ?? '').trim() !== '');
+  if (t.input === 'order') return t.ans.length === t.items.length;
+  return t.ans.trim() !== '';
+}
+
+function givenText(t) {
+  if (t.input === 'choice') return t.opts[t.ans].txt;
+  if (t.input === 'err') return t.lines[t.ans];
+  if (t.input === 'coef') return plain(eqHTML(t.eq, t.eq.k.map((_, i) => String(t.ans[i]).trim() === '1' ? 1 : String(t.ans[i]).trim())));
+  if (t.input === 'order') return t.ans.map(i => t.items[i]).join(' → ');
+  return t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+}
+function grade(t) {
+  return { ok: t.check(t.ans), label: TYPE[t.type] + (t.label ? ' · ' + t.label : ''), given: givenText(t), right: t.right, sol: t.sol };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Алкани</h1></div>
+      <div class="facts"><span class="chip">C<sub>n</sub>H<sub>2n+2</sub></span><span class="chip">M = 14n + 2</span><span class="chip">V<sub>m</sub> = 22,4 л/моль</span></div>
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="10-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Будова і властивості, номенклатура за структурною формулою, ізомери, рівняння реакцій, пошук помилок, розрахункові задачі.</li>
+        <li>Ar: C — 12, H — 1, O — 16. Об'єми газів — за н.у. Десяткові дроби можна писати з комою.</li>
+        <li>Формули пишіть латиницею: C5H12 (індекси — звичайними цифрами).</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+// Показує, як програма прочитала формулу
+function fPreview(raw) {
+  if (!raw.trim()) return '';
+  const f = normF(raw);
+  return parseF(f) ? fHTML(f) : '<p class="hint">Не вдалося прочитати формулу. Приклад: C5H12</p>';
+}
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  let body = '';
+  if (t.input === 'num' || t.input === 'formula') {
+    const f = t.input === 'formula';
+    body = `
+      <div class="ans-row">
+        <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"${f ? '' : ' inputmode="decimal"'}
+          placeholder="${f ? 'Наприклад, C4H10' : 'Число'}" aria-label="Відповідь" value="${esc(t.ans)}">
+        ${t.unit ? `<span class="unit">${t.unit}</span>` : ''}
+      </div>
+      ${f ? `<div class="preview" id="t-prev" aria-live="polite">${fPreview(t.ans)}</div>` : ''}
+      <p class="hint">${f ? 'Латиницею, індекси — звичайними цифрами: C4H10' : 'Десятковий дріб можна писати з комою: 0,25'}</p>`;
+  } else if (t.input === 'choice') {
+    body = `<div class="opts">${t.opts.map((o, i) =>
+      `<button class="opt" data-o="${i}" aria-pressed="${t.ans === i}">${o.html}</button>`).join('')}</div>`;
+  } else if (t.input === 'coef') {
+    body = coefHTML(t, 'input');
+  } else if (t.input === 'order') {
+    body = `<div class="order">${t.items.map((x, i) => { const k = t.ans.indexOf(i);
+      return `<button class="ord" data-r="${i}" aria-pressed="${k >= 0}"${k >= 0 ? ' disabled' : ''}>${k >= 0 ? `<b>${k + 1}</b>` : ''}${x}</button>`; }).join('')}</div>
+      <p class="ord-line">${t.ans.map(i => t.items[i]).join(' → ') || '&nbsp;'}</p>
+      <div class="actions"><button class="btn" id="t-reset"${t.ans.length ? '' : ' disabled'}>Скинути порядок</button></div>`;
+  } else {
+    body = `
+      <p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>
+      <div class="lines">${t.lines.map((l, i) =>
+        `<button class="line${t.ans === i ? ' picked' : ''}" data-l="${i}" aria-pressed="${t.ans === i}">${l}</button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      ${t.fig || ''}
+      <p class="q">${t.q}</p>
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    const prev = document.getElementById('t-prev');
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); if (prev) prev.innerHTML = fPreview(t.ans); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  const cos = stage.querySelectorAll('[data-c]');
+  cos.forEach((c, i) => {
+    c.oninput = () => { t.ans[c.dataset.c] = c.value; next.disabled = !answered(t); };
+    c.onkeydown = e => { if (e.key === 'Enter') { if (cos[i + 1]) cos[i + 1].focus(); else goNext(); } };
+  });
+  if (cos.length) cos[0].focus();
+  stage.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.o; renderTask(); stage.querySelector(`[data-o="${b.dataset.o}"]`).focus();
+  });
+  stage.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.l; renderTask(); stage.querySelector(`[data-l="${b.dataset.l}"]`).focus();
+  });
+  stage.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+    t.ans.push(+b.dataset.r); renderTask();
+    (stage.querySelector('.ord:not([disabled])') || document.getElementById('t-next')).focus();
+  });
+  const reset = document.getElementById('t-reset');
+  if (reset) reset.onclick = () => { t.ans = []; renderTask(); stage.querySelector('.ord').focus(); };
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${esc(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, nom: renderProb, eq: renderProb, prob: renderProb, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const st = S[S.mode], err = S.mode === 'err';
+  if (e.key === 'ArrowRight') { e.preventDefault(); err ? nextErr() : nextProb(); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); st.shown ? (err ? nextErr() : nextProb()) : (err ? showErr() : showProb()); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>

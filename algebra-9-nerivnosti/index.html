@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Системи нерівностей</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Той самий каркас, що й у тренажері з хімії: верхня панель (вкладки + таймер) і «сцена» із завданням. Кольори нерівностей: A теплий, B холодний. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --a: #d9653b;        /* перша нерівність */
+  --a-soft: #fbe6dc;
+  --b: #1f7a8c;        /* друга нерівність */
+  --b-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --a: #f08a62; --a-soft: #3a2419; --b: #4fb6c9; --b-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --a: #f08a62; --a-soft: #3a2419; --b: #4fb6c9; --b-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+
+/* система */
+.sys { display: inline-flex; align-items: stretch; gap: 12px; font-weight: 600; font-size: clamp(1.6rem, 3.8vw, 2.6rem); line-height: 1.35; max-width: 100%; }
+.sys .brace { width: .45em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.5; }
+.sys .rows { display: flex; flex-direction: column; gap: .15em; min-width: 0; }
+.sys i, .steps i, .note i, .review i { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 1.08em; }
+
+/* розв'язання по кроках */
+.cols { display: flex; flex-wrap: wrap; gap: 16px; }
+.col { flex: 1 1 260px; border-radius: 14px; padding: 14px 18px; border-left: 5px solid; background: var(--bg); }
+.col.c0 { border-color: var(--a); }
+.col.c1 { border-color: var(--b); }
+.col ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 1.3rem; font-weight: 600; }
+.col small { display: block; font-size: .8rem; font-weight: 500; color: var(--muted); }
+
+/* числова пряма */
+.nl { width: 100%; max-width: 720px; height: auto; display: block; color: var(--ink); }
+.nl text { font-family: var(--f-body); font-size: 17px; font-weight: 600; fill: currentColor; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.1rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+/* конструктор проміжку */
+.builder { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+.ib { display: flex; align-items: flex-start; gap: 6px; }
+.ib.off { opacity: .35; }
+.br { width: 46px; height: 64px; border: 2px dashed var(--line); background: transparent; border-radius: 10px; font-size: 2.4rem; font-weight: 500; line-height: 1; cursor: pointer; padding: 0 0 6px; }
+.br:disabled { cursor: default; }
+.end { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.num { width: 112px; height: 64px; text-align: center; font-size: 1.6rem; font-weight: 600; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 0 8px; }
+.num:disabled { background: var(--bg); }
+.inf { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 2px 10px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.inf[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.semi { font-size: 2rem; font-weight: 600; line-height: 64px; }
+.answer { width: 160px; font-size: 1.6rem; font-weight: 600; text-align: center; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+
+/* кроки учня */
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.step { width: 100%; text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 12px; padding: 10px 16px; font-size: 1.3rem; font-weight: 600; display: flex; gap: 14px; align-items: baseline; }
+button.step { cursor: pointer; }
+.step .n { font-size: .85rem; color: var(--muted); font-weight: 600; min-width: 1.4em; }
+.step.picked { border-style: solid; border-color: var(--ink); background: var(--bg); }
+.step.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* тест */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { padding: 22px; }
+  .br { width: 38px; height: 56px; font-size: 2rem; }
+  .num { width: 84px; height: 56px; font-size: 1.3rem; }
+  .semi { line-height: 56px; font-size: 1.6rem; }
+  .step, .col ol { font-size: 1.1rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .step { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Системи нерівностей<small>Алгебра · 9 клас · одна змінна</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="solve">Розв'яжи систему</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="line">Числова пряма</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 10;
+const TOPIC = 'Алгебра 9 клас — Системи лінійних нерівностей';
+
+/* ---------- утиліти ---------- */
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pickA = arr => arr[Math.random() * arr.length | 0];
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const mx = s => esc(s).replace(/x/g, '<i>x</i>');   // латинська x — змінна, курсивом
+const eq = (a, b) => a === b || Math.abs(a - b) < 1e-9;
+const isInt = v => eq(v, Math.round(v));
+
+const fmtInt = n => n < 0 ? '−' + (-n) : String(n);
+function fmtNum(v) {
+  if (v === -Infinity) return '−∞';
+  if (v === Infinity) return '+∞';
+  for (let d = 1; d <= 12; d++) {
+    const n = Math.round(v * d);
+    if (eq(n, v * d)) return (n < 0 ? '−' : '') + (d === 1 ? Math.abs(n) : `${Math.abs(n)}/${d}`);
+  }
+  return String(+v.toFixed(3)).replace('-', '−');
+}
+function fmtLin(a, b) {
+  let s = '';
+  if (a) s = a === 1 ? 'x' : a === -1 ? '−x' : fmtInt(a) + 'x';
+  if (b) s = s ? s + (b > 0 ? ' + ' : ' − ') + Math.abs(b) : fmtInt(b);
+  return s || '0';
+}
+function parseNum(s) {
+  s = String(s).trim().replace(/[−–]/g, '-').replace(/,/g, '.').replace(/\s/g, '');
+  if (/^-?\d+(\.\d+)?\/\d+(\.\d+)?$/.test(s)) { const [a, b] = s.split('/').map(Number); return b ? a / b : NaN; }
+  if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+  return NaN;
+}
+
+/* ---------- математика ---------- */
+// Промінь: { dir: 'gt' | 'lt', v, c } — x > v (c: нестрога)
+const opOf = (dir, c) => dir === 'gt' ? (c ? '≥' : '>') : (c ? '≤' : '<');
+const flip = dir => dir === 'gt' ? 'lt' : 'gt';
+
+function solveRays(rays) {
+  let lo = -Infinity, loC = false, hi = Infinity, hiC = false;
+  for (const r of rays) {
+    if (r.dir === 'gt') {
+      if (lo === -Infinity || (r.v > lo && !eq(r.v, lo))) { lo = r.v; loC = r.c; }
+      else if (eq(r.v, lo)) loC = loC && r.c;
+    } else {
+      if (hi === Infinity || (r.v < hi && !eq(r.v, hi))) { hi = r.v; hiC = r.c; }
+      else if (eq(r.v, hi)) hiC = hiC && r.c;
+    }
+  }
+  if (lo > hi && !eq(lo, hi)) return { empty: true };
+  if (eq(lo, hi) && !(loC && hiC)) return { empty: true };
+  return { lo, loC, hi, hiC };
+}
+function fmtSol(s) {
+  if (!s || s.empty) return '∅';
+  if (eq(s.lo, s.hi)) return `{${fmtNum(s.lo)}}`;
+  return `${s.loC ? '[' : '('}${fmtNum(s.lo)}; ${fmtNum(s.hi)}${s.hiC ? ']' : ')'}`;
+}
+function sameSol(a, b) {
+  if (a.empty || b.empty) return !!a.empty === !!b.empty;
+  const end = (v1, c1, v2, c2) => Math.abs(v1) === Infinity || Math.abs(v2) === Infinity ? v1 === v2 : eq(v1, v2) && c1 === c2;
+  return end(a.lo, a.loC, b.lo, b.loC) && end(a.hi, a.hiC, b.hi, b.hiC);
+}
+
+// Лінійна нерівність із заданим розв'язком ray у вигляді form: simple | mono | linear | bracket
+function genIneq(ray, form, sign) {
+  let den = 1; while (!isInt(ray.v * den)) den++;
+  const n = Math.round(ray.v * den);
+  if (form === 'simple' && den === 1) return { text: `x ${opOf(ray.dir, ray.c)} ${fmtNum(ray.v)}`, steps: [], ray };
+  if (form === 'simple') form = 'mono';
+  let s = den > 1 ? pickA([1, 2, -1]) : pickA([2, 3, 4, 5, -1, -2, -3, -4]);
+  if (sign === 'neg') s = -Math.abs(s);
+  if (sign === 'pos') s = Math.abs(s);
+  const k = s * den, m = s * n;
+  const op = opOf(k > 0 ? ray.dir : flip(ray.dir), ray.c);
+  let text, a = k, b = 0, c = 0, d = m;
+  const steps = [];
+  if (form === 'mono') {
+    text = `${fmtLin(k, 0)} ${op} ${fmtInt(m)}`;
+  } else if (form === 'linear') {
+    a = pickA(range(-4, 6).filter(x => x !== 0 && x !== k));
+    c = a - k; b = R(-9, 9); d = b + m;
+    text = `${fmtLin(a, b)} ${op} ${fmtLin(c, d)}`;
+  } else {
+    const A = pickA([2, 3, 4, -2, -3]), p = pickA([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), q = R(-6, 6);
+    a = A; b = A * p + q; c = A - k; d = b + m;
+    text = `${fmtInt(A)}(x ${p > 0 ? '+' : '−'} ${Math.abs(p)})${q ? (q > 0 ? ' + ' : ' − ') + Math.abs(q) : ''} ${op} ${fmtLin(c, d)}`;
+    steps.push({ t: `${fmtLin(a, b)} ${op} ${fmtLin(c, d)}`, note: 'розкриваємо дужки' });
+  }
+  if (form !== 'mono' && (c !== 0 || b !== 0 || form === 'bracket'))
+    steps.push({ t: `${fmtLin(k, 0)} ${op} ${fmtInt(m)}`, note: 'доданки з x — ліворуч, числа — праворуч' });
+  if (k !== 1)
+    steps.push({ t: `x ${opOf(ray.dir, ray.c)} ${fmtNum(ray.v)}`, note: k < 0 ? `ділимо на ${fmtInt(k)} — знак змінюється` : `ділимо на ${k}` });
+  return { text, steps, ray };
+}
+
+const rb = () => Math.random() < .5;
+function raysFor(outcome) {
+  if (outcome === 'interval') { const r1 = R(-7, 4), r2 = r1 + R(2, 7); return [{ dir:'gt', v:r1, c:rb() }, { dir:'lt', v:r2, c:rb() }]; }
+  if (outcome === 'ray') { const dir = pickA(['gt', 'lt']), v1 = R(-6, 5), v2 = v1 + R(1, 5); return [{ dir, v:v1, c:rb() }, { dir, v:v2, c:rb() }]; }
+  if (outcome === 'empty') {
+    const r1 = R(-6, 4), r2 = r1 + R(0, 5), c1 = rb();
+    return [{ dir:'lt', v:r1, c:c1 }, { dir:'gt', v:r2, c: r1 === r2 && c1 ? false : rb() }];
+  }
+  const r = R(-6, 6); return [{ dir:'gt', v:r, c:true }, { dir:'lt', v:r, c:true }];   // point
+}
+const FORMS = ['linear', 'linear', 'bracket', 'simple', 'mono'];
+function genSystem(outcome, opts = {}) {
+  const rays = shuffle(raysFor(outcome));
+  const forms = opts.forms ? shuffle(opts.forms) : [pickA(FORMS), pickA(FORMS)];
+  const ineqs = rays.map((ray, i) => genIneq(ray, forms[i], opts.neg && i === 0 ? 'neg' : null));
+  return { kind: 'sys', ineqs, rays, sol: solveRays(rays) };
+}
+function genDouble() {
+  const r1 = R(-6, 3), r2 = r1 + R(2, 6), c1 = rb(), c2 = rb();
+  const m = pickA([2, 3, 4, -1, -2, -3]), n = pickA(range(-9, 9).filter(x => x !== 0));
+  const o1 = c1 ? '≤' : '<', o2 = c2 ? '≤' : '<';
+  const [L, oL, oR, H] = m > 0 ? [m * r1 + n, o1, o2, m * r2 + n] : [m * r2 + n, o2, o1, m * r1 + n];
+  const text = `${fmtInt(L)} ${oL} ${fmtLin(m, n)} ${oR} ${fmtInt(H)}`;
+  const steps = [{ t: `${fmtInt(L - n)} ${oL} ${fmtLin(m, 0)} ${oR} ${fmtInt(H - n)}`, note: `віднімаємо ${fmtInt(n)} від усіх трьох частин` }];
+  if (m !== 1) steps.push({ t: `${fmtInt(r1)} ${o1} x ${o2} ${fmtInt(r2)}`,
+    note: m < 0 ? `ділимо на ${fmtInt(m)} — знаки змінюються, записуємо у порядку зростання` : `ділимо на ${m}` });
+  const rays = [{ dir:'gt', v:r1, c:c1 }, { dir:'lt', v:r2, c:c2 }];
+  return { kind: 'dbl', text, steps, rays, sol: solveRays(rays) };
+}
+function genLine() {
+  const rays = raysFor(pickA(['interval', 'interval', 'ray', 'empty']));
+  return { kind: 'line', rays, sol: solveRays(rays) };
+}
+const FRAC = [0, 0, 1 / 2, 1 / 3, 2 / 3];
+function genInt(ask) {
+  const lo = R(-6, 2) + pickA(FRAC), hi = Math.floor(lo) + R(2, 6) + pickA(FRAC);
+  const rays = shuffle([{ dir:'gt', v:lo, c:rb() }, { dir:'lt', v:hi, c:rb() }]);
+  const ineqs = rays.map(ray => genIneq(ray, pickA(['linear', 'mono', 'linear']), null));
+  const sol = solveRays(rays);
+  const first = sol.loC && isInt(sol.lo) ? Math.round(sol.lo) : Math.floor(sol.lo + 1e-9) + 1;
+  const last = sol.hiC && isInt(sol.hi) ? Math.round(sol.hi) : Math.ceil(sol.hi - 1e-9) - 1;
+  const answer = ask === 'count' ? last - first + 1 : ask === 'min' ? first : last;
+  return { kind: 'sys', ineqs, rays, sol, ask, answer, ints: range(first, last) };
+}
+const ASK = { count: 'Скільки цілих розв\'язків має система?', min: 'Знайдіть найменший цілий розв\'язок системи', max: 'Знайдіть найбільший цілий розв\'язок системи' };
+
+/* ---------- типові помилки (розв'язання учня) ---------- */
+const ERRORS = [
+  { sys:['−2x < 6', 'x − 1 ≤ 3'], steps:['−2x < 6  ⇒  x < −3', 'x − 1 ≤ 3  ⇒  x ≤ 4', 'Відповідь: (−∞; −3)'], bad:0,
+    why:'При діленні на від\'ємне число −2 знак нерівності змінюється: x > −3. Відповідь: (−3; 4].' },
+  { sys:['x + 4 ≥ 3', '2x > 6'], steps:['x + 4 ≥ 3  ⇒  x ≥ −1', '2x > 6  ⇒  x > 3', 'Відповідь: [−1; +∞)'], bad:2,
+    why:'Розв\'язок системи — спільна частина проміжків. Обидві нерівності виконуються при x > 3: (3; +∞).' },
+  { sys:['3x ≥ 6', 'x + 2 < 7'], steps:['3x ≥ 6  ⇒  x ≥ 2', 'x + 2 < 7  ⇒  x < 5', 'Відповідь: (2; 5)'], bad:2,
+    why:'Нерівність x ≥ 2 нестрога, тож 2 входить у розв\'язок — квадратна дужка: [2; 5).' },
+  { sys:['5x − 1 ≥ 14', 'x + 6 > 2'], steps:['5x − 1 ≥ 14  ⇒  5x ≥ 15  ⇒  x ≥ 3', 'x + 6 > 2  ⇒  x > −4', 'Відповідь: [3; +∞]'], bad:2,
+    why:'Біля нескінченності завжди ставиться кругла дужка: [3; +∞).' },
+  { sys:['3x − 5 > x + 7', 'x < 10'], steps:['3x − x > 7 − 5', '2x > 2  ⇒  x > 1', 'Відповідь: (1; 10)'], bad:0,
+    why:'При перенесенні −5 у праву частину знак змінюється: 3x − x > 7 + 5, тоді x > 6. Відповідь: (6; 10).' },
+  { sys:['x − 3 < −2', '4x > 16'], steps:['x − 3 < −2  ⇒  x < 1', '4x > 16  ⇒  x > 4', 'Відповідь: (1; 4)'], bad:2,
+    why:'Проміжки x < 1 і x > 4 не мають спільних точок. Система не має розв\'язків: ∅.' },
+  { sys:['2(x − 3) ≤ x + 1', 'x > 0'], steps:['2x − 3 ≤ x + 1', 'x ≤ 4', 'Відповідь: (0; 4]'], bad:0,
+    why:'Множимо 2 на кожен доданок у дужках: 2(x − 3) = 2x − 6. Тоді x ≤ 7, відповідь: (0; 7].' },
+  { sys:['−3x ≥ −12', 'x > −1'], steps:['−3x ≥ −12  ⇒  x ≥ 4', 'x > −1', 'Відповідь: [4; +∞)'], bad:0,
+    why:'Ділимо на від\'ємне число −3 — знак змінюється: x ≤ 4. Відповідь: (−1; 4].' },
+  { dbl:'−1 < 2x + 3 ≤ 9', steps:['−1 − 3 < 2x ≤ 9 − 3', '−2 < 2x ≤ 6', '−1 < x ≤ 3', 'Відповідь: (−1; 3]'], bad:1,
+    why:'−1 − 3 = −4, а не −2. Тоді −4 < 2x ≤ 6, −2 < x ≤ 3. Відповідь: (−2; 3].' },
+  { sys:['x ≥ 3', '2x < 6'], steps:['x ≥ 3', '2x < 6  ⇒  x < 3', 'Відповідь: x = 3'], bad:2,
+    why:'Число 3 не задовольняє нерівність x < 3. Спільних точок немає, розв\'язків немає: ∅.' },
+  { sys:['x + 5 > 3', '3x ≤ 9'], steps:['x + 5 > 3  ⇒  x > −2', '3x ≤ 9  ⇒  x ≤ 3', 'Розв\'язок: (−2; 3]', 'Цілі розв\'язки: −2; −1; 0; 1; 2; 3 — їх 6'], bad:3,
+    why:'−2 не входить у проміжок, бо нерівність строга. Цілі розв\'язки: −1; 0; 1; 2; 3 — їх 5.' },
+  { sys:['4 − x > 1', 'x + 2 ≥ 0'], steps:['4 − x > 1  ⇒  −x > −3  ⇒  x > 3', 'x + 2 ≥ 0  ⇒  x ≥ −2', 'Відповідь: (3; +∞)'], bad:0,
+    why:'Ділимо −x > −3 на −1 — знак змінюється: x < 3. Відповідь: [−2; 3).' }
+];
+
+/* ---------- відображення ---------- */
+const BRACE = `<svg class="brace" viewBox="0 0 20 100" preserveAspectRatio="none" aria-hidden="true"><path vector-effect="non-scaling-stroke" d="M18 2 C9 2 10 9 10 18 L10 40 C10 47 7 50 2 50 C7 50 10 53 10 60 L10 82 C10 91 9 98 18 98"/></svg>`;
+function sysHTML(p) {
+  const rows = p.kind === 'dbl' ? [p.text] : p.ineqs.map(q => q.text);
+  return `<div class="sys">${rows.length > 1 ? BRACE : ''}<div class="rows">${rows.map(r => `<div>${mx(r)}</div>`).join('')}</div></div>`;
+}
+function errSysHTML(e) {
+  const rows = e.dbl ? [e.dbl] : e.sys;
+  return `<div class="sys">${rows.length > 1 ? BRACE : ''}<div class="rows">${rows.map(r => `<div>${mx(r)}</div>`).join('')}</div></div>`;
+}
+const sysPlain = p => p.kind === 'dbl' ? p.text : `{ ${p.ineqs.map(q => q.text).join('; ')} }`;
+
+// Числова пряма: точки не в масштабі (як у підручнику), штрихування кожного променя своїм кольором
+function lineSVG(rays, sol) {
+  const W = 680, H = 128, Y = 82, L = 24, Rt = W - 34;
+  const vals = [...new Set(rays.map(r => r.v))].sort((a, b) => a - b);
+  const xs = vals.length === 1 ? [W / 2] : vals.map((_, i) => 140 + i * (W - 300) / (vals.length - 1));
+  const X = v => xs[vals.findIndex(u => eq(u, v))];
+  const COL = ['var(--a)', 'var(--b)'], HT = [44, 30], ROT = [45, -45];
+  let s = `<svg class="nl" viewBox="0 0 ${W} ${H}" role="img" aria-label="Числова пряма"><defs>${COL.map((c, i) =>
+    `<pattern id="hp${i}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(${ROT[i]})"><line x1="0" y1="0" x2="0" y2="9" style="stroke:${c};stroke-width:2.2"/></pattern>`).join('')}</defs>`;
+  rays.forEach((r, i) => {
+    const x = X(r.v), x2 = r.dir === 'gt' ? Rt : L, h = HT[i % 2];
+    s += `<rect x="${Math.min(x, x2)}" y="${Y - h}" width="${Math.abs(x2 - x)}" height="${h}" fill="url(#hp${i % 2})"/>`;
+    s += `<path d="M${x2} ${Y - h} H${x} V${Y}" style="fill:none;stroke:${COL[i % 2]};stroke-width:2.5"/>`;
+  });
+  s += `<line x1="${L - 10}" y1="${Y}" x2="${W - 14}" y2="${Y}" style="stroke:currentColor;stroke-width:2"/>`;
+  s += `<path d="M${W - 24} ${Y - 6} L${W - 12} ${Y} L${W - 24} ${Y + 6}" style="fill:none;stroke:currentColor;stroke-width:2"/>`;
+  s += `<text x="${W - 22}" y="${Y + 28}" style="font-style:italic;font-family:Georgia,serif">x</text>`;
+  if (sol && !sol.empty) {
+    const x1 = sol.lo === -Infinity ? L : X(sol.lo), x2 = sol.hi === Infinity ? Rt : X(sol.hi);
+    s += eq(x1, x2) ? '' : `<line x1="${x1}" y1="${Y}" x2="${x2}" y2="${Y}" style="stroke:var(--ok);stroke-width:8;stroke-linecap:round"/>`;
+  }
+  vals.forEach(v => {
+    const closed = rays.filter(r => eq(r.v, v)).every(r => r.c);
+    const inSol = sol && !sol.empty && ((eq(v, sol.lo) && sol.loC) || (eq(v, sol.hi) && sol.hiC));
+    s += `<circle cx="${X(v)}" cy="${Y}" r="7" style="stroke:currentColor;stroke-width:2.5;fill:${closed ? (inSol ? 'var(--ok)' : 'currentColor') : 'var(--surface)'}"/>`;
+    s += `<text x="${X(v)}" y="${Y + 32}" text-anchor="middle">${fmtNum(v)}</text>`;
+  });
+  return s + '</svg>';
+}
+
+function stepsCols(p) {
+  if (p.kind === 'dbl')
+    return `<div class="cols"><div class="col c0"><ol><li>${mx(p.text)}</li>${p.steps.map(st => `<li><small>${mx(st.note)}</small>${mx(st.t)}</li>`).join('')}</ol></div></div>`;
+  return `<div class="cols">${p.ineqs.map((q, i) => `<div class="col c${i}"><ol><li>${mx(q.text)}</li>${
+    q.steps.map(st => `<li><small>${mx(st.note)}</small>${mx(st.t)}</li>`).join('')}</ol></div>`).join('')}</div>`;
+}
+const answerNote = sol => sol.empty
+  ? `<div class="note bad"><strong>Розв'язків немає:</strong> ∅ — проміжки не мають спільних точок.</div>`
+  : `<div class="note ok"><strong>Відповідь:</strong> ${esc(fmtSol(sol))}</div>`;
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+function randomSolve() {
+  if (Math.random() < .2) return genDouble();
+  return genSystem(pickA(['interval', 'interval', 'interval', 'ray', 'ray', 'empty', 'point']));
+}
+const S = {
+  mode: 'test',
+  solve: { p: randomSolve(), shown: false, n: 1 },
+  line: { p: genLine(), shown: false, n: 1 },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+
+/* ---------- Розв'яжи систему ---------- */
+function renderSolve() {
+  const st = S.solve, p = st.p;
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${p.kind === 'dbl' ? 'Розв\'яжіть подвійну нерівність' : 'Розв\'яжіть систему нерівностей'}</p>${sysHTML(p)}</div>
+      ${st.shown ? `${stepsCols(p)}${lineSVG(p.rays, p.sol)}${answerNote(p.sol)}` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+        <span class="kbd">№ ${st.n}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextSolve() : showSolve();
+}
+function showSolve() { S.solve.shown = true; renderSolve(); }
+function nextSolve() { Object.assign(S.solve, { p: randomSolve(), shown: false, n: S.solve.n + 1 }); renderSolve(); }
+
+/* ---------- Числова пряма ---------- */
+function renderLine() {
+  const st = S.line, p = st.p;
+  stage.innerHTML = `
+    <div class="task">
+      <p class="prompt">На прямій зображено розв'язки двох нерівностей. Який проміжок — розв'язок системи?</p>
+      ${lineSVG(p.rays, st.shown ? p.sol : null)}
+      ${st.shown ? `<div class="note info">${mx(p.rays.map(r => `x ${opOf(r.dir, r.c)} ${fmtNum(r.v)}`).join(' і '))}</div>${answerNote(p.sol)}` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати відповідь'}</button>
+        <span class="kbd">№ ${st.n}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextLine() : showLine();
+}
+function showLine() { S.line.shown = true; renderLine(); }
+function nextLine() { Object.assign(S.line, { p: genLine(), shown: false, n: S.line.n + 1 }); renderLine(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Учень розв'язав так. Де помилка?</p>${errSysHTML(e)}</div>
+      <ol class="steps">${e.steps.map((s, i) =>
+        `<li><div class="step${st.shown && i === e.bad ? ' wrong' : ''}"><span class="n">${i + 1}</span><span>${mx(s)}</span></div></li>`).join('')}</ol>
+      ${st.shown ? `<div class="note bad">${mx(e.why)}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- конструктор проміжку ---------- */
+const newBuilder = () => ({ empty: false, lo: '', hi: '', loC: false, hiC: false, loInf: false, hiInf: false });
+const endOk = (inf, v) => inf || Number.isFinite(parseNum(v));
+const builderAnswered = b => b.empty || (endOk(b.loInf, b.lo) && endOk(b.hiInf, b.hi));
+const builderSol = b => b.empty ? { empty: true } : {
+  lo: b.loInf ? -Infinity : parseNum(b.lo), loC: !b.loInf && b.loC,
+  hi: b.hiInf ? Infinity : parseNum(b.hi), hiC: !b.hiInf && b.hiC
+};
+function builderText(b) {
+  if (b.empty) return '∅';
+  const s = builderSol(b);
+  return `${s.loC ? '[' : '('}${b.loInf ? '−∞' : b.lo.trim()}; ${b.hiInf ? '+∞' : b.hi.trim()}${s.hiC ? ']' : ')'}`;
+}
+function builderHTML(b) {
+  const end = side => {
+    const inf = b[side + 'Inf'];
+    return `<div class="end">
+      <input class="num" data-end="${side}" inputmode="text" autocomplete="off" aria-label="${side === 'lo' ? 'Лівий' : 'Правий'} кінець"
+        value="${inf ? (side === 'lo' ? '−∞' : '+∞') : esc(b[side])}"${inf || b.empty ? ' disabled' : ''}>
+      <button class="inf" data-inf="${side}" aria-pressed="${inf}"${b.empty ? ' disabled' : ''}>${side === 'lo' ? '−∞' : '+∞'}</button>
+    </div>`;
+  };
+  const br = side => {
+    const inf = b[side + 'Inf'], c = !inf && b[side + 'C'];
+    return `<button class="br" data-br="${side}" aria-label="Дужка: ${c ? 'квадратна' : 'кругла'}"${inf || b.empty ? ' disabled' : ''}>${
+      side === 'lo' ? (c ? '[' : '(') : (c ? ']' : ')')}</button>`;
+  };
+  return `<div class="builder">
+      <div class="ib${b.empty ? ' off' : ''}">${br('lo')}${end('lo')}<span class="semi">;</span>${end('hi')}${br('hi')}</div>
+      <button class="btn" data-empty aria-pressed="${b.empty}">∅ Розв'язків немає</button>
+    </div>
+    <p class="hint">Клацніть на дужку, щоб змінити ( ↔ [. Дроби пишіть так: 7/3 або 2,5. Якщо розв'язок — одне число a, запишіть [a; a].</p>`;
+}
+function bindBuilder(b, onInput, rerender) {
+  stage.querySelectorAll('[data-end]').forEach(i => i.oninput = () => { b[i.dataset.end] = i.value; onInput(); });
+  stage.querySelectorAll('[data-br]').forEach(x => x.onclick = () => { b[x.dataset.br + 'C'] = !b[x.dataset.br + 'C']; rerender(`[data-br="${x.dataset.br}"]`); });
+  stage.querySelectorAll('[data-inf]').forEach(x => x.onclick = () => { b[x.dataset.inf + 'Inf'] = !b[x.dataset.inf + 'Inf']; rerender(`[data-inf="${x.dataset.inf}"]`); });
+  const em = stage.querySelector('[data-empty]');
+  if (em) em.onclick = () => { b.empty = !b.empty; rerender('[data-empty]'); };
+}
+
+/* ---------- Тест ---------- */
+const TYPE = { solve: 'Система нерівностей', dbl: 'Подвійна нерівність', line: 'Числова пряма', err: 'Знайди помилку',
+  count: 'Кількість цілих розв\'язків', min: 'Найменший цілий розв\'язок', max: 'Найбільший цілий розв\'язок' };
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+function makeTest() {
+  const errs = shuffle(ERRORS.map((_, i) => i)).slice(0, 2);
+  const tasks = [
+    { type: 'solve', p: genSystem('interval', { forms: ['linear', 'simple'] }), pts: 2 },
+    { type: 'solve', p: genSystem('interval', { forms: ['linear', 'bracket'], neg: true }), pts: 3 },   // ділення на від'ємне
+    { type: 'solve', p: genSystem('ray', { forms: ['bracket', 'linear'] }), pts: 2 },
+    { type: 'solve', p: genSystem(pickA(['empty', 'point']), { forms: ['linear', 'mono'] }), pts: 3 },
+    { type: 'dbl',   p: genDouble(), pts: 2 },
+    { type: 'line',  p: genLine(), pts: 1 },
+    { type: 'int',   p: genInt('count'), pts: 3 },
+    { type: 'int',   p: genInt(pickA(['min', 'max'])), pts: 3 },
+    ...errs.map(e => ({ type: 'err', e, pts: 2 }))
+  ];
+  return shuffle(tasks).map(t => ({
+    ...t, b: ['solve', 'dbl', 'line'].includes(t.type) ? newBuilder() : null, ans: '', sel: null
+  }));
+}
+
+function answered(t) {
+  if (t.b) return builderAnswered(t.b);
+  if (t.type === 'err') return t.sel !== null;
+  return Number.isFinite(parseNum(t.ans));
+}
+
+function grade(t) {
+  if (t.b) {
+    const p = t.p;
+    const label = `${TYPE[t.type]}${p.kind === 'line' ? ': ' + p.rays.map(r => `x ${opOf(r.dir, r.c)} ${fmtNum(r.v)}`).join(' і ') : ': ' + sysPlain(p)}`;
+    return { ok: sameSol(builderSol(t.b), p.sol), label, given: builderText(t.b), right: fmtSol(p.sol) };
+  }
+  if (t.type === 'int') {
+    const p = t.p;
+    return { ok: eq(parseNum(t.ans), p.answer), label: `${TYPE[p.ask]}: ${sysPlain(p)}`, given: t.ans.trim(), right: String(p.answer).replace('-', '−'),
+      why: `Розв'язок системи: ${fmtSol(p.sol)}. Цілі числа в ньому: ${p.ints.map(fmtInt).join('; ')}.` };
+  }
+  const e = ERRORS[t.e];
+  return { ok: t.sel === e.bad, label: `${TYPE.err}: ${e.dbl || '{ ' + e.sys.join('; ') + ' }'}`,
+    given: `рядок ${t.sel + 1}`, right: `рядок ${e.bad + 1}`, why: e.why };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Системи лінійних нерівностей з однією змінною</h1></div>
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="9-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Завдання: системи й подвійні нерівності, числова пряма, цілі розв'язки, пошук помилок.</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Розв'язуйте в зошиті, а відповідь записуйте тут. Після кожної відповіді натисніть «Далі», повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+function renderTask(focusSel) {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  let body = '';
+  if (t.type === 'solve' || t.type === 'dbl') {
+    body = `<div><p class="prompt">${t.type === 'dbl' ? 'Розв\'яжіть подвійну нерівність' : 'Розв\'яжіть систему нерівностей'}</p>${sysHTML(t.p)}</div>${builderHTML(t.b)}`;
+  } else if (t.type === 'line') {
+    body = `<p class="prompt">На прямій зображено розв'язки двох нерівностей. Запишіть розв'язок системи</p>${lineSVG(t.p.rays, null)}${builderHTML(t.b)}`;
+  } else if (t.type === 'int') {
+    body = `<div><p class="prompt">${ASK[t.p.ask]}</p>${sysHTML(t.p)}</div>
+      <input class="answer" id="t-ans" inputmode="text" autocomplete="off" aria-label="Відповідь" placeholder="Число" value="${esc(t.ans)}">`;
+  } else {
+    const e = ERRORS[t.e];
+    body = `<div><p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>${errSysHTML(e)}</div>
+      <ol class="steps">${e.steps.map((s, i) =>
+        `<li><button class="step${t.sel === i ? ' picked' : ''}" data-step="${i}" aria-pressed="${t.sel === i}"><span class="n">${i + 1}</span><span>${mx(s)}</span></button></li>`).join('')}</ol>`;
+  }
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      ${body}
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+  stage.querySelectorAll('input').forEach(i => i.onkeydown = e => { if (e.key === 'Enter') goNext(); });
+
+  if (t.b) {
+    bindBuilder(t.b, () => { next.disabled = !answered(t); }, sel => renderTask(sel));
+    const target = focusSel ? stage.querySelector(focusSel) : stage.querySelector('.num:not(:disabled)');
+    if (target) target.focus();
+  }
+  const ans = document.getElementById('t-ans');
+  if (ans) { ans.oninput = () => { t.ans = ans.value; next.disabled = !answered(t); }; ans.focus(); }
+  stage.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
+    t.sel = +b.dataset.step; renderTask(`[data-step="${t.sel}"]`);
+  });
+  if (focusSel && !t.b) { const f = stage.querySelector(focusSel); if (f) f.focus(); }
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${mx(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>${r.why ? `<div class="why">${mx(r.why)}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, solve: renderSolve, line: renderLine, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const ST = { solve: [S.solve, showSolve, nextSolve], line: [S.line, showLine, nextLine], err: [S.err, showErr, nextErr] }[S.mode];
+  if (e.key === 'ArrowRight') { e.preventDefault(); ST[2](); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); ST[0].shown ? ST[2]() : ST[1](); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>

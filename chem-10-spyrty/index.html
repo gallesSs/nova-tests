@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Спирти</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · 10 клас · Оксигеновмісні сполуки</div>
+    <div class="brand"><h1>Спирти</h1><span class="ohbadge" aria-hidden="true">R–OH</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="zadachi" aria-selected="false">Задачі</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+    </nav>
+  </header>
+
+  <!-- ================= ТЕОРІЯ ================= -->
+  <section id="v-teoriya" class="stack">
+    <div class="toc" id="toc">
+      <button data-to="s-bud">Будова</button><button data-to="s-nom">Назви та ізомери</button><button data-to="s-fiz">Фізичні властивості</button><button data-to="s-him">Хімічні властивості</button><button data-to="s-dob">Добування</button><button data-to="s-zast">Застосування</button><button data-to="s-form">Формули для задач</button>
+    </div>
+
+    <article class="card sec" id="s-bud">
+      <h2>Будова і класифікація</h2>
+      <p><b>Спирти</b> — органічні сполуки, молекули яких містять одну або кілька гідроксильних груп <span class="f hl">–OH</span>, сполучених із насиченим атомом Карбону.</p>
+      <div class="two">
+        <div class="def">
+          <div class="lbl">Насичені одноатомні спирти</div>
+          <div class="big">C<sub>n</sub>H<sub>2n+1</sub>OH</div>
+          <div class="hint">або C<sub>n</sub>H<sub>2n+2</sub>O, скорочено R–OH. Молярна маса M = 14n + 18 г/моль.</div>
+        </div>
+        <figure class="sf"><pre aria-label="Структурна формула етанолу">    H   H
+    |   |
+H — C — C — <span class="hl">O — H</span>
+    |   |
+    H   H</pre><figcaption>Етанол. Усі атоми Карбону в стані sp³, зв'язок O–H сильно полярний.</figcaption></figure>
+      </div>
+      <h3>Класифікація</h3>
+      <div class="tblw"><table>
+        <thead><tr><th>Ознака</th><th>Тип</th><th>Приклад</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3">Кількість груп –OH</td><td>одноатомні</td><td><span class="f">C2H5OH</span> етанол</td></tr>
+          <tr><td>двоатомні (гліколі)</td><td><span class="f">HO–CH2–CH2–OH</span> етиленгліколь</td></tr>
+          <tr><td>триатомні</td><td><span class="f">HO–CH2–CH(OH)–CH2–OH</span> гліцерол</td></tr>
+          <tr><td rowspan="3">З яким атомом C сполучена –OH</td><td><b>первинні</b>: цей атом C зв'язаний з одним атомом C</td><td><span class="f">CH3–CH2–CH2–OH</span> пропан-1-ол</td></tr>
+          <tr><td><b>вторинні</b>: з двома атомами C</td><td><span class="f">CH3–CH(OH)–CH3</span> пропан-2-ол</td></tr>
+          <tr><td><b>третинні</b>: з трьома атомами C</td><td><span class="f">(CH3)3C–OH</span> 2-метилпропан-2-ол</td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <article class="card sec" id="s-nom">
+      <h2>Номенклатура та ізомерія</h2>
+      <ol>
+        <li>Обери найдовший карбоновий ланцюг, який містить атом C з групою –OH.</li>
+        <li>Пронумеруй ланцюг з того кінця, ближче до якого група –OH.</li>
+        <li>Назва = замісники з номерами + назва алкану + номер атома C з –OH + суфікс <b>-ол</b>.</li>
+        <li>Кілька груп –OH: суфікси <b>-діол</b>, <b>-тріол</b> з усіма номерами (етан-1,2-діол).</li>
+      </ol>
+      <div class="example"><span class="f">CH3–CH(CH3)–CH2–CH2–OH</span> → нумеруємо від –OH → <b>3-метилбутан-1-ол</b></div>
+      <h3>Гомологічний ряд</h3>
+      <div class="tblw"><table>
+        <thead><tr><th>n</th><th>Формула</th><th>Назва</th><th>M, г/моль</th><th>t кип, °C</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td><span class="f">CH3OH</span></td><td>метанол</td><td class="n">32</td><td class="n">65</td></tr>
+          <tr><td class="n">2</td><td><span class="f">C2H5OH</span></td><td>етанол</td><td class="n">46</td><td class="n">78</td></tr>
+          <tr><td class="n">3</td><td><span class="f">C3H7OH</span></td><td>пропан-1-ол</td><td class="n">60</td><td class="n">97</td></tr>
+          <tr><td class="n">4</td><td><span class="f">C4H9OH</span></td><td>бутан-1-ол</td><td class="n">74</td><td class="n">118</td></tr>
+          <tr><td class="n">5</td><td><span class="f">C5H11OH</span></td><td>пентан-1-ол</td><td class="n">88</td><td class="n">138</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Види ізомерії</h3>
+      <ul>
+        <li><b>Карбонового ланцюга:</b> бутан-1-ол <span class="f">CH3–CH2–CH2–CH2–OH</span> і 2-метилпропан-1-ол <span class="f">CH3–CH(CH3)–CH2–OH</span>.</li>
+        <li><b>Положення групи –OH:</b> пропан-1-ол <span class="f">CH3–CH2–CH2–OH</span> і пропан-2-ол <span class="f">CH3–CH(OH)–CH3</span>.</li>
+        <li><b>Міжкласова (з етерами):</b> етанол <span class="f">C2H5OH</span> і диметиловий етер <span class="f">CH3–O–CH3</span>, склад обох C<sub>2</sub>H<sub>6</sub>O.</li>
+      </ul>
+      <p class="note">Формулі <span class="f">C4H9OH</span> відповідають 4 спирти: бутан-1-ол, бутан-2-ол, 2-метилпропан-1-ол і 2-метилпропан-2-ол.</p>
+    </article>
+
+    <article class="card sec" id="s-fiz">
+      <h2>Фізичні властивості</h2>
+      <p>Між молекулами спиртів утворюються <b>водневі зв'язки</b>: атом H групи –OH однієї молекули притягується до атома O сусідньої.</p>
+      <div class="eq" style="font-size:16px">R–O–<b class="hl">H</b> ··· O(R)–<b class="hl">H</b> ··· O(R)–H <span class="hint" style="font-family:var(--body)">(··· — водневий зв'язок)</span></div>
+      <p>Щоб спирт закипів, ці зв'язки треба розірвати. Тому спирти киплять при значно вищій температурі, ніж вуглеводні з близькою молярною масою.</p>
+      <div class="bars" role="img" aria-label="Температури кипіння: пропан −42 °C, етанол 78 °C, вода 100 °C">
+        <div class="bar"><span>пропан, M = 44</span><div class="tr"><i style="width:5.3%"></i><span>−42 °C</span></div></div>
+        <div class="bar hot"><span>етанол, M = 46</span><div class="tr"><i style="width:85.3%"></i><span>78 °C</span></div></div>
+        <div class="bar"><span>вода, M = 18</span><div class="tr"><i style="width:100%"></i><span style="color:var(--card)">100 °C</span></div></div>
+        <div class="axis"><span></span><div><span>−50</span><span>0</span><span>50</span><span>100 °C</span></div></div>
+      </div>
+      <ul>
+        <li>Метанол, етанол і пропаноли змішуються з водою в будь-яких співвідношеннях. Зі збільшенням карбонового ланцюга розчинність зменшується.</li>
+        <li>Нижчі спирти — безбарвні рідини з характерним запахом, вищі (від C<sub>12</sub>) — тверді речовини.</li>
+        <li>Розчини спиртів нейтральні: лакмус і фенолфталеїн не змінюють забарвлення.</li>
+        <li>Гліцерол — в'язка безбарвна солодкувата рідина, гігроскопічний. Етиленгліколь — отруйна в'язка рідина.</li>
+      </ul>
+      <div class="warn"><b>Метанол — сильна отрута.</b> 5–10 мл спричиняють сліпоту, близько 30 мл — смертельна доза. За запахом метанол не відрізнити від етанолу.</div>
+    </article>
+
+    <article class="card sec" id="s-him">
+      <h2>Хімічні властивості</h2>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">Взаємодія з лужними металами</div><div class="eq" data-eq="2C2H5OH + 2Na||2C2H5ONa + H2↑"></div><div class="hint">Утворюється етилат натрію. З 2 моль спирту виділяється 1 моль водню.</div></div>
+        <div class="rxi"><div class="rxn">Горіння</div><div class="eq" data-eq="C2H5OH + 3O2||2CO2 + 3H2O"></div><div class="hint">Загалом: C<sub>n</sub>H<sub>2n+1</sub>OH + 1,5n O<sub>2</sub> → nCO<sub>2</sub> + (n+1)H<sub>2</sub>O</div></div>
+        <div class="rxi"><div class="rxn">З галогеноводнями</div><div class="eq" data-eq="C2H5OH + HBr||C2H5Br + H2O"></div><div class="hint">Група –OH заміщується на атом галогену: утворюється бромоетан.</div></div>
+        <div class="rxi"><div class="rxn">Внутрішньомолекулярна дегідратація</div><div class="eq" data-eq="C2H5OH|H2SO4 (конц.), t > 140 °C|CH2=CH2 + H2O"></div><div class="hint">Так добувають етен у лабораторії.</div></div>
+        <div class="rxi"><div class="rxn">Міжмолекулярна дегідратація</div><div class="eq" data-eq="2C2H5OH|H2SO4 (конц.), t < 140 °C|C2H5–O–C2H5 + H2O"></div><div class="hint">Утворюється діетиловий етер.</div></div>
+        <div class="rxi"><div class="rxn">Окиснення купрум(ІІ) оксидом</div><div class="eq" data-eq="C2H5OH + CuO|t|CH3CHO + Cu + H2O"></div><div class="hint">Чорний CuO стає червоною міддю, утворюється етаналь (оцтовий альдегід).</div></div>
+        <div class="rxi"><div class="rxn">Естерифікація</div><div class="eq" data-eq="C2H5OH + CH3COOH|H2SO4|CH3COOC2H5 + H2O"></div><div class="hint">Утворюється етилацетат — естер із фруктовим запахом.</div></div>
+        <div class="rxi"><div class="rxn">Якісна реакція на багатоатомні спирти</div><div class="eq" data-eq="гліцерол + Cu(OH)2||яскраво-синій розчин"></div><div class="hint">Свіжоосаджений блакитний осад розчиняється. Одноатомні спирти такої реакції не дають.</div></div>
+      </div>
+    </article>
+
+    <article class="card sec" id="s-dob">
+      <h2>Добування</h2>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">Гідратація етену (промисловий спосіб)</div><div class="eq" data-eq="CH2=CH2 + H2O|H3PO4, t, p|C2H5OH"></div></div>
+        <div class="rxi"><div class="rxn">Спиртове бродіння глюкози</div><div class="eq" data-eq="C6H12O6|дріжджі|2C2H5OH + 2CO2↑"></div></div>
+        <div class="rxi"><div class="rxn">Метанол із синтез-газу</div><div class="eq" data-eq="CO + 2H2|кат., t, p|CH3OH"></div></div>
+        <div class="rxi"><div class="rxn">Гідроліз галогеналканів водним розчином лугу</div><div class="eq" data-eq="C2H5Cl + NaOH (водн.)||C2H5OH + NaCl"></div><div class="hint">Спиртовий розчин лугу дає не спирт, а алкен.</div></div>
+        <div class="rxi"><div class="rxn">Гліцерол</div><div class="hint" style="font-size:15px;color:var(--ink)">Добувають гідролізом жирів: жири — естери гліцеролу та вищих карбонових кислот.</div></div>
+      </div>
+    </article>
+
+    <article class="card sec" id="s-zast">
+      <h2>Застосування</h2>
+      <div class="uses">
+        <div class="use"><b>Етанол</b>розчинник, антисептик, пальне, сировина для синтезу естерів, етаналю, каучуку.</div>
+        <div class="use"><b>Метанол</b>розчинник, сировина для формальдегіду й пластмас, добавка до пального.</div>
+        <div class="use"><b>Етиленгліколь</b>антифризи (незамерзаючі рідини для двигунів), синтез полімерів.</div>
+        <div class="use"><b>Гліцерол</b>косметика, харчова промисловість (E422), ліки, нітрогліцерин.</div>
+      </div>
+    </article>
+
+    <article class="card sec" id="s-form">
+      <h2>Формули для задач</h2>
+      <div class="chips">
+        <span class="chip">M(C<sub>n</sub>H<sub>2n+1</sub>OH) = 14n + 18</span>
+        <span class="chip">n = m / M</span>
+        <span class="chip">n = V / V<sub>m</sub></span>
+        <span class="chip">V<sub>m</sub> = 22,4 л/моль</span>
+        <span class="chip">w(E) = k·Ar / M · 100 %</span>
+        <span class="chip">M = D(H<sub>2</sub>) · 2</span>
+        <span class="chip">η = m<sub>практ</sub> / m<sub>теор</sub> · 100 %</span>
+        <span class="chip">φ(O<sub>2</sub>) у повітрі = 21 %</span>
+      </div>
+      <p class="hint">Ar: H — 1, C — 12, O — 16, Na — 23, Cu — 64. Об'єми газів — за нормальних умов (н.у.).</p>
+    </article>
+  </section>
+
+  <!-- ================= ЗАДАЧІ ================= -->
+  <section id="v-zadachi" class="stack" hidden></section>
+
+  <!-- ================= ТЕСТ ================= -->
+  <section id="v-test" class="stack" hidden></section>
+
+  <footer>Хімія · 10 клас · Спирти</footer>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TOPIC = 'Хімія 10 клас — Спирти';
+const VM = 22.4;
+
+/* ---------- утиліти ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const rint = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',').replace('-', '−');
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const F = s => `<span class="f">${fHTML(s)}</span>`;
+const G = s => `<span class="f">${s}</span>`;
+const EQ = (l, c, r) => `<span class="f">${fHTML(esc(l))} <span class="arr">${c ? `<small>${fHTML(esc(c))}</small>` : ''}→</span> ${fHTML(esc(r))}</span>`;
+const plain = h => String(h).replace(/<sub>(\d+)<\/sub>/g, (m, d) => [...d].map(c => SUBD[c]).join('')).replace(/<sup>3<\/sup>/g, '³')
+  .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-')
+    .replace(/(г\/моль|кг|моль|мл|г|л|%|g|l)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+function parseF(raw) {
+  let s = String(raw).replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]).replace(/[₀-₉]/g, c => SUBD.indexOf(c))
+    .replace(/[\s–—\-=≡|]/g, '').toUpperCase().replace(/NA/g, 'Na').replace(/CU/g, 'Cu');
+  if (!s || !/^[A-Za-z0-9()]+$/.test(s)) return null;
+  let i = 0;
+  const grp = () => {
+    const c = {};
+    while (i < s.length && s[i] !== ')') {
+      let part;
+      if (s[i] === '(') { i++; part = grp(); if (s[i] !== ')') throw 0; i++; }
+      else { const m = /^[A-Z][a-z]?/.exec(s.slice(i)); if (!m) throw 0; i += m[0].length; part = { [m[0]]: 1 }; }
+      const d = /^\d+/.exec(s.slice(i)); const k = d ? +d[0] : 1; if (d) i += d[0].length;
+      for (const e in part) c[e] = (c[e] || 0) + part[e] * k;
+    }
+    return c;
+  };
+  try { const c = grp(); return i === s.length ? c : null; } catch (e) { return null; }
+}
+const sameF = (a, f) => { const x = parseF(a), y = parseF(f); if (!x || !y) return false; const k = new Set([...Object.keys(x), ...Object.keys(y)]); return [...k].every(e => x[e] === y[e]); };
+
+/* ---------- розділи ---------- */
+const CAT = {
+  stru:  { l:'Будова',           c:'var(--c-stru)' },
+  nom:   { l:'Назви та ізомери', c:'var(--c-nom)' },
+  prop:  { l:'Властивості',      c:'var(--c-prop)' },
+  react: { l:'Реакції',          c:'var(--c-react)' },
+  prod:  { l:'Добування',        c:'var(--c-prod)' },
+  calc:  { l:'Розрахунки',       c:'var(--c-calc)' }
+};
+
+/* ---------- банк питань з вибором (перший варіант — правильний) ---------- */
+const BANK = [
+  // будова
+  { g:'stru', q:'Яка функціональна група характерна для спиртів?', o:[`гідроксильна ${F('–OH')}`, `карбоксильна ${F('–COOH')}`, `альдегідна ${F('–CHO')}`, `аміногрупа ${F('–NH2')}`], e:'Спирти містять гідроксильну групу –OH, сполучену з насиченим атомом Карбону.' },
+  { g:'stru', q:'Загальна формула насичених одноатомних спиртів:', o:[G('C<sub>n</sub>H<sub>2n+1</sub>OH'), G('C<sub>n</sub>H<sub>2n</sub>OH'), G('C<sub>n</sub>H<sub>2n−1</sub>OH'), G('C<sub>n</sub>H<sub>2n</sub>O<sub>2</sub>')], e:'В алкані CₙH₂ₙ₊₂ один атом H замінено на групу –OH: CₙH₂ₙ₊₁OH.' },
+  { g:'stru', q:'Гліцерол належить до', o:['триатомних спиртів', 'одноатомних спиртів', 'двоатомних спиртів', 'карбонових кислот'], e:'Гліцерол HO–CH₂–CH(OH)–CH₂–OH має три гідроксильні групи.' },
+  { g:'stru', q:`Етиленгліколь ${F('HO–CH2–CH2–OH')} — це`, o:['двоатомний спирт', 'одноатомний спирт', 'триатомний спирт', 'етер'], e:'Дві групи –OH — двоатомний спирт (гліколь).' },
+  { g:'stru', q:'Молярна маса насиченого одноатомного спирту з n атомами Карбону дорівнює', o:['14n + 18', '14n + 2', '14n', '14n + 16'], e:'M(CₙH₂ₙ₊₁OH) = 12n + (2n + 2)·1 + 16 = 14n + 18.' },
+  { g:'stru', q:'Яка гібридизація атомів Карбону в молекулі етанолу?', o:['sp<sup>3</sup>', 'sp<sup>2</sup>', 'sp', 'атоми Карбону не гібридизовані'], e:'У насичених спиртах атоми C утворюють лише одинарні зв\'язки, тому вони в стані sp³.' },
+  { g:'stru', q:`Пропан-2-ол ${F('CH3–CH(OH)–CH3')} є`, o:['вторинним спиртом', 'первинним спиртом', 'третинним спиртом', 'двоатомним спиртом'], e:'Атом C з групою –OH сполучений з двома іншими атомами C.' },
+  // властивості
+  { g:'prop', q:'Чому етанол (M = 46) кипить при 78 °C, а пропан (M = 44) — при −42 °C?', o:['між молекулами спирту утворюються водневі зв\'язки', 'етанол має значно більшу молярну масу', 'у молекулі етанолу йонні зв\'язки', 'молекула етанолу розгалужена'], e:'Під час кипіння треба розірвати водневі зв\'язки між групами –OH сусідніх молекул.' },
+  { g:'prop', q:'Як змінюється розчинність спиртів у воді зі збільшенням довжини карбонового ланцюга?', o:['зменшується', 'збільшується', 'не змінюється', 'спочатку зменшується, потім зростає'], e:'Великий неполярний вуглеводневий радикал заважає утворювати водневі зв\'язки з водою.' },
+  { g:'prop', q:'Водневий зв\'язок між молекулами спиртів утворюється між', o:['атомом H групи –OH однієї молекули та атомом O іншої', 'двома атомами Карбону', 'атомами Гідрогену радикалів', 'атомом C однієї молекули та атомом O іншої'], e:'Атом H, сполучений із сильно електронегативним O, притягується до атома O сусідньої молекули.' },
+  { g:'prop', q:'Як зміниться забарвлення лакмусу у водному розчині етанолу?', o:['не зміниться', 'стане червоним', 'стане синім', 'розчин знебарвиться'], e:'Розчини спиртів нейтральні.' },
+  { g:'prop', q:'Яка речовина є основою антифризів (рідин, що не замерзають у двигуні взимку)?', o:['етиленгліколь', 'гліцерол', 'етанол', 'бутан-1-ол'], e:'Водні розчини етиленгліколю замерзають при дуже низьких температурах.' },
+  { g:'prop', q:'Які спирти змішуються з водою в будь-яких співвідношеннях?', o:['метанол, етанол, пропан-1-ол', 'лише метанол', 'бутан-1-ол і пентан-1-ол', 'жоден спирт не розчиняється у воді'], e:'Нижчі спирти (C₁–C₃) необмежено розчинні у воді.' },
+  { g:'prop', q:'Гліцерол за звичайних умов — це', o:['в\'язка безбарвна солодкувата рідина', 'газ із різким запахом', 'тверда біла речовина', 'летка рідина, яка не розчиняється у воді'], e:'Гліцерол в\'язкий, гігроскопічний і добре розчиняється у воді.' },
+  // ізомерія
+  { g:'iso', q:'Яка речовина є ізомером пропан-1-олу?', o:['пропан-2-ол', 'пропан-1,2-діол', 'етанол', 'пропан'], e:'Пропан-1-ол і пропан-2-ол мають однаковий склад C₃H₈O, але різне положення групи –OH.' },
+  { g:'iso', q:'Міжкласовим ізомером етанолу є', o:[`диметиловий етер ${F('CH3–O–CH3')}`, 'метанол', 'етиленгліколь', 'етен'], e:'Етанол і диметиловий етер мають однакову формулу C₂H₆O.' },
+  { g:'iso', q:`Скільки ізомерних спиртів відповідає формулі ${F('C4H9OH')}?`, o:['4', '2', '3', '5'], e:'Бутан-1-ол, бутан-2-ол, 2-метилпропан-1-ол і 2-метилпропан-2-ол.' },
+  { g:'iso', q:`Скільки ізомерних спиртів відповідає формулі ${F('C3H7OH')}?`, o:['2', '1', '3', '4'], e:'Пропан-1-ол і пропан-2-ол.' },
+  { g:'iso', q:'Бутан-1-ол і 2-метилпропан-1-ол — це ізомери', o:['карбонового ланцюга', 'положення групи –OH', 'міжкласові', 'вони не є ізомерами'], e:'Склад однаковий (C₄H₁₀O), відрізняється будова карбонового скелета.' },
+  { g:'iso', q:'Пропан-1-ол і пропан-2-ол — це ізомери', o:['положення групи –OH', 'карбонового ланцюга', 'міжкласові', 'вони гомологи'], e:'Ланцюг однаковий, відрізняється місце групи –OH.' },
+  { g:'iso', q:'Гомологом етанолу є', o:['пропан-1-ол', 'етиленгліколь', 'диметиловий етер', 'етен'], e:'Гомологи належать до одного класу і відрізняються на одну або кілька груп CH₂.' },
+  // реакції
+  { g:'react', q:'Які продукти утворюються під час взаємодії етанолу з натрієм?', o:['етилат натрію і водень', 'етен і натрій гідроксид', 'діетиловий етер і водень', 'етанол з натрієм не реагує'], e:'2C₂H₅OH + 2Na → 2C₂H₅ONa + H₂↑' },
+  { g:'react', q:`Що утворюється при нагріванні етанолу з концентрованою ${F('H2SO4')} вище 140 °C?`, o:['етен і вода', 'діетиловий етер і вода', 'етаналь', 'етин'], e:'Внутрішньомолекулярна дегідратація: C₂H₅OH → CH₂=CH₂ + H₂O.' },
+  { g:'react', q:`Що утворюється при нагріванні етанолу з концентрованою ${F('H2SO4')} нижче 140 °C?`, o:['діетиловий етер і вода', 'етен і вода', 'етаналь', 'етиленгліколь'], e:'Міжмолекулярна дегідратація: 2C₂H₅OH → C₂H₅–O–C₂H₅ + H₂O.' },
+  { g:'react', q:`Що утворюється під час окиснення етанолу купрум(ІІ) оксидом ${F('CuO')} при нагріванні?`, o:['етаналь, мідь і вода', 'купрум етилат і водень', 'етен і вода', 'вуглекислий газ і мідь'], e:'C₂H₅OH + CuO → CH₃CHO + Cu + H₂O. Чорний CuO перетворюється на червону мідь.' },
+  { g:'react', q:`Продукти реакції ${F('C2H5OH + HBr')} →`, o:['бромоетан і вода', '1,2-дибромоетан і водень', 'бромоетен і вода', 'реакція не відбувається'], e:'Група –OH заміщується на атом галогену: C₂H₅OH + HBr → C₂H₅Br + H₂O.' },
+  { g:'react', q:`Етанол реагує з оцтовою кислотою (каталізатор ${F('H2SO4')}) з утворенням`, o:['естеру (етилацетату) і води', 'етену і води', 'діетилового етеру', 'етаналю'], e:'Реакція естерифікації: C₂H₅OH + CH₃COOH ⇄ CH₃COOC₂H₅ + H₂O.' },
+  { g:'react', q:`Коефіцієнт перед киснем у рівнянні ${F('C2H5OH + …O2 → 2CO2 + 3H2O')}:`, o:['3', '2', '6', '7'], e:'Справа 2·2 + 3 = 7 атомів O, один уже є в спирті, тож потрібно 6 атомів, тобто 3O₂.' },
+  { g:'react', q:'Якісна реакція на багатоатомні спирти (гліцерол, етиленгліколь):', o:[`зі свіжоосадженим ${F('Cu(OH)2')} утворюється яскраво-синій розчин`, 'з бромною водою: розчин знебарвлюється', `з амоніачним розчином ${F('Ag2O')}: срібне дзеркало`, 'з лакмусом: червоне забарвлення'], e:'Блакитний осад Cu(OH)₂ розчиняється. Одноатомні спирти такої реакції не дають.' },
+  { g:'react', q:'З якою групою речовин реагує етанол?', o:[`${F('Na')}, ${F('HBr')}, ${F('O2')}`, `${F('NaCl')}, ${F('H2')}, ${F('Cu')}`, `${F('N2')}, ${F('H2O')}, ${F('KCl')}`, `${F('Fe')}, ${F('CO2')}, ${F('CaCO3')}`], e:'Етанол реагує з активними металами, галогеноводнями і горить у кисні.' },
+  { g:'react', q:'Скільки моль водню виділиться під час взаємодії 2 моль етанолу з надлишком натрію?', o:['1 моль', '2 моль', '0,5 моль', '4 моль'], e:'2C₂H₅OH + 2Na → 2C₂H₅ONa + H₂↑: з 2 моль спирту — 1 моль H₂.' },
+  // добування
+  { g:'prodq', q:'Які продукти утворюються під час спиртового бродіння глюкози?', o:['етанол і вуглекислий газ', 'метанол і кисень', 'етен і вода', 'гліцерол і водень'], e:'C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂↑ (під дією ферментів дріжджів).' },
+  { g:'prodq', q:'Як у промисловості добувають метанол?', o:[`із синтез-газу: ${F('CO + 2H2')}`, 'бродінням глюкози', 'гідратацією етину', 'крекінгом нафти'], e:'CO + 2H₂ → CH₃OH (каталізатор, нагрівання, тиск).' },
+  { g:'prodq', q:'Гідратація етену — це його реакція з', o:['водою', 'воднем', 'киснем', 'хлороводнем'], e:'CH₂=CH₂ + H₂O → C₂H₅OH (каталізатор H₃PO₄, t, p).' },
+  { g:'prodq', q:'Що утвориться під час нагрівання хлороетану з водним розчином лугу?', o:['етанол', 'етен', 'етан', 'діетиловий етер'], e:'C₂H₅Cl + NaOH (водн.) → C₂H₅OH + NaCl. Спиртовий розчин лугу дав би етен.' },
+  { g:'prodq', q:'Гліцерол добувають', o:['гідролізом жирів', 'бродінням глюкози', 'гідратацією етену', 'із синтез-газу'], e:'Жири — естери гліцеролу та вищих карбонових кислот.' }
+];
+const G2CAT = { stru:'stru', prop:'prop', iso:'nom', react:'react', prodq:'prod' };
+const G2PTS = { stru:1, prop:1, iso:2, react:2, prodq:1 };
+const BY = {}; BANK.forEach(b => (BY[b.g] ??= []).push(b));
+
+// Назви за структурою: [формула, правильна назва, хибні назви, пояснення]
+const NOM = [
+  ['CH3–CH2–CH2–OH', 'пропан-1-ол', ['пропан-3-ол', 'пропан-2-ол', 'бутан-1-ол'], 'Ланцюг з 3 атомів C, нумеруємо від –OH: група при C1.'],
+  ['CH3–CH(OH)–CH3', 'пропан-2-ол', ['пропан-1-ол', 'пропан-3-ол', '1-метилетанол'], 'Ланцюг з 3 атомів C, група –OH при C2.'],
+  ['CH3–CH2–CH2–CH2–OH', 'бутан-1-ол', ['бутан-4-ол', 'бутан-2-ол', 'пентан-1-ол'], 'Ланцюг з 4 атомів C, нумеруємо від –OH.'],
+  ['CH3–CH(OH)–CH2–CH3', 'бутан-2-ол', ['бутан-3-ол', 'бутан-1-ол', '2-метилпропан-1-ол'], 'Нумеруємо з лівого кінця, ближчого до –OH: група при C2.'],
+  ['CH3–CH(CH3)–CH2–OH', '2-метилпропан-1-ол', ['2-метилпропан-3-ол', 'бутан-2-ол', '2-метилбутан-1-ол'], 'Головний ланцюг — 3 атоми C (пропан), від –OH: метил при C2.'],
+  ['(CH3)3C–OH', '2-метилпропан-2-ол', ['2-метилпропан-1-ол', 'бутан-2-ол', '1,1-диметилетанол'], 'Головний ланцюг — 3 атоми C, і група –OH, і метил при C2.'],
+  ['CH3–CH(CH3)–CH2–CH2–OH', '3-метилбутан-1-ол', ['2-метилбутан-4-ол', '3-метилбутан-4-ол', 'пентан-1-ол'], 'Ланцюг з 4 атомів C, нумеруємо від –OH: метил при C3.'],
+  ['CH3–CH2–CH(OH)–CH2–CH3', 'пентан-3-ол', ['пентан-2-ол', 'пентан-1-ол', 'бутан-3-ол'], 'Ланцюг з 5 атомів C, група –OH посередині — при C3.'],
+  ['CH3–CH(CH3)–CH(OH)–CH3', '3-метилбутан-2-ол', ['2-метилбутан-3-ол', '3-метилбутан-3-ол', 'пентан-2-ол'], 'Нумеруємо від кінця, ближчого до –OH: –OH при C2, метил при C3.'],
+  ['CH3–CH2–C(CH3)(OH)–CH3', '2-метилбутан-2-ол', ['3-метилбутан-3-ол', '2-метилбутан-3-ол', 'пентан-2-ол'], 'Нумеруємо справа: і –OH, і метил при C2.'],
+  ['HO–CH2–CH2–OH', 'етан-1,2-діол', ['етан-1,1-діол', 'етанол', 'пропан-1,2-діол'], 'Дві групи –OH при C1 і C2: суфікс -діол.'],
+  ['HO–CH2–CH(OH)–CH2–OH', 'пропан-1,2,3-тріол', ['пропан-1,2-діол', 'пропан-1,3-діол', 'бутан-1,2,3-тріол'], 'Три групи –OH при кожному атомі C: суфікс -тріол. Тривіальна назва — гліцерол.'],
+  ['CH3–CH(OH)–CH2–OH', 'пропан-1,2-діол', ['пропан-2,3-діол', 'пропан-1,2,3-тріол', 'етан-1,2-діол'], 'Нумеруємо так, щоб номери груп –OH були найменшими: 1,2.']
+];
+// Тип спирту: [назва, формула, тип]
+const CLS = [
+  ['етанол', 'CH3–CH2–OH', 'первинний'], ['пропан-1-ол', 'CH3–CH2–CH2–OH', 'первинний'],
+  ['пропан-2-ол', 'CH3–CH(OH)–CH3', 'вторинний'], ['бутан-2-ол', 'CH3–CH(OH)–CH2–CH3', 'вторинний'],
+  ['2-метилпропан-1-ол', 'CH3–CH(CH3)–CH2–OH', 'первинний'], ['2-метилпропан-2-ол', '(CH3)3C–OH', 'третинний'],
+  ['2-метилбутан-2-ол', 'CH3–CH2–C(CH3)(OH)–CH3', 'третинний'], ['пентан-3-ол', 'CH3–CH2–CH(OH)–CH2–CH3', 'вторинний']
+];
+const CLS_WHY = { 'первинний':'Атом C, що несе –OH, сполучений з одним атомом C.', 'вторинний':'Атом C, що несе –OH, сполучений з двома атомами C.', 'третинний':'Атом C, що несе –OH, сполучений з трьома атомами C.' };
+
+/* ---------- конструктор завдань ---------- */
+const DECK = {};
+function draw(key, arr) { if (!DECK[key] || !DECK[key].length) DECK[key] = shuffle(arr.map((_, i) => i)); return arr[DECK[key].pop()]; }
+
+function choice({ cat, label, pts = 1, q, o, e }) {
+  const opts = shuffle(o.map((html, i) => ({ html, right: i === 0 })));
+  return { cat, label: label || CAT[cat].l, pts, q, input:'choice', opts, e, right: plain(o[0]), sol: e ? [e] : [],
+    check: a => a !== null && a !== undefined && !!opts[a] && opts[a].right };
+}
+const fromBank = g => { const b = draw(g, BY[g]); return choice({ ...b, cat: G2CAT[g], pts: G2PTS[g] }); };
+function tNom() {
+  const [s, a, w, e] = draw('nom', NOM);
+  return choice({ cat:'nom', label:'Назва за структурою', pts:2, q:`Назвіть речовину за систематичною номенклатурою: ${F(s)}`, o:[a, ...w], e });
+}
+function tCls() {
+  const [n, s, t] = draw('cls', CLS);
+  const o = [t, ...['первинний', 'вторинний', 'третинний'].filter(x => x !== t)];
+  return choice({ cat:'stru', label:'Тип спирту', pts:1, q:`До якого типу належить ${n} ${F(s)}?`, o, e: CLS_WHY[t] });
+}
+
+// Числова відповідь: tol — відносна похибка (типово 1,5 %), abs — абсолютна
+function num(o) {
+  return { cat:'calc', pts:3, input:'num', ...o, right: `${fmt(o.x, o.d ?? 2)} ${o.unit}`,
+    check: a => { const v = parseNum(a); if (!isFinite(v)) return false; const t = o.abs ? o.tol : Math.max(0.02, Math.abs(o.x) * (o.tol ?? 0.015)); return Math.abs(v - o.x) <= t; } };
+}
+function fml(o) {
+  return { cat:'calc', pts:3, input:'formula', ...o, right: `${plain(F(alc(o.n)))} (${NM[o.n]})`, check: a => sameF(a, alc(o.n)) };
+}
+
+const NM  = ['', 'метанол', 'етанол', 'пропан-1-ол', 'бутан-1-ол', 'пентан-1-ол', 'гексан-1-ол'];
+const GN  = ['', 'метанолу', 'етанолу', 'пропан-1-олу', 'бутан-1-олу', 'пентан-1-олу', 'гексан-1-олу'];
+const LOC = ['', 'метанолі', 'етанолі', 'пропан-1-олі', 'бутан-1-олі', 'пентан-1-олі', 'гексан-1-олі'];
+const RONA = ['', 'натрій метилату', 'натрій етилату', 'натрій пропілату', 'натрій бутилату'];
+const alc  = n => n === 1 ? 'CH3OH' : `C${n}H${2 * n + 1}OH`;
+const alcO = n => n === 1 ? 'CH3ONa' : `C${n}H${2 * n + 1}ONa`;
+const Ma   = n => 14 * n + 18;
+const nameF = n => `${F(alc(n))} — ${NM[n]}`;
+
+/* ---------- розрахункові задачі ---------- */
+function tMolar() {
+  const n = rint(1, 6), M = Ma(n);
+  return num({ label:'Молярна маса', pts:1, q:`Обчисліть молярну масу ${GN[n]} ${F(alc(n))}.`, unit:'г/моль', x:M, d:0, tol:0.5, abs:true,
+    sol:[`M(${F(alc(n))}) = ${n}·12 + ${2 * n + 2}·1 + 16 = ${M} г/моль`] });
+}
+function tW() {
+  const list = [1, 2, 3, 4, 5].map(n => ({ f: alc(n), loc: LOC[n], M: Ma(n), C: n, O: 1 }))
+    .concat([{ f:'C2H4(OH)2', loc:'етиленгліколі', M:62, C:2, O:2 }, { f:'C3H5(OH)3', loc:'гліцеролі', M:92, C:3, O:3 }]);
+  const s = pick(list), el = pick(['O', 'C']), k = s[el], Ar = el === 'O' ? 16 : 12, w = k * Ar / s.M * 100;
+  return num({ label:'Масова частка', pts:2, q:`Обчисліть масову частку ${el === 'O' ? 'Оксигену' : 'Карбону'} в ${s.loc} ${F(s.f)}. Відповідь дайте у відсотках з точністю до десятих.`,
+    unit:'%', x:w, d:1, tol:0.3, abs:true,
+    sol:[`M(${F(s.f)}) = ${s.M} г/моль`, `w(${el}) = ${k > 1 ? k + '·' : ''}${Ar} / ${s.M} · 100 % ≈ ${fmt(w, 1)} %`] });
+}
+function tFindW() {
+  const n = rint(1, 5), M = Ma(n), w = round(16 / M * 100, 1);
+  return fml({ label:'Формула за масовою часткою', n, q:`Масова частка Оксигену в насиченому одноатомному спирті становить ${fmt(w, 1)} %. Виведіть молекулярну формулу спирту.`,
+    sol:[`Загальна формула C<sub>n</sub>H<sub>2n+1</sub>OH, M = 14n + 18; у молекулі один атом O`, `M = 16 / ${fmt(w / 100, 3)} ≈ ${M} г/моль`, `14n + 18 = ${M} → n = (${M} − 18) / 14 = ${n}`, `Формула: ${nameF(n)}`] });
+}
+function tFindD() {
+  const n = rint(1, 5), M = Ma(n), D = M / 2;
+  return fml({ label:'Формула за густиною пари', n, q:`Відносна густина пари насиченого одноатомного спирту за воднем дорівнює ${fmt(D, 1)}. Виведіть молекулярну формулу спирту.`,
+    sol:[`M = D(${F('H2')}) · M(${F('H2')}) = ${fmt(D, 1)} · 2 = ${M} г/моль`, `C<sub>n</sub>H<sub>2n+1</sub>OH: 14n + 18 = ${M} → n = ${n}`, `Формула: ${nameF(n)}`] });
+}
+function tFindNa() {
+  const n = rint(1, 5), M = Ma(n), mol = pick([0.2, 0.4, 0.5, 0.6, 0.8, 1]), m = round(mol * M, 2), V = round(mol / 2 * VM, 2);
+  return fml({ label:'Формула за реакцією з натрієм', n, q:`Під час взаємодії ${fmt(m)} г насиченого одноатомного спирту з надлишком натрію виділилося ${fmt(V)} л водню (н.у.). Виведіть молекулярну формулу спирту.`,
+    sol:[EQ('2R–OH + 2Na', '', '2R–ONa + H2↑'), `n(${F('H2')}) = V / V<sub>m</sub> = ${fmt(V)} / 22,4 = ${fmt(mol / 2)} моль`, `n(спирту) = 2 · n(${F('H2')}) = ${fmt(mol)} моль`,
+      `M = m / n = ${fmt(m)} / ${fmt(mol)} = ${M} г/моль`, `14n + 18 = ${M} → n = ${n}`, `Формула: ${nameF(n)}`] });
+}
+function tNa() {
+  const n = rint(1, 4), M = Ma(n), mol = pick([0.1, 0.2, 0.3, 0.4, 0.5, 0.6]), m = round(mol * M, 2), what = pick(['V', 'V', 'mNa', 'mAlk']);
+  const base = [EQ(`2${alc(n)} + 2Na`, '', `2${alcO(n)} + H2↑`), `n(${F(alc(n))}) = m / M = ${fmt(m)} / ${M} = ${fmt(mol)} моль`];
+  if (what === 'V') {
+    const V = mol / 2 * VM;
+    return num({ label:'Взаємодія з натрієм', q:`${fmt(m)} г ${GN[n]} повністю прореагували з натрієм. Обчисліть об'єм водню (н.у.), що виділився.`, unit:'л', x:V,
+      sol:[...base, `n(${F('H2')}) = ½ · n(спирту) = ${fmt(mol / 2, 3)} моль`, `V(${F('H2')}) = n · V<sub>m</sub> = ${fmt(mol / 2, 3)} · 22,4 = ${fmt(V)} л`] });
+  }
+  if (what === 'mNa') {
+    const x = mol * 23;
+    return num({ label:'Взаємодія з натрієм', q:`Яка маса натрію потрібна для повної взаємодії з ${fmt(m)} г ${GN[n]}?`, unit:'г', x,
+      sol:[...base, `n(Na) = n(спирту) = ${fmt(mol)} моль`, `m(Na) = n · M = ${fmt(mol)} · 23 = ${fmt(x)} г`] });
+  }
+  const M2 = M + 22, x = mol * M2;
+  return num({ label:'Взаємодія з натрієм', q:`Обчисліть масу ${RONA[n]}, що утвориться під час взаємодії ${fmt(m)} г ${GN[n]} з надлишком натрію.`, unit:'г', x,
+    sol:[...base, `n(${F(alcO(n))}) = n(спирту) = ${fmt(mol)} моль`, `M(${F(alcO(n))}) = ${M2} г/моль`, `m = n · M = ${fmt(mol)} · ${M2} = ${fmt(x)} г`] });
+}
+function tComb() {
+  const n = rint(1, 4), M = Ma(n), [a, b, c, d] = n % 2 ? [2, 3 * n, 2 * n, 2 * n + 2] : [1, 3 * n / 2, n, n + 1];
+  const eq = EQ(`${a > 1 ? a : ''}${alc(n)} + ${b}O2`, '', `${c}CO2 + ${d}H2O`);
+  const mol = pick([0.1, 0.2, 0.25, 0.5, 1, 2]), m = round(mol * M, 2), what = pick(['O2', 'CO2', 'H2O', 'air']);
+  const coef = { O2: b, CO2: c, H2O: d, air: b }[what], sp = what === 'air' ? 'O2' : what, nx = mol * coef / a;
+  const base = [eq, `n(${F(alc(n))}) = ${fmt(m)} / ${M} = ${fmt(mol)} моль`,
+    `n(${F(sp)}) = ${a > 1 ? `${coef}/${a}` : coef} · n(спирту) = ${fmt(nx, 3)} моль`];
+  if (what === 'H2O') {
+    const x = nx * 18;
+    return num({ label:'Горіння спирту', q:`Обчисліть масу води, що утвориться під час повного згоряння ${fmt(m)} г ${GN[n]}.`, unit:'г', x,
+      sol:[...base, `m(${F('H2O')}) = ${fmt(nx, 3)} · 18 = ${fmt(x)} г`] });
+  }
+  const V = nx * VM;
+  if (what === 'air') {
+    const x = V / 0.21;
+    return num({ label:'Горіння спирту', q:`Обчисліть об'єм повітря (н.у.), потрібний для спалювання ${fmt(m)} г ${GN[n]}. Об'ємна частка кисню в повітрі — 21 %.`, unit:'л', x,
+      sol:[...base, `V(${F('O2')}) = ${fmt(nx, 3)} · 22,4 = ${fmt(V)} л`, `V(повітря) = V(${F('O2')}) / 0,21 = ${fmt(x)} л`] });
+  }
+  return num({ label:'Горіння спирту', q: what === 'O2'
+      ? `Обчисліть об'єм кисню (н.у.), потрібний для спалювання ${fmt(m)} г ${GN[n]}.`
+      : `Обчисліть об'єм вуглекислого газу (н.у.), що утвориться під час згоряння ${fmt(m)} г ${GN[n]}.`, unit:'л', x:V,
+    sol:[...base, `V(${F(sp)}) = ${fmt(nx, 3)} · 22,4 = ${fmt(V)} л`] });
+}
+function tFerm() {
+  const m = pick([90, 180, 270, 360, 450, 540, 720, 900]), eta = pick([0, 0, 80, 85, 90, 95]), ng = m / 180;
+  const eq = EQ('C6H12O6', 'дріжджі', '2C2H5OH + 2CO2↑'), base = [eq, `n(глюкози) = ${m} / 180 = ${fmt(ng)} моль`];
+  if (pick([0, 1, 1])) {
+    const mt = 2 * ng * 46, x = eta ? mt * eta / 100 : mt;
+    return num({ cat:'calc', label:'Спиртове бродіння', q:`Обчисліть масу етанолу, яку можна добути спиртовим бродінням ${m} г глюкози${eta ? `, якщо вихід продукту становить ${eta} %` : ''}.`, unit:'г', x,
+      sol:[...base, `n(${F('C2H5OH')}) = 2 · n(глюкози) = ${fmt(2 * ng)} моль`, `m${eta ? '<sub>теор</sub>' : ''}(${F('C2H5OH')}) = ${fmt(2 * ng)} · 46 = ${fmt(mt)} г`,
+        ...(eta ? [`m<sub>практ</sub> = ${fmt(mt)} · ${fmt(eta / 100)} = ${fmt(x)} г`] : [])] });
+  }
+  const V = 2 * ng * VM;
+  return num({ label:'Спиртове бродіння', q:`Обчисліть об'єм вуглекислого газу (н.у.), що виділиться під час спиртового бродіння ${m} г глюкози.`, unit:'л', x:V,
+    sol:[...base, `n(${F('CO2')}) = 2 · n(глюкози) = ${fmt(2 * ng)} моль`, `V(${F('CO2')}) = ${fmt(2 * ng)} · 22,4 = ${fmt(V)} л`] });
+}
+function tHydr() {
+  const V = pick([5.6, 11.2, 22.4, 33.6, 44.8, 56, 67.2]), eta = pick([0, 80, 85, 90]), ne = V / VM, mt = ne * 46, x = eta ? mt * eta / 100 : mt;
+  return num({ label:'Гідратація етену', q:`Яку масу етанолу можна добути гідратацією ${fmt(V, 1)} л етену (н.у.)${eta ? `, якщо вихід продукту становить ${eta} %` : ''}?`, unit:'г', x,
+    sol:[EQ('CH2=CH2 + H2O', 'H3PO4, t, p', 'C2H5OH'), `n(${F('C2H4')}) = ${fmt(V, 1)} / 22,4 = ${fmt(ne, 2)} моль`, `n(${F('C2H5OH')}) = n(${F('C2H4')}) = ${fmt(ne, 2)} моль`,
+      `m${eta ? '<sub>теор</sub>' : ''} = ${fmt(ne, 2)} · 46 = ${fmt(mt)} г`, ...(eta ? [`m<sub>практ</sub> = ${fmt(mt)} · ${fmt(eta / 100)} = ${fmt(x)} г`] : [])] });
+}
+function tDehyd() {
+  const m = pick([23, 46, 69, 92, 115, 138, 230]), eta = pick([0, 75, 80, 90]), ne = m / 46, Vt = ne * VM, x = eta ? Vt * eta / 100 : Vt;
+  return num({ label:'Дегідратація етанолу', q:`Який об'єм етену (н.у.) можна добути внутрішньомолекулярною дегідратацією ${m} г етанолу${eta ? `, якщо вихід становить ${eta} %` : ''}?`, unit:'л', x,
+    sol:[EQ('C2H5OH', 'H2SO4 (конц.), t > 140 °C', 'CH2=CH2 + H2O'), `n(${F('C2H5OH')}) = ${m} / 46 = ${fmt(ne)} моль`, `n(${F('C2H4')}) = n(${F('C2H5OH')}) = ${fmt(ne)} моль`,
+      `V${eta ? '<sub>теор</sub>' : ''} = ${fmt(ne)} · 22,4 = ${fmt(Vt)} л`, ...(eta ? [`V<sub>практ</sub> = ${fmt(Vt)} · ${fmt(eta / 100)} = ${fmt(x)} л`] : [])] });
+}
+
+const GEN = {
+  stru: () => fromBank('stru'), prop: () => fromBank('prop'), iso: () => fromBank('iso'), react: () => fromBank('react'), prodq: () => fromBank('prodq'),
+  nom: tNom, cls: tCls, molar: tMolar, w: tW, na: tNa, comb: tComb, ferm: tFerm, hydr: tHydr, dehyd: tDehyd, findW: tFindW, findD: tFindD, findNa: tFindNa
+};
+const KINDS = [
+  ['all', 'Усі', ['stru', 'prop', 'nom', 'cls', 'iso', 'react', 'prodq', 'molar', 'w', 'na', 'comb', 'ferm', 'hydr', 'dehyd', 'findW', 'findD', 'findNa']],
+  ['theory', 'Будова й властивості', ['stru', 'prop', 'cls']],
+  ['nom', 'Назви та ізомери', ['nom', 'nom', 'iso']],
+  ['react', 'Реакції та добування', ['react', 'react', 'prodq']],
+  ['mw', 'M і w', ['molar', 'w']],
+  ['na', 'З натрієм', ['na']],
+  ['comb', 'Горіння', ['comb']],
+  ['prod', 'Добування (розрахунки)', ['ferm', 'hydr', 'dehyd']],
+  ['find', 'Формула спирту', ['findW', 'findD', 'findNa']]
+];
+
+/* ---------- поле відповіді ---------- */
+const LETTERS = 'АБВГД';
+function area(t, ans, pre, reveal) {
+  if (t.input === 'choice') return `<div class="opts">${t.opts.map((o, i) => {
+    let c = '';
+    if (reveal) { if (o.right) c = 'ok'; else if (i === ans) c = 'bad'; } else if (i === ans) c = 'sel';
+    return `<button class="opt ${c}" data-i="${i}" ${reveal ? 'disabled' : ''}><span class="k">${LETTERS[i]}</span><span>${o.html}</span></button>`;
+  }).join('')}</div>`;
+  const isF = t.input === 'formula';
+  return `<div class="inrow"><input id="${pre}-in" type="text" inputmode="${isF ? 'text' : 'decimal'}" autocomplete="off" spellcheck="false" autocapitalize="off"
+      aria-label="Відповідь" placeholder="${isF ? 'напр. C2H5OH' : 'відповідь'}" value="${esc(ans ?? '')}">${t.unit ? `<span class="unit">${t.unit}</span>` : ''}</div>
+    <div class="hint">${isF ? 'Формулу пиши латиницею, індекси звичайними цифрами: C3H7OH. Підійде і запис C3H8O.' : 'Десятковий дріб можна писати з комою. Округлюй до сотих.'}</div>`;
+}
+const answered = t => t.input === 'choice' ? t.ans !== null : String(t.ans ?? '').trim() !== '';
+
+/* ================= ЗАДАЧІ ================= */
+const P = { kind:'all', t:null, ans:null, checked:false, ok:false, sol:false, counted:false, tried:0, solved:0 };
+function newPractice() {
+  const keys = KINDS.find(k => k[0] === P.kind)[2];
+  P.t = GEN[pick(keys)]();
+  Object.assign(P, { ans: P.t.input === 'choice' ? null : '', checked:false, ok:false, sol:false, counted:false });
+  renderPractice(true);
+}
+function renderPractice(focus) {
+  const t = P.t, v = $('v-zadachi'), isC = t.input === 'choice';
+  let fb = '';
+  if (P.checked) fb = P.ok
+    ? `<div class="fb ok"><b>Правильно.</b> ${isC ? (t.e || '') : `Відповідь: ${esc(t.right)}`}</div>`
+    : isC ? `<div class="fb bad"><b>Неправильно.</b> ${t.e || ''}</div>`
+          : `<div class="fb bad"><b>Неправильно.</b> Перевір обчислення або подивись розв'язок.</div>`;
+  const sol = P.sol && !isC ? `<div class="solbox"><div class="lbl">Розв'язок</div><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol><div>Відповідь: <b>${esc(t.right)}</b></div></div>` : '';
+  const acts = isC
+    ? (P.checked ? `<button class="btn" id="p-next">Наступне завдання</button>` : `<span class="hint">Обери одну відповідь</span>`)
+    : `<button class="btn" id="p-check">Перевірити</button><button class="btn ghost" id="p-sol">${P.sol ? 'Сховати розв\'язок' : 'Розв\'язок'}</button><button class="btn ghost" id="p-next">Наступне</button>`;
+  v.innerHTML = `
+    <div class="seg" role="group" aria-label="Тип задач">${KINDS.map(([k, l]) => `<button class="segb" data-k="${k}" aria-pressed="${P.kind === k}">${l}</button>`).join('')}</div>
+    <div class="card task" style="--c:${CAT[t.cat].c}">
+      <div class="tline"><span class="tag">${esc(t.label)}</span>${P.tried ? `<span class="count">правильно ${P.solved} з ${P.tried}</span>` : ''}</div>
+      <div class="q">${t.q}</div>
+      ${area(t, P.ans, 'p', isC && P.checked)}
+      ${fb}${sol}
+      <div class="actions">${acts}</div>
+    </div>
+    <p class="hint">Тут можна тренуватися скільки завгодно: числа в задачах щоразу нові, результати нікуди не надсилаються.</p>`;
+  v.querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; newPractice(); });
+  v.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (P.checked) return;
+    P.ans = +b.dataset.i; P.checked = true; P.ok = t.check(P.ans); P.tried++; if (P.ok) P.solved++;
+    renderPractice(); $('p-next')?.focus({ preventScroll:true });
+  });
+  const inp = $('p-in');
+  if (inp) {
+    inp.oninput = () => { P.ans = inp.value; };
+    inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); check(); } };
+    if (focus && matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+  }
+  const check = () => {
+    P.ans = inp.value; if (!P.ans.trim()) { inp.focus(); return; }
+    P.checked = true; P.ok = t.check(P.ans);
+    if (!P.counted) { P.counted = true; P.tried++; if (P.ok) P.solved++; }
+    renderPractice(); if (!P.ok) $('p-in')?.focus({ preventScroll:true });
+  };
+  if ($('p-check')) $('p-check').onclick = check;
+  if ($('p-sol')) $('p-sol').onclick = () => { if (inp) P.ans = inp.value; P.sol = !P.sol; renderPractice(); };
+  if ($('p-next')) $('p-next').onclick = newPractice;
+}
+
+/* ================= ТЕСТ ================= */
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, results:[], sent:'', warn:false };
+try { T.name = localStorage.getItem('chem_name') || ''; T.cls = localStorage.getItem('chem_group') || ''; } catch (e) {}
+
+// Від простого до складного: 14 завдань
+function makeTest() {
+  const list = [GEN.stru(), GEN.prop(), GEN.cls(), GEN.prodq(), GEN.prop(), pick([tMolar, tW])(), GEN.nom(), GEN.iso(), GEN.react(), GEN.react(),
+    tNa(), tComb(), pick([tFindW, tFindD, tFindNa])(), pick([tFerm, tHydr, tDehyd])()];
+  return list.map(t => ({ ...t, ans: t.input === 'choice' ? null : '' }));
+}
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0), got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+const givenText = t => !answered(t) ? '—' : t.input === 'choice' ? plain(t.opts[t.ans].html) : t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `
+      <div class="card stack">
+        <div><div class="eyebrow">Тест · 14 завдань</div><h2 style="margin-top:4px">Спирти</h2></div>
+        <div class="row">
+          <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" placeholder="Напр., Марія Коваленко" value="${esc(T.name)}"></label>
+          <label class="field">Клас<input id="t-cls" placeholder="10-А" value="${esc(T.cls)}"></label>
+        </div>
+        <ul class="rules">
+          <li>Будова, класифікація, номенклатура, ізомерія, властивості, реакції, добування та розрахункові задачі — від простих до складних.</li>
+          <li>Кожне завдання — від 1 до 3 балів. Оцінка — за 12-бальною шкалою.</li>
+          <li>Правильні відповіді побачиш у кінці. До будь-якого завдання можна повернутися.</li>
+          <li>Ar: H — 1, C — 12, O — 16, Na — 23. Об'єми газів — за н.у., V<sub>m</sub> = 22,4 л/моль. Формули пиши латиницею: C3H7OH.</li>
+        </ul>
+        <div class="actions"><button class="btn" id="t-go">Почати тест</button></div>
+        <div class="err" id="t-err" hidden></div>
+      </div>`;
+    $('t-name').oninput = e => T.name = e.target.value;
+    $('t-cls').oninput = e => T.cls = e.target.value;
+    $('t-go').onclick = () => {
+      if (!T.name.trim()) { $('t-err').textContent = 'Впиши ім\'я та прізвище так, як тебе записав вчитель, щоб результат потрапив у твою вкладку.'; $('t-err').hidden = false; $('t-name').focus(); return; }
+      try { localStorage.setItem('chem_name', T.name.trim()); localStorage.setItem('chem_group', T.cls.trim()); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.warn = false; T.phase = 'run'; renderTest(); window.scrollTo({ top:0 });
+    };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1, left = T.tasks.filter(x => !answered(x)).length;
+    v.innerHTML = `
+      <div class="dots" role="group" aria-label="Завдання">${T.tasks.map((x, j) => `<button class="dot ${answered(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}" aria-label="Завдання ${j + 1}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${CAT[t.cat].c}">
+        <div class="tline"><span class="tag">${esc(t.label)}</span><span class="count">${T.i + 1} / ${N} · ${t.pts} б.</span></div>
+        <div class="q">${t.q}</div>
+        ${area(t, t.ans, 't', false)}
+        <div class="actions">
+          <button class="btn ghost" id="t-prev" ${T.i === 0 ? 'disabled' : ''}>Назад</button>
+          ${last ? `<button class="btn" id="t-fin">Завершити тест</button>` : `<button class="btn" id="t-next">Далі</button>`}
+        </div>
+        ${T.warn && left ? `<div class="err">Без відповіді: ${left}. Натисни «Завершити тест» ще раз, щоб здати роботу.</div>` : ''}
+      </div>`;
+    const go = j => { T.i = j; T.warn = false; renderTest(); };
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => go(+b.dataset.j));
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.ans = +b.dataset.i; renderTest(); });
+    const inp = $('t-in');
+    if (inp) {
+      inp.oninput = () => { t.ans = inp.value; v.querySelectorAll('.dot')[T.i].classList.toggle('done', answered(t)); };
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); last ? $('t-fin').click() : go(T.i + 1); } };
+      if (matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+    }
+    $('t-prev').onclick = () => go(T.i - 1);
+    if ($('t-next')) $('t-next').onclick = () => go(T.i + 1);
+    if ($('t-fin')) $('t-fin').onclick = () => {
+      if (left && !T.warn) { T.warn = true; renderTest(); return; }
+      finishTest();
+    };
+    return;
+  }
+  const { got, max, mark } = total(), okc = T.results.filter(r => r.ok).length;
+  v.innerHTML = `
+    <div class="card stack">
+      <div class="eyebrow">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</div>
+      <div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+      <div class="hint">${got} з ${max} балів · правильно ${okc} з ${T.results.length} завдань</div>
+      <div class="send" id="t-send"></div>
+    </div>
+    <div class="card stack">
+      <h2>Розбір</h2>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="m">${r.ok ? '✓' : '✗'}</span><div class="rb">
+          <b>${i + 1}. ${esc(r.label)} <span class="hint">· ${r.pts} б.</span></b>
+          ${r.ok ? '' : `<div class="yours">Твоя відповідь: ${esc(r.given)}</div><div class="right">Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+    </div>
+    <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button><button class="btn ghost" id="t-train">Потренуватися в задачах</button></div>`;
+  drawSend();
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); window.scrollTo({ top:0 }); };
+  $('t-train').onclick = () => go2('zadachi');
+}
+function finishTest() {
+  T.results = T.tasks.map(t => ({ label: t.label, pts: t.pts, ok: answered(t) && t.check(t.ans), given: givenText(t), right: t.right, sol: t.sol || [] }));
+  T.phase = 'done'; renderTest(); window.scrollTo({ top:0 });
+  sendResults();
+}
+function drawSend() {
+  const box = $('t-send'); if (!box) return;
+  box.className = 'send ' + (T.sent || 'wait');
+  box.innerHTML = T.sent === 'ok' ? 'Результат надіслано вчителю.'
+    : T.sent === 'fail' ? `Не вдалося надіслати результат. <button class="btn ghost" id="t-resend">Надіслати ще раз</button>`
+    : 'Надсилаю результат вчителю…';
+  if ($('t-resend')) $('t-resend').onclick = sendResults;
+}
+function sendResults() {
+  const { got, max, mark } = total();
+  T.sent = 'wait'; drawSend();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); }).catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ================= ТЕОРІЯ: формули й рівняння ================= */
+document.querySelectorAll('#v-teoriya .f').forEach(el => { if (!el.children.length) el.innerHTML = fHTML(el.textContent); });
+document.querySelectorAll('[data-eq]').forEach(el => { const [l, c, r] = el.dataset.eq.split('|'); el.innerHTML = EQ(l, c, r); });
+document.querySelectorAll('#toc button').forEach(b => b.onclick = () => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $(b.dataset.to).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' });
+});
+
+/* ================= перемикання розділів ================= */
+const VIEWS = ['teoriya', 'zadachi', 'test'];
+function show(v) {
+  if (!VIEWS.includes(v)) v = 'teoriya';
+  VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'zadachi' && !P.t) newPractice();
+  if (v === 'test') renderTest();
+}
+function go2(v) { show(v); try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo({ top:0 }); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go2(b.dataset.v));
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+show(location.hash.slice(1));
+</script>
+
+<button class="draft-fab" id="draft-open" aria-expanded="false" aria-controls="draft">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14 7l3 3"/></svg>
+  Чернетка
+</button>
+<aside class="draft" id="draft" hidden aria-label="Чернетка">
+  <div class="draft-bar">
+    <span class="ttl">Чернетка</span>
+    <div class="draft-tools" role="group" aria-label="Інструменти">
+      <button class="dt" data-tool="ink" aria-pressed="true" aria-label="Ручка, основний колір" title="Ручка"><i style="background:var(--ink)"></i></button>
+      <button class="dt" data-tool="oh" aria-pressed="false" aria-label="Ручка, бірюзова" title="Бірюзова ручка"><i style="background:var(--oh)"></i></button>
+      <button class="dt" data-tool="bad" aria-pressed="false" aria-label="Ручка, червона" title="Червона ручка"><i style="background:var(--bad)"></i></button>
+      <button class="dt" data-tool="erase" aria-pressed="false" aria-label="Гумка" title="Гумка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4l4 4-9.5 9.5H6L3.5 15 13 5.5"/><path d="M9 20h11"/><path d="M8.5 10l5.5 5.5"/></svg></button>
+      <button class="dt" data-tool="hand" aria-pressed="false" aria-label="Рука: пересувати аркуш" title="Рука: пересувати аркуш (або затисни пробіл)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v8"/><path d="M14 12V6a1.5 1.5 0 0 1 3 0v8"/><path d="M8 13v-1.5a1.5 1.5 0 0 0-3 0V14a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-3"/></svg></button>
+    </div>
+    <span class="sp"></span>
+    <button class="dt" id="draft-undo" aria-label="Скасувати останню лінію" title="Скасувати (Ctrl+Z)">↶</button>
+    <button class="dt" id="draft-clear" aria-label="Очистити чернетку" title="Очистити"></button>
+    <button class="dt" id="draft-close" aria-label="Закрити чернетку" title="Закрити (Esc)">✕</button>
+  </div>
+  <div class="draft-area" id="draft-area">
+    <canvas id="draft-canvas"></canvas>
+    <span class="draft-hint" id="draft-hint">Пиши пальцем, стилусом або мишкою. Масштаб — двома пальцями або Ctrl + колесо.</span>
+    <div class="zoombar" role="group" aria-label="Масштаб">
+      <button class="dt" id="zoom-out" aria-label="Віддалити" title="Віддалити">−</button>
+      <button class="dt zl" id="zoom-reset" aria-label="Скинути масштаб до 100 %" title="Скинути масштаб">100%</button>
+      <button class="dt" id="zoom-in" aria-label="Наблизити" title="Наблизити">+</button>
+    </div>
+    <div class="draft-msg" id="draft-msg" hidden>Чернетка не завантажилась: для неї потрібен інтернет. Онови сторінку, коли з'явиться зв'язок.</div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@5.1.3/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ================= ЧЕРНЕТКА (signature_pad + масштаб) ================= */
+(() => {
+  const KEY = 'draft_spyrty';
+  const MIN_S = 0.25, MAX_S = 6;
+  const box = document.getElementById('draft'), openBtn = document.getElementById('draft-open');
+  const canvas = document.getElementById('draft-canvas'), area = document.getElementById('draft-area');
+  const msg = document.getElementById('draft-msg'), hint = document.getElementById('draft-hint');
+  const clearBtn = document.getElementById('draft-clear'), zl = document.getElementById('zoom-reset');
+  const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+  clearBtn.innerHTML = TRASH;
+  let pad = null, tool = 'ink', clearArm = null, dpr = 1, spaceHand = false;
+  const V = { s: 1, x: 0, y: 0 };          // екран = світ · s + (x, y)
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || '#000';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(pad.toData())); } catch (e) {} };
+  const syncHint = () => { hint.hidden = !!pad && !pad.isEmpty(); };
+  const panMode = () => tool === 'hand' || spaceHand;
+  // signature_pad.off() вмикає прокрутку сторінки на холсті — повертаємо touch-action: none
+  const padOff = () => { pad.off(); canvas.style.touchAction = 'none'; };
+
+  // ---- вигляд ----
+  function applyCtx() { canvas.getContext('2d').setTransform(dpr * V.s, 0, 0, dpr * V.s, dpr * V.x, dpr * V.y); }
+  function penWidths() {
+    if (!pad) return;
+    const k = 1 / V.s;   // однакова товщина лінії на екрані за будь-якого масштабу
+    if (tool === 'erase') Object.assign(pad, { minWidth: 9 * k, maxWidth: 16 * k });
+    else Object.assign(pad, { minWidth: 0.8 * k, maxWidth: 2.6 * k });
+    pad.minDistance = 5 * k;
+  }
+  let raf = 0;
+  function redraw() {
+    area.style.backgroundSize = `${20 * V.s}px ${20 * V.s}px`;
+    area.style.backgroundPosition = `${V.x}px ${V.y}px`;
+    zl.textContent = Math.round(V.s * 100) + '%';
+    if (!pad) return;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { applyCtx(); pad.redraw(); });
+  }
+  function zoomAt(cx, cy, s2) {
+    s2 = Math.min(MAX_S, Math.max(MIN_S, s2));
+    const wx = (cx - V.x) / V.s, wy = (cy - V.y) / V.s;
+    V.s = s2; V.x = cx - wx * s2; V.y = cy - wy * s2;
+    penWidths(); redraw();
+  }
+  const center = () => { const r = area.getBoundingClientRect(); return [r.width / 2, r.height / 2]; };
+
+  function setTool(t) {
+    tool = t;
+    box.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+    area.classList.toggle('hand', panMode());
+    if (!pad) return;
+    if (t === 'erase') Object.assign(pad, { compositeOperation:'destination-out', penColor:'#000' });
+    else if (t !== 'hand') Object.assign(pad, { compositeOperation:'source-over', penColor: cssVar(t) });
+    penWidths();
+    panMode() ? padOff() : pad.on();
+  }
+  function fit() {
+    if (!pad) return;
+    const r = area.getBoundingClientRect();
+    dpr = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    applyCtx(); pad.redraw();
+  }
+  function init() {
+    if (pad) return true;
+    if (!window.SignaturePad) { msg.hidden = false; hint.hidden = true; return false; }
+    pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', throttle:8 });
+    // точки — у координатах «світу», а не екрана
+    const mk = pad._createPoint.bind(pad);
+    pad._createPoint = (x, y, p) => { const pt = mk(x, y, p); pt.x = (pt.x - V.x) / V.s; pt.y = (pt.y - V.y) / V.s; return pt; };
+    // очищати завжди весь холст, незалежно від масштабу
+    const clr = pad.clear.bind(pad);
+    pad.clear = () => { const c = canvas.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); clr(); applyCtx(); };
+    setTool(tool);
+    try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (Array.isArray(d)) pad.fromData(d); } catch (e) {}
+    pad.addEventListener('endStroke', () => { save(); syncHint(); });
+    new ResizeObserver(() => { if (!box.hidden) fit(); }).observe(area);
+    return true;
+  }
+
+  // ---- жести: два пальці — масштаб і зсув; «Рука» — зсув одним пальцем/мишкою ----
+  const ptrs = new Map();
+  let gesture = null, busy = false, beforeLen = 0;   // busy — жест триває, поки не піднято всі пальці
+  const local = e => { const r = area.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function startGesture() {
+    busy = true;
+    const pts = [...ptrs.values()];
+    if (pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      gesture = { kind:'pinch', d0: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s0: V.s, wx: (cx - V.x) / V.s, wy: (cy - V.y) / V.s };
+    } else gesture = { kind:'pan', px: pts[0][0], py: pts[0][1] };
+  }
+  area.addEventListener('pointerdown', e => {
+    if (!pad || e.target.closest('.zoombar')) return;
+    if (ptrs.size === 0) beforeLen = pad.toData().length;
+    ptrs.set(e.pointerId, local(e));
+    if (ptrs.size >= 2) {
+      // другий палець: скасовуємо лінію, яку встиг почати перший
+      padOff();
+      if (pad.toData().length > beforeLen) pad.fromData(pad.toData().slice(0, beforeLen));
+      e.stopPropagation(); startGesture();
+    } else if (panMode() || e.button === 1) {
+      e.preventDefault(); e.stopPropagation(); padOff(); area.classList.add('panning'); startGesture();
+    }
+    try { area.setPointerCapture(e.pointerId); } catch (_) {}
+  }, true);
+  area.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, local(e));
+    if (!gesture) return;
+    e.preventDefault();
+    const pts = [...ptrs.values()];
+    if (gesture.kind === 'pinch' && pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      V.s = Math.min(MAX_S, Math.max(MIN_S, gesture.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gesture.d0));
+      V.x = cx - gesture.wx * V.s; V.y = cy - gesture.wy * V.s;
+      redraw();
+    } else if (gesture.kind === 'pan') {
+      const [x, y] = pts[0];
+      V.x += x - gesture.px; V.y += y - gesture.py; gesture.px = x; gesture.py = y;
+      redraw();
+    }
+  });
+  const up = e => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (ptrs.size === 0) {
+      if (busy) { busy = false; gesture = null; area.classList.remove('panning'); penWidths(); if (!panMode()) pad.on(); }
+    } else if (gesture && gesture.kind === 'pinch') gesture = null;   // лишився один палець — не малюємо, поки не підніметься
+  };
+  area.addEventListener('pointerup', up);
+  area.addEventListener('pointercancel', up);
+  area.addEventListener('wheel', e => {
+    if (!pad) return;
+    e.preventDefault();
+    const [cx, cy] = local(e);
+    if (e.ctrlKey || e.metaKey) zoomAt(cx, cy, V.s * Math.exp(-e.deltaY * 0.01));   // щипок на тачпаді або Ctrl + колесо
+    else { V.x -= e.deltaX; V.y -= e.deltaY; redraw(); }
+  }, { passive:false });
+
+  document.getElementById('zoom-in').onclick = () => zoomAt(...center(), V.s * 1.25);
+  document.getElementById('zoom-out').onclick = () => zoomAt(...center(), V.s / 1.25);
+  zl.onclick = () => { V.s = 1; V.x = 0; V.y = 0; penWidths(); redraw(); };
+
+  // ---- відкрити / закрити ----
+  function open() {
+    box.hidden = false; openBtn.hidden = true; openBtn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('draft-on');
+    if (init()) { fit(); redraw(); syncHint(); }
+  }
+  function close() {
+    box.hidden = true; openBtn.hidden = false; openBtn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('draft-on'); openBtn.focus({ preventScroll:true });
+  }
+  function undo() { if (!pad) return; const d = pad.toData(); d.pop(); pad.fromData(d); save(); syncHint(); }
+
+  openBtn.onclick = open;
+  document.getElementById('draft-close').onclick = close;
+  document.getElementById('draft-undo').onclick = undo;
+  box.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  clearBtn.onclick = () => {
+    if (!pad) return;
+    if (!clearArm) {   // друге натискання протягом 3 с — очищення
+      clearBtn.textContent = 'Точно?'; clearBtn.classList.add('warn');
+      clearArm = setTimeout(() => { clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn'); }, 3000);
+      return;
+    }
+    clearTimeout(clearArm); clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn');
+    pad.clear(); save(); syncHint();
+  };
+  document.addEventListener('keydown', e => {
+    if (box.hidden || e.target.closest('input')) return;
+    if (e.key === 'Escape') close();
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) { e.preventDefault(); zoomAt(...center(), V.s * 1.25); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); zoomAt(...center(), V.s / 1.25); }
+    else if (e.code === 'Space' && !spaceHand && !e.repeat && !e.target.closest('button')) { e.preventDefault(); spaceHand = true; setTool(tool); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space' && spaceHand) { spaceHand = false; setTool(tool); } });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => setTool(tool));
+})();
+</script>
+
+</body>
+</html>

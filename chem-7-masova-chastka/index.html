@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Масова частка елемента</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with a formula card and the task. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --acc: #1f7a8c;
+  --acc-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --acc: #4fb6c9; --acc-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --acc: #4fb6c9; --acc-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+sub { font-size: .62em; line-height: 0; vertical-align: -.25em; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage.single { grid-template-columns: 1fr; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.q { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 600; line-height: 1.4; margin: 0; }
+
+/* formula card */
+.card { width: 260px; min-height: 220px; max-width: 100%; border: 3px solid var(--ink); border-radius: 6px; padding: 16px; display: grid; grid-template-rows: 1fr auto; justify-items: center; align-items: center; gap: 8px; background: var(--surface); }
+.card .big { font-weight: 700; line-height: 1.1; white-space: nowrap; }
+.card .cap { font-weight: 600; font-size: 1.15rem; color: var(--muted); text-align: center; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 500; font-size: 1.05rem; }
+.chip b { font-weight: 700; color: var(--acc); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: clamp(1.05rem, 1.9vw, 1.3rem); font-weight: 500; }
+.steps li { padding: 4px 0 4px 14px; border-left: 3px solid var(--acc); overflow-wrap: anywhere; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+/* choice */
+.opts { display: grid; gap: 10px; max-width: 720px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* atoms */
+.atoms { display: flex; flex-wrap: wrap; gap: 14px; }
+.atom { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.atom .sym { font-weight: 700; font-size: 1.5rem; }
+.atom input { width: 84px; text-align: center; font-size: 1.4rem; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px; }
+
+/* find the error */
+.lines { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.line { text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 10px; padding: 8px 14px; font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+button.line { cursor: pointer; }
+.line.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.line.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 420px; font-size: 1.3rem; }
+.ans-row { display: flex; align-items: center; gap: 10px; }
+.unit { font-weight: 700; font-size: 1.3rem; }
+.preview { min-height: 1.6em; font-size: 1.8rem; font-weight: 700; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li > div { min-width: 0; overflow-wrap: anywhere; }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); margin-top: 4px; }
+.review .why div + div { margin-top: 2px; }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { grid-template-columns: 1fr; padding: 22px; gap: 24px; justify-items: start; }
+  .stage > * { width: 100%; }
+  .stage > .card { min-height: 160px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .line, .opt { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Масова частка елемента<small>Хімія · Mr і w</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="calc">Mr і w</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="prob">Задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати розв'язання, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 10;
+const TOPIC = 'Хімія 7 клас — Відносна молекулярна маса і масова частка';
+
+// Символ: [назва, Ar (шкільне округлення), побутові назви]
+const EL = {
+  H:['Гідроген',1,['водень']], Li:['Літій',7], Be:['Берилій',9], B:['Бор',11], C:['Карбон',12,['вуглець']],
+  N:['Нітроген',14,['азот']], O:['Оксиген',16,['кисень']], F:['Флуор',19,['фтор']], Na:['Натрій',23],
+  Mg:['Магній',24], Al:['Алюміній',27], Si:['Силіцій',28,['кремній']], P:['Фосфор',31], S:['Сульфур',32,['сірка']],
+  Cl:['Хлор',35.5], K:['Калій',39], Ca:['Кальцій',40], Sc:['Скандій',45], Ti:['Титан',48], V:['Ванадій',51],
+  Cr:['Хром',52], Mn:['Манган',55,['марганець']], Fe:['Ферум',56,['залізо']], Co:['Кобальт',59], Ni:['Нікол',59,['нікель']],
+  Cu:['Купрум',64,['мідь']], Zn:['Цинк',65], Ga:['Галій',70], Ge:['Германій',73], As:['Арсен',75,["миш'як"]],
+  Se:['Селен',79], Br:['Бром',80], Rb:['Рубідій',85], Sr:['Стронцій',88], Mo:['Молібден',96],
+  Ag:['Аргентум',108,['срібло']], Sn:['Станум',119,['олово']], I:['Йод',127], Cs:['Цезій',133], Ba:['Барій',137],
+  W:['Вольфрам',184], Au:['Аурум',197,['золото']], Hg:['Меркурій',201,['ртуть']], Pb:['Плюмбум',207,['свинець']]
+};
+
+// Речовини для розрахунків Mr і w
+const SUBS = ['H2O','CO2','SO2','SO3','NH3','CH4','HCl','H2S','H2SO4','HNO3','H3PO4','NaOH','KOH',
+  'Ca(OH)2','Mg(OH)2','Al(OH)3','Fe(OH)3','Cu(OH)2','Ba(OH)2','NaCl','KCl','CaCl2','AlCl3','FeCl3','ZnCl2',
+  'Na2CO3','CaCO3','K2CO3','Na2SO4','CuSO4','FeSO4','MgSO4','BaSO4','Al2(SO4)3','Fe2(SO4)3','KNO3','NaNO3',
+  'AgNO3','Ca(NO3)2','Mg(NO3)2','Cu(NO3)2','Ca3(PO4)2','Na3PO4','Fe2O3','Fe3O4','Al2O3','CuO','ZnO','MgO',
+  'CaO','P2O5','N2O5','NO2','SiO2','KMnO4','K2Cr2O7','NH4NO3','(NH4)2SO4','NH4Cl','Na2SiO3','FeS2',
+  'C6H12O6','C2H5OH','CH3COOH','CuSO4·5H2O','Na2CO3·10H2O'];
+// Речовини для виведення найпростішої формули (формула вже найпростіша)
+const FRM = ['SO2','SO3','CO2','CH4','NH3','H2S','Fe2O3','Fe3O4','Al2O3','CuO','Cu2O','P2O5','N2O5','NO2','MgO',
+  'SiO2','CaCO3','Na2SO4','K2CO3','Na2CO3','CuSO4','KNO3','MgCO3','FeS2','FeS','CuS','Cu2S','H2SO4','HNO3',
+  'H3PO4','KMnO4','NaOH','CaC2','Al4C3','Mg3N2','Na2SiO3','K2SO4','CaSO4','K2Cr2O7'];
+
+// Невідомий елемент E: склад сполуки і можливі елементи
+const UNK = {
+  formula: [
+    { f:'E2O',  els:['Li','Na','K','Cu','Ag'] },
+    { f:'EO',   els:['Be','Mg','Ca','Zn','Cu','Ba','Fe','Sr','Mn','Hg'] },
+    { f:'E2O3', els:['B','Al','Cr','Fe','N','P','As'] },
+    { f:'EO2',  els:['C','Si','S','Ti','Mn','Sn','Pb','Ge','N','Se'] },
+    { f:'E2O5', els:['N','P','V','As'] },
+    { f:'EO3',  els:['S','Cr','Se','Mo','W'] },
+    { f:'E2O7', els:['Cl','Mn'] }
+  ],
+  hydride: [
+    { f:'EH4', els:['C','Si','Ge'] }, { f:'EH3', els:['N','P','As'] },
+    { f:'H2E', els:['S','Se'] },      { f:'HE',  els:['Cl','Br','I'] }
+  ],
+  chloride: [
+    { f:'ECl', els:['Li','Na','K','Ag'] }, { f:'ECl2', els:['Mg','Ca','Ba','Zn','Cu','Fe'] },
+    { f:'ECl3', els:['Al','Fe','Cr'] }
+  ]
+};
+const GROUPS = [['I','А',['Li','Na','K']], ['II','А',['Be','Mg','Ca','Sr','Ba']], ['III','А',['B','Al','Ga']],
+  ['IV','А',['C','Si','Ge','Sn','Pb']], ['IV','Б',['Ti']], ['V','А',['N','P','As']], ['V','Б',['V']],
+  ['VI','А',['S','Se']], ['VI','Б',['Cr','Mo','W']], ['VII','А',['Cl']], ['VII','Б',['Mn']]];
+const HIGHER = { I:'E2O', II:'EO', III:'E2O3', IV:'EO2', V:'E2O5', VI:'EO3', VII:'E2O7' };
+
+const THEORY = [
+  { q:'Що показує відносна молекулярна маса речовини?', a:['У скільки разів маса молекули більша за 1/12 маси атома Карбону', 'Масу однієї молекули в грамах', 'Кількість атомів у молекулі', 'Масу речовини в одному літрі'] },
+  { q:'У яких одиницях вимірюють відносну молекулярну масу Mr?', a:['Це безрозмірна величина', 'У грамах', 'У кілограмах', 'У відсотках'] },
+  { q:'Як позначають масову частку елемента в речовині?', a:['w', 'Mr', 'Ar', 'm'] },
+  { q:'За якою формулою обчислюють масову частку елемента E у речовині?', a:['w(E) = n·Ar(E) / Mr · 100%', 'w(E) = Ar(E) / Mr · 100%', 'w(E) = Mr / (n·Ar(E)) · 100%', 'w(E) = n·Ar(E) · Mr'] },
+  { q:'Чому дорівнює сума масових часток усіх елементів у речовині?', a:['100% (або 1)', '50%', 'Відносній молекулярній масі', 'Залежить від речовини'] },
+  { q:'Чи залежить масова частка елемента в речовині від маси взятого зразка?', a:['Ні, вона однакова в будь-якій порції речовини', 'Так, у більшому зразку вона більша', 'Так, у більшому зразку вона менша', 'Залежить від температури'] },
+  { q:'Масова частка Гідрогену у воді 11,1%. Яка масова частка Оксигену?', a:['88,9%', '11,1%', '50%', '16%'] },
+  { q:'Як правильно обчислити Mr(Ca(OH)₂)?', a:['Ar(Ca) + 2·Ar(O) + 2·Ar(H)', 'Ar(Ca) + Ar(O) + 2·Ar(H)', '2·(Ar(Ca) + Ar(O) + Ar(H))', 'Ar(Ca) + Ar(O) + Ar(H)'] },
+  { q:'Звідки беруть відносну атомну масу Ar елемента?', a:['З періодичної системи', 'Це порядковий номер елемента', 'Це номер групи', 'Це кількість електронів в атомі'] },
+  { q:'Відносна атомна маса Хлору в шкільних розрахунках дорівнює…', a:['35,5', '17', '35', '71'] },
+  { q:'Чи може масова частка елемента бути більшою за 100%?', a:['Ні, ніколи', 'Так, якщо атомів елемента багато', 'Так, у важких речовинах', 'Так, якщо Mr більша за 100'] },
+  { q:'Mr(O₂) дорівнює…', a:['32', '16', '8', '64'] },
+  { q:'У скільки разів Mr(SO₂) більша за Mr(O₂)?', a:['У 2 рази', 'Вони однакові', 'У 3 рази', 'У 1,5 раза'] },
+  { q:'Як зміниться масова частка Оксигену, якщо від CO перейти до CO₂?', a:['Збільшиться', 'Зменшиться', 'Не зміниться', 'Стане 100%'] },
+  { q:'Які речовини мають однакову відносну молекулярну масу?', a:['N₂ і CO', 'N₂ і O₂', 'CO і CO₂', 'H₂O і H₂S'] }
+];
+
+// Типові помилки учнів: bad — рядок, де помилку зроблено вперше
+const ERRORS = [
+  { task:'Обчисліть Mr(Ca(OH)₂)', lines:['Mr(Ca(OH)₂) = Ar(Ca) + Ar(O) + 2·Ar(H)', '= 40 + 16 + 2', '= 58'], bad:0,
+    why:'Індекс 2 за дужками стосується і Оксигену, і Гідрогену: Mr = 40 + 2·16 + 2·1 = 74.' },
+  { task:'Обчисліть Mr(H₂SO₄)', lines:['Mr(H₂SO₄) = 2·Ar(H) + Ar(S) + 4·Ar(O)', '= 2·1 + 32 + 4·16', '= 2 + 32 + 64', '= 96'], bad:3,
+    why:'Арифметична помилка: 2 + 32 + 64 = 98.' },
+  { task:'Обчисліть Mr(HCl)', lines:['Mr(HCl) = Ar(H) + Ar(Cl)', '= 1 + 17', '= 18'], bad:1,
+    why:'17 — порядковий номер Хлору, а не відносна атомна маса. Ar(Cl) = 35,5, тож Mr = 36,5.' },
+  { task:'Обчисліть w(O) у Fe₂O₃', lines:['Mr(Fe₂O₃) = 2·56 + 3·16 = 160', 'w(O) = Ar(O) / Mr(Fe₂O₃) · 100%', '= 16 / 160 · 100% = 10%'], bad:1,
+    why:'Забули кількість атомів: w(O) = 3·Ar(O) / Mr · 100% = 48 / 160 · 100% = 30%.' },
+  { task:'Обчисліть w(N) у NH₄NO₃', lines:['Mr(NH₄NO₃) = 14 + 4·1 + 14 + 3·16 = 80', 'w(N) = 14 / 80 · 100%', '= 17,5%'], bad:1,
+    why:'У формулі два атоми Нітрогену: w(N) = 2·14 / 80 · 100% = 35%.' },
+  { task:'Обчисліть Mr(Al₂(SO₄)₃)', lines:['Mr(Al₂(SO₄)₃) = 2·Ar(Al) + Ar(S) + 12·Ar(O)', '= 54 + 32 + 192', '= 278'], bad:0,
+    why:'Індекс 3 за дужками стосується і Сульфуру: 2·27 + 3·32 + 12·16 = 342.' },
+  { task:'Обчисліть w(Na) у Na₂CO₃', lines:['Mr(Na₂CO₃) = 2·23 + 12 + 3·16 = 106', 'w(Na) = Mr(Na₂CO₃) / (2·Ar(Na)) · 100%', '= 106 / 46 · 100% ≈ 230%'], bad:1,
+    why:'Дріб перевернуто: w(Na) = 2·23 / 106 · 100% ≈ 43,4%. Масова частка не може бути більшою за 100%.' },
+  { task:'Обчисліть Mr(CO₂)', lines:['Mr(CO₂) = Ar(C) · 2·Ar(O)', '= 12 · 32', '= 384'], bad:0,
+    why:'Маси атомів додають, а не множать: Mr = 12 + 2·16 = 44.' },
+  { task:'Обчисліть Mr(P₂O₅)', lines:['Mr(P₂O₅) = 2·Ar(P) + 5·Ar(O)', '= 2·31 + 5·16', '= 62 + 80', '= 132'], bad:3,
+    why:'Арифметична помилка: 62 + 80 = 142.' },
+  { task:'Обчисліть w(O) у CuSO₄', lines:['Mr(CuSO₄) = 64 + 32 + 4·16 = 160', 'w(O) = 4·16 / 160 · 100%', '= 64 / 160 · 100% = 0,4%'], bad:2,
+    why:'64 / 160 = 0,4, а у відсотках це 40%.' },
+  { task:'Оксид EO₂ містить 50% Оксигену. Визначте E.', lines:['w(O) = 2·Ar(O) / Mr(EO₂) = 0,5', 'Mr(EO₂) = 2·16 / 0,5 = 64', 'Ar(E) = 64 − 16 = 48 → Титан'], bad:2,
+    why:'Треба відняти масу обох атомів Оксигену: Ar(E) = 64 − 32 = 32 → Сульфур, SO₂.' },
+  { task:'Обчисліть w(H) у Mg(OH)₂', lines:['Mr(Mg(OH)₂) = 24 + 2·(16 + 1) = 58', 'w(H) = 1 / 58 · 100%', '≈ 1,7%'], bad:1,
+    why:'У Mg(OH)₂ два атоми Гідрогену: w(H) = 2 / 58 · 100% ≈ 3,4%.' },
+  { task:'Обчисліть Mr(Ca₃(PO₄)₂)', lines:['Mr(Ca₃(PO₄)₂) = 3·Ar(Ca) + 2·Ar(P) + 4·Ar(O)', '= 120 + 62 + 64', '= 246'], bad:0,
+    why:'Індекс 2 за дужками подвоює і атоми Оксигену: їх 8. Mr = 120 + 62 + 128 = 310.' },
+  { task:'Обчисліть Mr(CuSO₄·5H₂O)', lines:['Mr = Mr(CuSO₄) + Mr(H₂O)', '= 160 + 18', '= 178'], bad:0,
+    why:'Коефіцієнт 5 означає п’ять молекул води: Mr = 160 + 5·18 = 250.' },
+  { task:'Обчисліть Mr(Fe(OH)₃)', lines:['Mr(Fe(OH)₃) = Ar(Fe) + 3·(Ar(O) + Ar(H))', '= 56 + 3·(16 + 1)', '= 56 + 48 + 1', '= 105'], bad:2,
+    why:'Множник 3 стосується і Гідрогену: 56 + 3·17 = 107.' }
+];
+
+/* ---------- утиліти ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',');   // без зайвих нулів
+const fix = (x, d = 1) => x.toFixed(d).replace('.', ',');           // рівно d знаків
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const fTxt = s => s.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+
+/* ---------- хімія ---------- */
+const Ar = s => EL[s][1];
+const nm = s => EL[s][0];
+const gen = s => { const n = nm(s); return n.endsWith('ій') ? n.slice(0, -2) + 'ію' : n + 'у'; };   // родовий відмінок
+
+// Розбір формули: H2SO4, Ca(OH)2, (NH4)2SO4, CuSO4·5H2O → { counts, order }
+function group(s) {
+  const st = [[]]; let i = 0;
+  while (i < s.length) {
+    if (s[i] === '(') { st.push([]); i++; continue; }
+    if (s[i] === ')') {
+      if (st.length < 2) return null;
+      const g = st.pop(); i++;
+      const d = s.slice(i).match(/^([1-9]\d*)?/)[0]; i += d.length;
+      if (!g.length) return null;
+      st[st.length - 1].push(...g.map(([e, n]) => [e, n * (d ? +d : 1)]));
+      continue;
+    }
+    const m = s.slice(i).match(/^([A-Z][a-z]?)([1-9]\d*)?/);
+    if (!m || !EL[m[1]]) return null;
+    st[st.length - 1].push([m[1], m[2] ? +m[2] : 1]); i += m[0].length;
+  }
+  return st.length === 1 && st[0].length ? st[0] : null;
+}
+const PF = new Map();
+function parseF(s) {
+  if (PF.has(s)) return PF.get(s);
+  const counts = {}, order = [];
+  const ok = s.split('·').every(part => {
+    const m = part.match(/^([1-9]\d*)?(.+)$/);
+    const g = m && group(m[2]);
+    if (!g) return false;
+    g.forEach(([e, n]) => { if (!(e in counts)) { counts[e] = 0; order.push(e); } counts[e] += n * (m[1] ? +m[1] : 1); });
+    return true;
+  });
+  const r = ok ? { counts, order } : null;
+  PF.set(s, r);
+  return r;
+}
+const mr = f => { const p = parseF(f); return round(p.order.reduce((a, e) => a + p.counts[e] * Ar(e), 0), 2); };
+const wOf = (f, e) => parseF(f).counts[e] * Ar(e) / mr(f) * 100;
+const sameCounts = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+const nA = (n, x) => n === 1 ? x : `${n}·${x}`;
+
+function mrSteps(f) {
+  const p = parseF(f);
+  return [
+    `Mr(${fHTML(f)}) = ${p.order.map(e => nA(p.counts[e], `Ar(${e})`)).join(' + ')}`,
+    `= ${p.order.map(e => nA(p.counts[e], fmt(Ar(e)))).join(' + ')} = ${fmt(mr(f))}`
+  ];
+}
+
+/* ---------- розбір введення ---------- */
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+const latin = s => s.replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]);
+const normF = raw => latin(raw.trim())
+  .replace(/[₀-₉]/g, c => SUBD.indexOf(c))
+  .replace(/[[{]/g, '(').replace(/[\]}]/g, ')')
+  .replace(/[*•∙.]/g, '·')
+  .replace(/\s+/g, '');
+function parseNum(raw) {
+  const s = String(raw).replace(/[\s%≈гg]/g, '').replace(',', '.');
+  const fr = s.match(/^(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/);
+  if (fr) return +fr[2] ? fr[1] / fr[2] : NaN;
+  return s && isFinite(+s) ? +s : NaN;
+}
+function isEl(raw, sym) {
+  const v = raw.trim().toLowerCase().replace(/[’ʼ`]/g, "'");
+  if (!v) return false;
+  return latin(raw.trim()).toLowerCase() === sym.toLowerCase()
+    || [nm(sym), ...(EL[sym][2] || [])].some(x => x.toLowerCase() === v);
+}
+
+/* ---------- генератори завдань ---------- */
+// Кожне завдання: type, label, card [велике, підпис] або null, q, input, unit, right, check(ans), sol[]
+const TYPE = {
+  theory: 'Теорія', atoms: 'Кількість атомів', mr: 'Відносна молекулярна маса', w: 'Масова частка',
+  cmp: 'Порівняння масових часток', mel: 'Маса елемента', err: 'Знайди помилку',
+  unk: 'Невідомий елемент', frm: 'Виведення формули'
+};
+
+function tTheory(i = Math.random() * THEORY.length | 0) {
+  const th = THEORY[i], order = shuffle([0, 1, 2, 3]), ri = order.indexOf(0);
+  return { type:'theory', label:'', card:null, q:th.q, input:'choice',
+    opts: order.map(k => ({ html: th.a[k], txt: th.a[k] })), right: th.a[0],
+    check: a => a === ri, sol: [] };
+}
+
+function tAtoms(f) {
+  const p = parseF(f);
+  const sol = [`${fHTML(f)}: ${p.order.map(e => `${e} — ${p.counts[e]}`).join(', ')}`];
+  if (f.includes('(')) sol.push('Індекс за дужками множить кількість кожного атома в дужках.');
+  if (f.includes('·')) sol.push('Коефіцієнт перед H<sub>2</sub>O множить атоми H і O в усіх молекулах води.');
+  return { type:'atoms', label:fTxt(f), card:[fHTML(f), 'Скільки атомів?'], q:'Скільки атомів кожного елемента в одній формулі?',
+    input:'atoms', els:p.order, right: p.order.map(e => `${e}: ${p.counts[e]}`).join(', '),
+    check: a => p.order.every(e => parseNum(a[e]) === p.counts[e]), sol };
+}
+
+function tMr(f) {
+  const v = mr(f);
+  return { type:'mr', label:`Mr(${fTxt(f)})`, card:[fHTML(f), 'Mr = ?'], q:`Обчисліть відносну молекулярну масу ${fHTML(f)}.`,
+    input:'num', unit:'', right: fmt(v), check: a => Math.abs(parseNum(a) - v) < 0.06, sol: mrSteps(f) };
+}
+
+const okW = (a, w) => { const v = parseNum(a); return Math.abs(v - w) <= 0.55 || (v < 1 && w >= 1.5 && Math.abs(v * 100 - w) <= 0.55); };
+function tW(f, e) {
+  const p = parseF(f);
+  e = e || pick(p.order.filter(x => wOf(f, x) >= 2));
+  const n = p.counts[e], w = wOf(f, e);
+  return { type:'w', label:`w(${e}) у ${fTxt(f)}`, card:[fHTML(f), `w(${e}) = ?`],
+    q:`Обчисліть масову частку ${gen(e)} у ${fHTML(f)}.`, input:'num', unit:'%', right: fmt(w, 1) + ' %',
+    check: a => okW(a, w),
+    sol: [...mrSteps(f), `w(${e}) = ${nA(n, `Ar(${e})`)} / Mr · 100% = ${nA(n, fmt(Ar(e)))} / ${fmt(mr(f))} · 100% ≈ ${fmt(w, 1)}%`] };
+}
+
+const CMP_EL = ['O','Fe','N','S','Cu','H','Cl','Ca','Na','C','Al','K'];
+function tCmp() {
+  for (;;) {
+    const e = pick(CMP_EL), chosen = [];
+    for (const f of shuffle(SUBS.filter(f => parseF(f).counts[e]))) {
+      if (chosen.every(g => Math.abs(wOf(g, e) - wOf(f, e)) >= 2)) chosen.push(f);
+      if (chosen.length === 4) break;
+    }
+    if (chosen.length < 4) continue;
+    const max = Math.random() < .6;
+    const best = chosen.reduce((a, b) => (max ? wOf(b, e) > wOf(a, e) : wOf(b, e) < wOf(a, e)) ? b : a);
+    const ri = chosen.indexOf(best);
+    return { type:'cmp', label:`${max ? 'max' : 'min'} w(${e})`, card:null,
+      q:`У якій речовині масова частка ${gen(e)} ${max ? 'найбільша' : 'найменша'}?`, input:'choice',
+      opts: chosen.map(f => ({ html: fHTML(f), txt: fTxt(f) })), right: fTxt(best),
+      check: a => a === ri, sol: chosen.map(f => `w(${e}) у ${fHTML(f)} ≈ ${fmt(wOf(f, e), 1)}%`) };
+  }
+}
+
+function tMel(f, e) {
+  const p = parseF(f);
+  e = e || pick(p.order);
+  const M = mr(f), n = p.counts[e], A = Ar(e);
+  const ks = [0.5, 1, 2, 2.5, 3, 4, 5, 10].filter(k => Number.isInteger(round(M * k, 4)) && Number.isInteger(round(n * A * k, 4)) && M * k <= 1500);
+  const k = pick(ks), m = round(M * k, 4), mx = round(n * A * k, 4), rev = Math.random() < .35;
+  const ans = rev ? m : mx;
+  const sol = [...mrSteps(f), `w(${e}) = ${nA(n, fmt(A))} / ${fmt(M)}`,
+    rev ? `m(${fHTML(f)}) = m(${e}) / w(${e}) = ${fmt(mx)} · ${fmt(M)} / ${fmt(n * A)} = ${fmt(m)} г`
+        : `m(${e}) = w(${e}) · m(${fHTML(f)}) = ${fmt(n * A)} / ${fmt(M)} · ${fmt(m)} = ${fmt(mx)} г`];
+  return { type:'mel', label: rev ? `m(${fTxt(f)}) з ${fmt(mx)} г ${e}` : `m(${e}) у ${fmt(m)} г ${fTxt(f)}`,
+    card:[fHTML(f), rev ? `m(${e}) = ${fmt(mx)} г` : `m = ${fmt(m)} г`],
+    q: rev ? `Яка маса ${fHTML(f)} містить ${fmt(mx)} г ${gen(e)}?` : `Обчисліть масу ${gen(e)} у ${fmt(m)} г ${fHTML(f)}.`,
+    input:'num', unit:'г', right: fmt(ans) + ' г',
+    check: a => Math.abs(parseNum(a) - ans) <= Math.max(0.5, ans * 0.01), sol };
+}
+
+// Чи однозначно визначається елемент за обчисленою Ar
+function resolves(A, sym) {
+  const d = Math.abs(A - Ar(sym));
+  return d < 0.4 && Object.keys(EL).every(s => s === sym || Math.abs(Ar(s) - A) > d + 0.6);
+}
+function tUnk(kind) {
+  for (;;) {
+    let pat, sym, grp = null;
+    if (kind === 'group') { const [g, sub, els] = pick(GROUPS); grp = g + sub; sym = pick(els); pat = HIGHER[g]; }
+    else { const row = pick(UNK[kind]); pat = row.f; sym = pick(row.els); }
+    const real = pat.replace('E', sym), p = parseF(real);
+    const X = p.order.find(e => e !== sym), n = p.counts[sym], m = p.counts[X];
+    const byX = Math.random() < .6;
+    for (const d of [1, 2]) {
+      const given = round(byX ? wOf(real, X) : wOf(real, sym), d);
+      const wX = byX ? given : round(100 - given, d);
+      const M = m * Ar(X) / (wX / 100), A = (M - m * Ar(X)) / n;
+      if (!resolves(A, sym)) continue;
+      const what = byX ? gen(X) : (kind === 'chloride' ? 'металічного елемента' : 'елемента');
+      const q = {
+        formula: `Елемент утворює оксид складу ${fHTML(pat)}. Масова частка ${what} в оксиді — ${fix(given, d)}%. Визначте елемент.`,
+        hydride: `Летка сполука елемента з Гідрогеном має склад ${fHTML(pat)}. Масова частка ${what} в ній — ${fix(given, d)}%. Визначте елемент.`,
+        chloride: `Хлорид металічного елемента має склад ${fHTML(pat)}. Масова частка ${what} — ${fix(given, d)}%. Визначте елемент.`,
+        group: `Елемент ${grp} групи утворює вищий оксид. Масова частка ${what} у цьому оксиді — ${fix(given, d)}%. Визначте елемент.`
+      }[kind];
+      const sol = [];
+      if (grp) sol.push(`Вищий оксид елемента ${grp} групи має склад ${fHTML(pat)}.`);
+      if (!byX) sol.push(`w(${X}) = 100% − ${fix(given, d)}% = ${fix(wX, d)}%`);
+      sol.push(`Mr(${fHTML(pat)}) = ${nA(m, fmt(Ar(X)))} / ${fmt(wX / 100, d + 2)} ≈ ${fmt(M, 1)}`);
+      sol.push(`${nA(n, 'Ar(E)')} = ${fmt(M, 1)} − ${fmt(m * Ar(X))} ≈ ${fmt(M - m * Ar(X), 1)}` + (n > 1 ? `, Ar(E) ≈ ${fmt(A, 1)}` : ''));
+      sol.push(`Це ${nm(sym)} (${sym}), сполука ${fHTML(real)}.`);
+      return { type:'unk', label:`${fTxt(pat)}${grp ? ' · ' + grp : ''}, ${byX ? `w(${X})` : 'w(E)'} = ${fix(given, d)}%`,
+        card: grp ? ['E', `${grp} група`] : [fHTML(pat), 'E — ?'], q, input:'text', unit:'', right:`${sym} (${nm(sym)})`,
+        check: a => isEl(a, sym), sol };
+    }
+  }
+}
+
+// Виведення найпростішої формули за масовими частками
+function frmRatios(els, ws) {
+  const r = els.map((e, i) => ws[i] / Ar(e)), min = Math.min(...r);
+  const q = r.map(x => x / min);
+  let k = 1;
+  while (k < 10 && !q.every(x => Math.abs(x * k - Math.round(x * k)) < 0.12)) k++;
+  return { r, q, k, counts: Object.fromEntries(els.map((e, i) => [e, Math.round(q[i] * k)])) };
+}
+function tFrm(f) {
+  const p = parseF(f), els = p.order;
+  const ws = els.map(e => round(wOf(f, e), 1));
+  ws[ws.length - 1] = round(100 - ws.slice(0, -1).reduce((a, b) => a + b, 0), 1);
+  const { r, q, k } = frmRatios(els, ws);
+  const sol = [
+    `${els.join(' : ')} = ${els.map((e, i) => `${fmt(ws[i], 1)}/${fmt(Ar(e))}`).join(' : ')}`,
+    `= ${r.map(x => fmt(x, 3)).join(' : ')}`,
+    `= ${q.map(x => fmt(x, 2)).join(' : ')}` + (k > 1 ? ` | ×${k} → ${q.map(x => Math.round(x * k)).join(' : ')}` : '')
+  ];
+  sol.push(`Найпростіша формула: ${fHTML(f)}`);
+  return { type:'frm', label: els.map((e, i) => `${e} ${fmt(ws[i], 1)}%`).join(', '), card:['?', 'Формула — ?'],
+    q:`Виведіть найпростішу формулу речовини, якщо масові частки елементів: ${els.map((e, i) => `w(${e}) = ${fix(ws[i])}%`).join(', ')}.`,
+    input:'formula', unit:'', right: fTxt(f),
+    check: a => { const g = parseF(normF(a)); return !!g && sameCounts(g.counts, p.counts); }, sol };
+}
+
+function tErr(i = Math.random() * ERRORS.length | 0) {
+  const e = ERRORS[i];
+  return { type:'err', label: e.task, card:null, q: e.task, input:'err', lines: e.lines,
+    right: e.lines[e.bad], check: a => a === e.bad, sol: [e.why] };
+}
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  calc: { deck: shuffle(SUBS), i: 0, shown: false },
+  prob: { kind: 'all', t: null, shown: false },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+
+function cardHTML([big, cap]) {
+  const len = big.replace(/<sub>(\d+)<\/sub>/g, (m, d) => '.'.repeat(Math.ceil(d.length * .62))).length;
+  const fs = Math.min(76, Math.floor(220 / (Math.max(len, 1) * .66)));
+  return `<div class="card"><span class="big" style="font-size:${fs}px">${big}</span><span class="cap">${cap}</span></div>`;
+}
+const stepsHTML = sol => `<ol class="steps">${sol.map(s => `<li>${s}</li>`).join('')}</ol>`;
+
+/* ---------- Mr і w ---------- */
+function renderCalc() {
+  const st = S.calc, f = st.deck[st.i], p = parseF(f);
+  stage.innerHTML = `
+    ${cardHTML([fHTML(f), 'Mr = ?'])}
+    <div class="task">
+      <p class="q">Обчисліть відносну молекулярну масу ${fHTML(f)} і масові частки елементів.</p>
+      ${st.shown ? `
+        ${stepsHTML(mrSteps(f))}
+        <div class="facts">${p.order.map(e => `<span class="chip">w(${e}) = <b>${fmt(wOf(f, e), 1)}%</b></span>`).join('')}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextCalc() : showCalc();
+}
+function showCalc() { S.calc.shown = true; renderCalc(); }
+function nextCalc() {
+  const st = S.calc; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderCalc();
+}
+
+/* ---------- Задачі ---------- */
+const PROB_KINDS = [['all', 'Усі'], ['unk', 'Невідомий елемент'], ['frm', 'Формула за w'], ['mel', 'Маса елемента']];
+function genProb(kind) {
+  const k = kind === 'all' ? pick(['unk', 'unk', 'frm', 'mel']) : kind;
+  if (k === 'unk') return tUnk(pick(['formula', 'hydride', 'chloride', 'group']));
+  if (k === 'frm') return tFrm(pick(FRM));
+  return tMel(pick(SUBS));
+}
+function renderProb() {
+  const st = S.prob;
+  if (!st.t) st.t = genProb(st.kind);
+  const t = st.t;
+  stage.innerHTML = `
+    ${cardHTML(t.card)}
+    <div class="task">
+      <div class="seg" role="group" aria-label="Тип задач">${PROB_KINDS.map(([k, l]) =>
+        `<button data-kind="${k}" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+      <p class="q">${t.q}</p>
+      ${st.shown ? `${stepsHTML(t.sol)}<div class="note ok">Відповідь: <strong>${esc(t.right)}</strong></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.kind = b.dataset.kind; nextProb(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextProb() : showProb();
+}
+function showProb() { S.prob.shown = true; renderProb(); }
+function nextProb() { S.prob.shown = false; S.prob.t = genProb(S.prob.kind); renderProb(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.classList.add('single');
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Учень розв'язав так. У якому рядку помилка?</p>
+        <p class="q">${e.task}</p>
+      </div>
+      <div class="lines">${e.lines.map((l, i) => `<div class="line${st.shown && i === e.bad ? ' wrong' : ''}">${l}</div>`).join('')}</div>
+      ${st.shown ? `<div class="note bad">${e.why}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+// Бали за завдання залежно від складності (разом 20)
+const PTS = { theory: 1, atoms: 1, mr: 1, w: 2, cmp: 2, mel: 2, err: 2, unk: 3, frm: 3 };
+
+// Від простого до складного
+function makeTest() {
+  const used = new Set();
+  const pf = pool => { const f = pick(pool.filter(x => !used.has(x))); used.add(f); return f; };
+  const COMPLEX = SUBS.filter(f => /[(·]/.test(f) || parseF(f).order.length >= 3);
+  const BRACKETS = SUBS.filter(f => /[(·]/.test(f) || f === 'NH4NO3' || f === 'CH3COOH' || f === 'C2H5OH');
+  const tasks = [
+    tTheory(), tAtoms(pf(BRACKETS)), tMr(pf(COMPLEX)), tW(pf(SUBS)), tCmp(), tMel(pf(SUBS)), tErr(),
+    tUnk(pick(['formula', 'hydride', 'chloride'])), tUnk('group'), tFrm(pf(FRM))
+  ];
+  return tasks.map(t => ({ ...t, pts: PTS[t.type], ans: t.input === 'choice' || t.input === 'err' ? null : t.input === 'atoms' ? {} : '' }));
+}
+
+function answered(t) {
+  if (t.input === 'choice' || t.input === 'err') return t.ans !== null;
+  if (t.input === 'atoms') return t.els.every(e => String(t.ans[e] ?? '').trim() !== '');
+  return t.ans.trim() !== '';
+}
+
+function givenText(t) {
+  if (t.input === 'choice') return t.opts[t.ans].txt;
+  if (t.input === 'err') return t.lines[t.ans];
+  if (t.input === 'atoms') return t.els.map(e => `${e}: ${t.ans[e]}`).join(', ');
+  return t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+}
+function grade(t) {
+  return { ok: t.check(t.ans), label: TYPE[t.type] + (t.label ? ' · ' + t.label : ''), given: givenText(t), right: t.right, sol: t.sol };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  stage.classList.toggle('single', T.phase !== 'run');
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Відносна молекулярна маса і масова частка елемента</h1></div>
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="7-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Завдання: теорія, кількість атомів, Mr, масова частка, задачі на невідомий елемент і виведення формули, пошук помилок.</li>
+        <li>Ar беріть із періодичної системи, округлені до цілих (Cl — 35,5).</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+function fPreview(raw) {
+  if (!raw.trim()) return '';
+  const s = normF(raw);
+  return parseF(s) ? fHTML(s) : `<p class="hint">Не вдалося прочитати формулу. Пишіть латиницею, кожен елемент з великої літери: Fe2O3</p>`;
+}
+
+const PH = { num: 'Число', text: 'Символ або назва', formula: 'Наприклад, H2SO4' };
+const HINT = {
+  num: 'Десятковий дріб можна писати з комою: 52,9',
+  text: 'Наприклад: Fe або Ферум',
+  formula: 'Латинськими літерами, кожен елемент з великої: Fe2O3, Ca(OH)2'
+};
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  stage.classList.toggle('single', !t.card);
+  let body = '';
+  if (t.input === 'num' || t.input === 'text' || t.input === 'formula') {
+    body = `
+      <div class="ans-row">
+        <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"${t.input === 'num' ? ' inputmode="decimal"' : ''}
+          placeholder="${PH[t.input]}" aria-label="Відповідь" value="${esc(t.ans)}">
+        ${t.unit ? `<span class="unit">${t.unit}</span>` : ''}
+      </div>
+      ${t.input === 'formula' ? `<div class="preview" id="t-prev" aria-live="polite">${fPreview(t.ans)}</div>` : ''}
+      <p class="hint">${HINT[t.input]}</p>`;
+  } else if (t.input === 'choice') {
+    body = `<div class="opts">${t.opts.map((o, i) =>
+      `<button class="opt" data-o="${i}" aria-pressed="${t.ans === i}">${o.html}</button>`).join('')}</div>`;
+  } else if (t.input === 'atoms') {
+    body = `<div class="atoms">${t.els.map(e =>
+      `<label class="atom"><span class="sym">${e}</span><input data-e="${e}" inputmode="numeric" autocomplete="off" value="${esc(t.ans[e] ?? '')}"></label>`).join('')}</div>`;
+  } else {
+    body = `
+      <p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>
+      <div class="lines">${t.lines.map((l, i) =>
+        `<button class="line${t.ans === i ? ' picked' : ''}" data-l="${i}" aria-pressed="${t.ans === i}">${l}</button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    ${t.card ? cardHTML(t.card) : ''}
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      <p class="q">${t.q}</p>
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    const prev = document.getElementById('t-prev');
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); if (prev) prev.innerHTML = fPreview(t.ans); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  const cells = stage.querySelectorAll('[data-e]');
+  cells.forEach(c => {
+    c.oninput = () => { t.ans[c.dataset.e] = c.value; next.disabled = !answered(t); };
+    c.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+  });
+  if (cells.length) cells[0].focus();
+  stage.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.o; renderTask(); stage.querySelector(`[data-o="${b.dataset.o}"]`).focus();
+  });
+  stage.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.l; renderTask(); stage.querySelector(`[data-l="${b.dataset.l}"]`).focus();
+  });
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${esc(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, calc: renderCalc, prob: renderProb, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  stage.classList.remove('single');
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const st = S[S.mode];
+  const show = { calc: showCalc, prob: showProb, err: showErr }[S.mode];
+  const next = { calc: nextCalc, prob: nextProb, err: nextErr }[S.mode];
+  if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); st.shown ? next() : show(); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Вуглеводні: будова і назви</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column on graph paper; one question card at a time; bond notation as the visual motif */
+:root{
+  --paper:#f7f8fa; --grid:#e3e8ef; --ink:#151a24; --muted:#5d6675; --card:#ffffff; --line:#d5dbe4;
+  --alk:#2f6fd6; --ene:#d9822b; --yne:#8a4fd8; --gen:#3a8f6b;
+  --ok:#1f8f55; --ok-bg:#e4f5ec; --bad:#c9373a; --bad-bg:#fbe7e7;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#12151b; --grid:#1d222b; --ink:#eef1f5; --muted:#9aa3b2; --card:#1a1f27; --line:#2c333f;
+  --alk:#6aa0f5; --ene:#f0a35a; --yne:#b48af2; --gen:#5fc297;
+  --ok:#4fcf8a; --ok-bg:#16352a; --bad:#f07477; --bad-bg:#3a1c1f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12151b; --grid:#1d222b; --ink:#eef1f5; --muted:#9aa3b2; --card:#1a1f27; --line:#2c333f;
+  --alk:#6aa0f5; --ene:#f0a35a; --yne:#b48af2; --gen:#5fc297;
+  --ok:#4fcf8a; --ok-bg:#16352a; --bad:#f07477; --bad-bg:#3a1c1f; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:720px;margin:0 auto;padding-block:32px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:20px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,6vw,38px);line-height:1.15}
+h2{font-size:22px}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:24px;box-shadow:5px 5px 0 var(--ink)}
+sub,sup{font-size:.72em;line-height:0}
+.f{font-family:var(--mono);font-weight:500;white-space:nowrap}
+
+/* bonds motif */
+.bonds{display:flex;flex-wrap:wrap;gap:10px 22px;font:700 clamp(28px,8vw,44px)/1 var(--mono)}
+.bonds span:nth-child(1){color:var(--alk)} .bonds span:nth-child(2){color:var(--ene)} .bonds span:nth-child(3){color:var(--yne)}
+.lead{color:var(--muted);margin:0;max-width:60ch}
+
+/* form */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:14px}
+input[type=text]{font:inherit;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+input[type=text]:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.topics{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:14px;user-select:none;background:var(--card);color:var(--muted)}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip .dot{width:10px;height:10px;border-radius:50%;background:currentColor}
+.chip.on{color:var(--ink);border-color:var(--ink)}
+.chip.on .dot{background:var(--c)}
+.chip:has(input:focus-visible){outline:3px solid var(--alk);outline-offset:2px}
+.stack{display:flex;flex-direction:column;gap:18px}
+.lbl{font-weight:700;font-size:14px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.modes{grid-template-columns:1fr}}
+.mode{position:relative;display:flex;flex-direction:column;gap:4px;border:2px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;background:var(--card)}
+.mode input{position:absolute;opacity:0;pointer-events:none}
+.mode b{font:700 17px var(--display);display:flex;align-items:center;gap:10px}
+.mode b::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0}
+.mode span{font-size:14px;color:var(--muted);line-height:1.45}
+.mode.on{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.mode.on b::before{border:4px solid var(--ink)}
+.mode:has(input:focus-visible){outline:3px solid var(--alk);outline-offset:2px}
+.badge{font:700 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;border:2px solid var(--ink);border-radius:6px;padding:2px 8px}
+.btn{font:700 16px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:12px 22px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn:focus-visible,.opt:focus-visible{outline:3px solid var(--alk);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.hint{font-size:13px;color:var(--muted)}
+.err{color:var(--bad);font-weight:700;font-size:14px}
+
+/* progress */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font:700 14px var(--mono);font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:3px}
+.bar i{flex:1;height:8px;border-radius:3px;background:var(--line)}
+.bar i.cur{background:var(--ink)} .bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)}
+.tag{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.q{font-size:19px;font-weight:700;line-height:1.45;margin:10px 0 18px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.bar i.done{background:var(--muted)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.explain{margin-top:16px;border-left:4px solid var(--c,var(--ink));padding:4px 0 4px 14px}
+.explain b{display:block;margin-bottom:2px}
+
+/* result */
+.score{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.score .big{font:700 clamp(54px,14vw,80px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.grade{font:700 15px var(--mono);border:2px solid var(--ink);border-radius:999px;padding:4px 12px}
+.breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.bd{border:2px solid var(--line);border-radius:10px;padding:10px 12px}
+.bd .n{font:700 20px var(--mono);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--c)}
+.mist{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.mist li{border:2px solid var(--line);border-radius:10px;padding:12px 14px}
+.mist .qq{font-weight:700;margin-bottom:6px}
+.mist .a{font-size:15px}
+.mist .yours{color:var(--bad)} .mist .right{color:var(--ok)}
+.send{font-size:14px;font-weight:700}
+.send.ok{color:var(--ok)} .send.bad{color:var(--bad)} .send.wait{color:var(--muted)}
+footer{font-size:13px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- START -->
+  <section id="start" class="stack">
+    <div class="eyebrow">Алкани · Алкени · Алкіни</div>
+    <div class="bonds" aria-hidden="true"><span>C–C</span><span>C=C</span><span>C≡C</span></div>
+    <h1>Будова, номенклатура та ізомерія вуглеводнів</h1>
+    <p class="lead">Загальні формули, гібридизація, назви, ізомери та властивості алканів, алкенів і алкінів, без реакцій. Спершу потренуйся в практиці, потім пиши тест.</p>
+    <form id="startForm" class="card stack" novalidate>
+      <div class="field"><span class="lbl">Режим</span>
+        <div class="modes" id="modes">
+          <label class="mode on"><input type="radio" name="mode" id="m-practice" value="practice" checked><b>Практика</b><span>Пояснення одразу після кожної відповіді. Можна обрати теми. Результат нікуди не надсилається.</span></label>
+          <label class="mode"><input type="radio" name="mode" id="m-test" value="test"><b>Тест</b><span>Усі питання, правильні відповіді видно лише в кінці. Результат отримає вчитель.</span></label>
+        </div>
+      </div>
+      <div class="row" id="whoRow" hidden>
+        <div class="field"><label for="name">Ім'я та прізвище</label><input id="name" type="text" autocomplete="name" placeholder="Напр., Марія Коваленко"></div>
+        <div class="field"><label for="group">Клас / група</label><input id="group" type="text" placeholder="Напр., 10-Б"></div>
+      </div>
+      <div class="field" id="topicsField"><span class="lbl">Теми</span><div class="topics" id="topics"></div></div>
+      <div class="actions"><button class="btn" type="submit" id="go">Почати практику</button><span class="hint" id="qinfo"></span></div>
+      <div class="err" id="startErr" hidden></div>
+    </form>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="stack" hidden>
+    <div class="top"><span class="badge" id="modeBadge"></span><div class="count" id="count"></div></div>
+    <div class="bar" id="bar"></div>
+    <div class="card" id="qcard">
+      <span class="tag" id="qtag"></span>
+      <div class="q" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+      <div class="explain" id="explain" hidden></div>
+      <div class="actions" style="margin-top:18px"><button class="btn" id="next" hidden>Далі</button><span class="hint" id="khint"></span></div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="stack" hidden>
+    <div class="eyebrow" id="rwho"></div>
+    <div class="card stack">
+      <h2>Результат</h2>
+      <div class="score"><span class="big" id="rpct"></span><span class="of" id="rof"></span><span class="grade" id="rgrade"></span></div>
+      <div class="breakdown" id="rbd"></div>
+      <div class="send" id="rsend" hidden></div>
+    </div>
+    <div class="card stack" id="mistCard">
+      <h2 id="mistTitle">Помилки</h2>
+      <ul class="mist" id="mist"></ul>
+    </div>
+    <div class="actions"><button class="btn" id="again">Пройти ще раз</button><button class="btn ghost" id="toStart">На початок</button></div>
+  </section>
+  <footer>Хімія · 10 клас</footer>
+</div>
+
+<script>
+/* ===== НАЛАШТУВАННЯ ===================================================
+   Щоб результати падали в Google Таблицю, встав сюди URL веб-застосунку
+   Apps Script (закінчується на /exec). Порожньо — результат просто
+   показується учню і нікуди не надсилається.                           */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec";
+const TEST_NAME = "Хімія 10 клас — Вуглеводні: будова і назви";
+/* ==================================================================== */
+
+const TOPICS = {
+  alkane:{label:"Алкани",  c:"var(--alk)"},
+  alkene:{label:"Алкени",  c:"var(--ene)"},
+  alkyne:{label:"Алкіни",  c:"var(--yne)"},
+  general:{label:"Порівняння класів", c:"var(--gen)"}
+};
+
+const QUESTIONS = [
+
+{t:"alkane", q:"Загальна формула гомологічного ряду алканів:",
+ o:["<span class=f>C<sub>n</sub>H<sub>2n+2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n−2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n−6</sub></span>"],
+ e:"Алкани насичені: у молекулі лише одинарні зв'язки, тому на n атомів Карбону припадає 2n+2 атоми Гідрогену."},
+{t:"alkane", q:"Який тип гібридизації атомів Карбону в молекулах алканів?",
+ o:["sp<sup>3</sup>","sp<sup>2</sup>","sp","sp<sup>3</sup>d"],
+ e:"У алканах кожен атом C утворює чотири σ-зв'язки, орбіталі sp³-гібридизовані."},
+{t:"alkane", q:"Валентний кут між зв'язками C–H у молекулі метану становить:",
+ o:["109°28′","120°","180°","90°"],
+ e:"sp³-гібридизація дає тетраедр із кутом 109°28′."},
+{t:"alkane", q:"Яку назву за систематичною номенклатурою має <span class=f>CH<sub>3</sub>–CH<sub>2</sub>–CH<sub>2</sub>–CH<sub>3</sub></span>?",
+ o:["бутан","пропан","пентан","2-метилпропан"],
+ e:"Чотири атоми Карбону в нерозгалуженому ланцюзі — бутан."},
+{t:"alkane", q:"Як називається сполука <span class=f>CH<sub>3</sub>–CH(CH<sub>3</sub>)–CH<sub>3</sub></span>?",
+ o:["2-метилпропан","бутан","1-метилпропан","2-метилбутан"],
+ e:"Головний ланцюг — три атоми C (пропан), метильна група біля 2-го атома: 2-метилпропан (ізобутан)."},
+{t:"alkane", q:"Скільки структурних ізомерів має пентан <span class=f>C<sub>5</sub>H<sub>12</sub></span>?",
+ o:["3","2","4","5"],
+ e:"Пентан, 2-метилбутан і 2,2-диметилпропан."},
+{t:"alkane", q:"Гомологи — це речовини, які відрізняються за складом на одну або кілька груп:",
+ o:["<span class=f>CH<sub>2</sub></span>","<span class=f>CH<sub>3</sub></span>","<span class=f>C<sub>2</sub>H<sub>4</sub></span>","<span class=f>H<sub>2</sub></span>"],
+ e:"Гомологічна різниця — метиленова група CH₂."},
+{t:"alkane", q:"Перші чотири члени ряду алканів (C<sub>1</sub>–C<sub>4</sub>) за нормальних умов є:",
+ o:["газами","рідинами","твердими речовинами","метан — газ, решта рідини"],
+ e:"Метан, етан, пропан і бутан — гази; з C₅ починаються рідини, з C₁₇ — тверді речовини."},
+{t:"alkane", q:"Як алкани розчиняються у воді?",
+ o:["практично нерозчинні","добре розчинні","розчинні лише метан і етан","розчинні при нагріванні"],
+ e:"Алкани неполярні, тому з полярною водою не змішуються."},
+{t:"alkane", q:"Скільки атомів Гідрогену в молекулі гексану?",
+ o:["14","12","10","16"],
+ e:"C₆H₂·₆₊₂ = C₆H₁₄."},
+{t:"alkane", q:"Масова частка Карбону в метані дорівнює:",
+ o:["75%","25%","80%","85,7%"],
+ e:"M(CH₄) = 16 г/моль; ω(C) = 12/16 = 0,75."},
+{t:"alkane", q:"Основним компонентом природного газу є:",
+ o:["метан","етан","пропан","бутан"],
+ e:"Природний газ на 80–98% складається з метану."},
+{t:"alkane", q:"Який з алканів має найвищу температуру кипіння?",
+ o:["октан","пентан","гексан","бутан"],
+ e:"Чим довший ланцюг, тим сильніша міжмолекулярна взаємодія і вища температура кипіння."},
+
+{t:"alkene", q:"Загальна формула алкенів:",
+ o:["<span class=f>C<sub>n</sub>H<sub>2n</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n+2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n−2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n−6</sub></span>"],
+ e:"Один подвійний зв'язок зменшує кількість H на 2 порівняно з алканом."},
+{t:"alkene", q:"Подвійний зв'язок <span class=f>C=C</span> складається з:",
+ o:["одного σ- і одного π-зв'язку","двох σ-зв'язків","двох π-зв'язків","одного σ- і двох π-зв'язків"],
+ e:"Перший зв'язок завжди σ, другий — π (бічне перекривання p-орбіталей)."},
+{t:"alkene", q:"Гібридизація атомів Карбону при подвійному зв'язку:",
+ o:["sp<sup>2</sup>","sp<sup>3</sup>","sp","не гібридизовані"],
+ e:"Три гібридні орбіталі утворюють σ-зв'язки, негібридна p-орбіталь — π-зв'язок."},
+{t:"alkene", q:"Валентний кут і форма молекули етену:",
+ o:["120°, плоска","109°28′, тетраедрична","180°, лінійна","90°, плоска"],
+ e:"Для sp²-атомів кут 120°, усі шість атомів етену лежать в одній площині."},
+{t:"alkene", q:"Назва сполуки <span class=f>CH<sub>3</sub>–CH=CH–CH<sub>3</sub></span>:",
+ o:["бут-2-ен","бут-1-ен","бутан","2-метилпропен"],
+ e:"Чотири атоми C, подвійний зв'язок після 2-го атома — бут-2-ен."},
+{t:"alkene", q:"Тривіальна назва етену:",
+ o:["етилен","ацетилен","ізобутилен","пропілен"],
+ e:"Етен CH₂=CH₂ традиційно називають етиленом."},
+{t:"alkene", q:"Для якої речовини можлива цис-транс-ізомерія?",
+ o:["бут-2-ен","бут-1-ен","пропен","етен"],
+ e:"Потрібно, щоб кожен атом C при подвійному зв'язку мав два різні замісники. У бут-2-ену це H і CH₃."},
+{t:"alkene", q:"Алкени є міжкласовими ізомерами:",
+ o:["циклоалканів","алкінів","алкадієнів","аренів"],
+ e:"І алкени, і циклоалкани мають загальну формулу CₙH₂ₙ."},
+{t:"alkene", q:"Відносна густина етену за воднем дорівнює:",
+ o:["14","28","13","8"],
+ e:"D(H₂) = M(C₂H₄) / M(H₂) = 28 / 2 = 14."},
+{t:"alkene", q:"Найменший за кількістю атомів Карбону алкен:",
+ o:["етен (C<sub>2</sub>)","метен (C<sub>1</sub>)","пропен (C<sub>3</sub>)","бутен (C<sub>4</sub>)"],
+ e:"Для подвійного зв'язку C=C потрібно щонайменше два атоми Карбону, «метену» не існує."},
+
+{t:"alkyne", q:"Загальна формула алкінів:",
+ o:["<span class=f>C<sub>n</sub>H<sub>2n−2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n+2</sub></span>","<span class=f>C<sub>n</sub>H<sub>2n−6</sub></span>"],
+ e:"Потрійний зв'язок — це два π-зв'язки, тому мінус 4 атоми H від алкану."},
+{t:"alkyne", q:"Потрійний зв'язок <span class=f>C≡C</span> містить:",
+ o:["один σ- і два π-зв'язки","три σ-зв'язки","два σ- і один π-зв'язок","три π-зв'язки"],
+ e:"Один σ-зв'язок по осі та два π-зв'язки у взаємно перпендикулярних площинах."},
+{t:"alkyne", q:"Гібридизація атомів Карбону при потрійному зв'язку та форма молекули етину:",
+ o:["sp, лінійна (180°)","sp<sup>2</sup>, плоска (120°)","sp<sup>3</sup>, тетраедрична","sp, кутова"],
+ e:"Дві sp-орбіталі спрямовані в протилежні боки, тому H–C≡C–H — пряма лінія."},
+{t:"alkyne", q:"Тривіальна назва етину:",
+ o:["ацетилен","етилен","метан","вінілацетилен"],
+ e:"Етин HC≡CH — ацетилен."},
+{t:"alkyne", q:"Назва сполуки <span class=f>CH≡C–CH<sub>2</sub>–CH<sub>3</sub></span>:",
+ o:["бут-1-ин","бут-2-ин","бут-1-ен","пропін"],
+ e:"Нумеруємо з того кінця, ближче до якого потрійний зв'язок: бут-1-ин."},
+{t:"alkyne", q:"Алкіни є міжкласовими ізомерами:",
+ o:["алкадієнів","алкенів","циклоалканів","алканів"],
+ e:"І алкіни, і алкадієни мають формулу CₙH₂ₙ₋₂ (наприклад, бут-1-ин і бута-1,3-дієн — C₄H₆)."},
+{t:"alkyne", q:"Чому для алкінів не характерна цис-транс-ізомерія при потрійному зв'язку?",
+ o:["молекула біля C≡C лінійна","потрійний зв'язок дуже міцний","алкіни — гази","в алкінах немає π-зв'язків"],
+ e:"Атоми при потрійному зв'язку мають лише по одному замісникові й лежать на одній прямій, тож «по один бік» і «по різні боки» не розрізняються."},
+{t:"alkyne", q:"Молярна маса етину:",
+ o:["26 г/моль","28 г/моль","30 г/моль","24 г/моль"],
+ e:"M(C₂H₂) = 2·12 + 2·1 = 26 г/моль."},
+{t:"alkyne", q:"Яка речовина належить до гомологічного ряду ацетилену?",
+ o:["пропін","пропен","пропан","циклопропан"],
+ e:"Пропін CH≡C–CH₃ — найближчий гомолог етину."},
+
+{t:"general", q:"Який із зв'язків між атомами Карбону <b>найкоротший</b>?",
+ o:["<span class=f>C≡C</span>","<span class=f>C=C</span>","<span class=f>C–C</span>","усі однакові"],
+ e:"Чим більше спільних електронних пар, тим коротший зв'язок: C–C (0,154 нм) > C=C (0,134 нм) > C≡C (0,120 нм)."},
+{t:"general", q:"Формула <span class=f>C<sub>4</sub>H<sub>10</sub></span> відповідає:",
+ o:["алкану","алкену","алкіну","циклоалкану"],
+ e:"n = 4, 2n+2 = 10 — це бутан або 2-метилпропан."},
+{t:"general", q:"Формула <span class=f>C<sub>5</sub>H<sub>8</sub></span> може відповідати:",
+ o:["алкіну","алкану","алкену","арену"],
+ e:"2n−2 = 8 при n = 5 — пентин (або ізомерний пентадієн)."},
+{t:"general", q:"Яка послідовність правильно показує зміну валентного кута: алкан → алкен → алкін?",
+ o:["109°28′ → 120° → 180°","180° → 120° → 109°28′","120° → 109°28′ → 180°","усюди 109°28′"],
+ e:"sp³ → sp² → sp: кут зростає від тетраедричного до розгорнутого."},
+{t:"general", q:"Які вуглеводні належать до ненасичених?",
+ o:["алкени та алкіни","лише алкіни","алкани та алкени","лише алкани"],
+ e:"Ненасичені містять кратні (подвійні чи потрійні) зв'язки."}
+]
+;
+
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const used = [...new Set(QUESTIONS.map(q => q.t))];
+let picked = new Set(used), run = [], idx = 0, answers = [], mode = "practice";
+const isTest = () => mode === "test";
+
+// topics chips
+function renderChips(){
+  $("topics").innerHTML = used.map(t => {
+    const n = QUESTIONS.filter(q => q.t === t).length;
+    return `<label class="chip ${picked.has(t)?"on":""}" style="--c:${TOPICS[t].c}"><input type="checkbox" id="t-${t}" ${picked.has(t)?"checked":""} data-t="${t}"><span class="dot"></span>${TOPICS[t].label} · ${n}</label>`;
+  }).join("");
+  const total = isTest() ? QUESTIONS.length : QUESTIONS.filter(q => picked.has(q.t)).length;
+  $("qinfo").textContent = total ? `${total} ${plural(total,"питання","питання","питань")}` : "Обери хоча б одну тему";
+  $("go").disabled = !total;
+}
+function setMode(m){
+  mode = m;
+  [...$("modes").children].forEach(l => l.classList.toggle("on", l.querySelector("input").value === m));
+  $("whoRow").hidden = !isTest();
+  $("topicsField").hidden = isTest();
+  $("go").textContent = isTest() ? "Почати тест" : "Почати практику";
+  $("startErr").hidden = true;
+  renderChips();
+}
+$("modes").addEventListener("change", e => setMode(e.target.value));
+function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<10||h>=20)?b:c}
+$("topics").addEventListener("change", e => {
+  const t = e.target.dataset.t; if (!t) return;
+  e.target.checked ? picked.add(t) : picked.delete(t);
+  renderChips();
+});
+renderChips();
+try { $("name").value = localStorage.getItem("chem_name") || ""; $("group").value = localStorage.getItem("chem_group") || ""; } catch(e){}
+
+$("startForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("name").value.trim();
+  if (isTest() && !name) { $("startErr").textContent = "Впиши ім'я та прізвище так, як тебе записав вчитель, щоб результат потрапив у твою вкладку."; $("startErr").hidden = false; $("name").focus(); return; }
+  $("startErr").hidden = true;
+  if (isTest()) try { localStorage.setItem("chem_name", name); localStorage.setItem("chem_group", $("group").value.trim()); } catch(e){}
+  begin();
+});
+
+function begin(){
+  run = shuffle(QUESTIONS.filter(q => isTest() || picked.has(q.t))).map(q => {
+    const opts = shuffle(q.o.map((text, i) => ({text, right: i === 0})));
+    return {...q, opts};
+  });
+  idx = 0; answers = [];
+  $("start").hidden = true; $("result").hidden = true; $("quiz").hidden = false;
+  $("bar").innerHTML = run.map(() => "<i></i>").join("");
+  $("modeBadge").textContent = isTest() ? "Тест" : "Практика";
+  $("khint").textContent = isTest() ? "Клавіші 1–4 для вибору. Відповідь можна змінити, доки не натиснеш «Далі»." : "Клавіші 1–4 для вибору";
+  show();
+}
+
+function show(){
+  const q = run[idx];
+  $("count").textContent = `${idx+1} / ${run.length}`;
+  [...$("bar").children].forEach((el,i)=>{ el.className = i<idx ? (isTest() ? "done" : answers[i].ok?"ok":"bad") : i===idx ? "cur" : ""; });
+  $("qcard").style.setProperty("--c", TOPICS[q.t].c);
+  $("qtag").textContent = TOPICS[q.t].label;
+  $("qtag").style.setProperty("--c", TOPICS[q.t].c);
+  $("qtext").innerHTML = q.q;
+  $("opts").innerHTML = q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="k">${i+1}</span><span>${o.text}</span></button>`).join("");
+  $("explain").hidden = true; $("next").hidden = true;
+  $("opts").querySelector(".opt").focus({preventScroll:true});
+  window.scrollTo({top:0});
+}
+
+$("opts").addEventListener("click", e => { const b = e.target.closest(".opt"); if (b && !b.disabled) choose(+b.dataset.i); });
+function choose(i){
+  const q = run[idx];
+  if (isTest()) {
+    answers[idx] = {ok: q.opts[i].right, chosen: q.opts[i].text};
+    [...$("opts").children].forEach((b,j)=>b.classList.toggle("sel", j===i));
+    $("next").textContent = idx === run.length-1 ? "Завершити тест" : "Далі";
+    $("next").hidden = false;
+    return;
+  }
+  if (answers[idx]) return;
+  const ok = q.opts[i].right;
+  answers[idx] = {ok, chosen: q.opts[i].text};
+  [...$("opts").children].forEach((b,j)=>{ b.disabled = true; if (q.opts[j].right) b.classList.add("ok"); else if (j===i) b.classList.add("bad"); });
+  $("explain").innerHTML = `<b>${ok ? "Правильно" : "Неправильно"}</b>${q.e}`;
+  $("explain").hidden = false;
+  $("bar").children[idx].className = ok ? "ok" : "bad";
+  $("next").textContent = idx === run.length-1 ? "Завершити" : "Далі";
+  $("next").hidden = false; $("next").focus({preventScroll:true});
+}
+$("next").addEventListener("click", () => { if (!answers[idx]) return; if (idx < run.length-1) { idx++; show(); } else finish(); });
+document.addEventListener("keydown", e => {
+  if ($("quiz").hidden) return;
+  if (/^[1-6]$/.test(e.key) && (isTest() || !answers[idx])) { const i = +e.key-1; if (i < run[idx].opts.length) choose(i); }
+});
+
+function finish(){
+  $("quiz").hidden = true; $("result").hidden = false; window.scrollTo({top:0});
+  const total = run.length, right = answers.filter(a=>a.ok).length;
+  const pct = Math.round(right/total*100);
+  const grade = Math.max(1, Math.round(right/total*12));
+  const name = $("name").value.trim(), group = $("group").value.trim();
+  $("rwho").textContent = [isTest() ? "Тест" : "Практика", isTest() && name, isTest() && group].filter(Boolean).join(" · ");
+  $("rpct").textContent = pct + "%";
+  $("rof").textContent = `${right} з ${total}`;
+  $("rgrade").textContent = `${grade} / 12 балів`;
+  const per = {};
+  run.forEach((q,i)=>{ per[q.t] ??= {r:0,n:0}; per[q.t].n++; if (answers[i].ok) per[q.t].r++; });
+  $("rbd").innerHTML = Object.entries(per).map(([t,v])=>`<div class="bd" style="--c:${TOPICS[t].c}"><span class="tag">${TOPICS[t].label}</span><div class="n">${v.r}/${v.n}</div><div class="meter"><i style="width:${v.r/v.n*100}%"></i></div></div>`).join("");
+  const wrong = run.map((q,i)=>({q,a:answers[i]})).filter(x=>!x.a.ok);
+  $("mistTitle").textContent = wrong.length ? `Помилки · ${wrong.length}` : "Помилок немає";
+  $("mist").innerHTML = wrong.length ? wrong.map(({q,a})=>`<li><div class="qq">${q.q}</div><div class="a yours">Твоя відповідь: ${a.chosen}</div><div class="a right">Правильно: ${q.o[0]}</div><div class="a hint" style="margin-top:4px">${q.e}</div></li>`).join("") : `<li>Усі відповіді правильні. Чудова робота!</li>`;
+  $("rsend").hidden = true;
+  if (isTest()) sendResult({name, group, right, total, pct, grade, per});
+}
+
+async function sendResult(r){
+  if (!SHEET_URL) return;
+  const el = $("rsend"); el.hidden = false; el.className = "send wait"; el.textContent = "Надсилаю результат вчителю…";
+  // Формат під Apps Script вчителя: name, cls, topic, score («14/20»), mark (12-бальна), details
+  const byTopic = Object.entries(r.per).map(([t,v])=>`${TOPICS[t].label} ${v.r}/${v.n}`).join(", ");
+  const wrongQs = run.map((q,i)=>answers[i].ok?null:q.q.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()).filter(Boolean);
+  const payload = {
+    name: r.name, cls: r.group, topic: TEST_NAME,
+    score: `${r.right}/${r.total}`, mark: r.grade,
+    details: `${r.pct}% · ${byTopic}` + (wrongQs.length ? ` · Помилки: ${wrongQs.join(" | ")}` : "")
+  };
+  try {
+    await fetch(SHEET_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload)});
+    el.className = "send ok"; el.textContent = "Результат надіслано вчителю.";
+  } catch(e){
+    el.className = "send bad"; el.textContent = "Не вдалося надіслати результат. Зроби скріншот цієї сторінки і надішли вчителю.";
+  }
+}
+
+$("again").addEventListener("click", begin);
+$("toStart").addEventListener("click", () => { $("result").hidden = true; $("start").hidden = false; setMode(mode); window.scrollTo({top:0}); });
+</script>
+
+</body>
+</html>

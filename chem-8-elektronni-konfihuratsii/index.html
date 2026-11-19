@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Електронні конфігурації</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with a periodic-table tile and the task. s warm, p cool, d violet. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --s: #d9653b;        /* s-підрівні */
+  --s-soft: #fbe6dc;
+  --p: #1f7a8c;        /* p-підрівні */
+  --p-soft: #d8eef2;
+  --d: #7a4bb0;        /* d-підрівні */
+  --d-soft: #ece3f6;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --s: #f08a62; --s-soft: #3a2419; --p: #4fb6c9; --p-soft: #15323a; --d: #b48ef0; --d-soft: #2c2140;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --s: #f08a62; --s-soft: #3a2419; --p: #4fb6c9; --p-soft: #15323a; --d: #b48ef0; --d-soft: #2c2140;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage.single { grid-template-columns: 1fr; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+
+/* periodic-table tile */
+.tile { width: 210px; aspect-ratio: 1; max-width: 100%; border: 3px solid var(--ink); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-rows: auto 1fr auto; position: relative; background: var(--surface); }
+.tile .z { font-family: var(--f-display); font-weight: 500; font-size: 1.3rem; }
+.tile .sym { font-family: var(--f-display); font-weight: 700; font-size: 5rem; line-height: 1; align-self: center; }
+.tile .name { font-weight: 600; font-size: 1.1rem; }
+.tile.hidden .sym, .tile.hidden .name, .tile.hidden .z { color: transparent; }
+.tile.hidden::after { content: "?"; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: 6rem; color: var(--line); }
+
+/* formula */
+.formula { font-family: var(--f-body); font-weight: 600; font-size: clamp(2rem, 4.6vw, 3.6rem); line-height: 1.3; display: flex; flex-wrap: wrap; gap: 0 .18em; }
+.formula sup, .preview sup { font-size: .55em; vertical-align: .9em; line-height: 0; }
+.term { border-radius: 8px; padding: 0 .06em; }
+.term.s { color: var(--s); }
+.term.p { color: var(--p); }
+.term.d { color: var(--d); }
+.term.wrong { background: var(--bad-soft); color: var(--bad); text-decoration: underline wavy var(--bad); text-underline-offset: .18em; text-decoration-thickness: 2px; }
+.formula.blank { color: var(--line); }
+.term.pick { border: 2px dashed var(--line); background: transparent; font-weight: inherit; line-height: inherit; padding: 0 .12em; margin: 2px 0; cursor: pointer; }
+.term.pick.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.core-term { color: var(--muted); }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 500; font-size: .95rem; }
+.chip b { font-weight: 700; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+.seg.big button { min-width: 52px; padding: 10px 14px; font-size: 1.3rem; }
+.seg.big button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* orbital boxes */
+.orbitals { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: flex-end; }
+.sub { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 12px; border: 2px solid transparent; }
+.sub.ok { border-color: var(--ok); background: var(--ok-soft); }
+.sub.bad { border-color: var(--bad); background: var(--bad-soft); }
+.sub .lbl { font-weight: 700; font-size: 1.1rem; }
+.sub.s .lbl { color: var(--s); }
+.sub.p .lbl { color: var(--p); }
+.sub.d .lbl { color: var(--d); }
+.sub.core .lbl { color: var(--muted); font-weight: 600; }
+.core-box { height: 58px; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: 1.4rem; color: var(--muted); }
+.cells { display: flex; }
+.cell { width: 58px; height: 58px; border: 2px solid var(--ink); margin-left: -2px; background: var(--surface); cursor: pointer; display: grid; place-items: center; font-size: 1.9rem; font-weight: 700; line-height: 1; padding: 0; }
+.cell:first-child { margin-left: 0; }
+.sub.s .cell { background: var(--s-soft); }
+.sub.p .cell { background: var(--p-soft); }
+.sub.d .cell { background: var(--d-soft); }
+.cell:focus-visible { position: relative; z-index: 1; }
+.count { font-variant-numeric: tabular-nums; font-weight: 600; margin: 0; }
+.count.over { color: var(--bad); }
+.pick-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pick-row select { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 10px; }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 640px; font-size: 1.3rem; }
+.preview { min-height: 2.4em; font-size: 1.8rem; font-weight: 600; display: flex; flex-wrap: wrap; gap: 0 .18em; align-items: baseline; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { grid-template-columns: 1fr; padding: 22px; gap: 24px; justify-items: start; }
+  .stage > * { width: 100%; }
+  .stage > .tile { width: 150px; }
+  .tile .sym { font-size: 3.4rem; }
+  .cell { width: 46px; height: 46px; font-size: 1.5rem; }
+  .core-box { height: 46px; font-size: 1.1rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .formula, .tile { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Електронні конфігурації<small>Хімія · 8 клас · елементи 1–36</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="who">Хто я?</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="fill">Заповни комірки</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати / перевірити, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 10;
+const TOPIC = 'Хімія 8 клас — Електронні конфігурації';
+
+const EL = [
+  [1,'H','Гідроген'],[2,'He','Гелій'],[3,'Li','Літій'],[4,'Be','Берилій'],[5,'B','Бор'],
+  [6,'C','Карбон'],[7,'N','Нітроген'],[8,'O','Оксиген'],[9,'F','Флуор'],[10,'Ne','Неон'],
+  [11,'Na','Натрій'],[12,'Mg','Магній'],[13,'Al','Алюміній'],[14,'Si','Силіцій'],[15,'P','Фосфор'],
+  [16,'S','Сульфур'],[17,'Cl','Хлор'],[18,'Ar','Аргон'],[19,'K','Калій'],[20,'Ca','Кальцій'],
+  [21,'Sc','Скандій'],[22,'Ti','Титан'],[23,'V','Ванадій'],[24,'Cr','Хром'],[25,'Mn','Манган'],
+  [26,'Fe','Ферум'],[27,'Co','Кобальт'],[28,'Ni','Нікол'],[29,'Cu','Купрум'],[30,'Zn','Цинк'],
+  [31,'Ga','Галій'],[32,'Ge','Германій'],[33,'As','Арсен'],[34,'Se','Селен'],[35,'Br','Бром'],[36,'Kr','Криптон']
+];
+// Побутові назви, які теж зараховуються у «Хто я?»
+const ALT = { 1:['водень'], 6:['вуглець'], 7:['азот'], 8:['кисень'], 14:['кремній'], 16:['сірка'],
+  25:['марганець'], 26:['залізо'], 28:['нікель'], 29:['мідь'], 33:["миш'як"] };
+
+// Порядок заповнення за енергією
+const SUB = [
+  { id:'1s', l:'s', cap:2 }, { id:'2s', l:'s', cap:2 }, { id:'2p', l:'p', cap:6 },
+  { id:'3s', l:'s', cap:2 }, { id:'3p', l:'p', cap:6 }, { id:'4s', l:'s', cap:2 },
+  { id:'3d', l:'d', cap:10 }, { id:'4p', l:'p', cap:6 }
+];
+const CAP = Object.fromEntries(SUB.map(s => [s.id, s.cap]));
+// Порядок запису у формулі — за рівнями
+const ORDER = ['1s','2s','2p','3s','3p','3d','4s','4p'];
+// Провал електрона
+const EXC = { 24: { '4s':1, '3d':5 }, 29: { '4s':1, '3d':10 } };
+const CORES = [[18,'Ar'],[10,'Ne'],[2,'He']];
+const ROMAN = ['', 'I','II','III','IV','V','VI','VII','VIII'];
+
+// Типові помилки учнів: terms — неправильний запис, bad — індекси помилкових членів
+const A = [['1s',2],['2s',2],['2p',6],['3s',2],['3p',6]];
+const ERRORS = [
+  { z:7,  terms:[['1s',2],['2s',2],['2p',4]], bad:[2], why:'Електронів 8, а в Нітрогену їх 7. На 2p має бути 3.' },
+  { z:11, terms:[['1s',2],['2s',2],['2p',7]], bad:[2], why:'На p-підрівні максимум 6 електронів. Одинадцятий іде на 3s.' },
+  { z:19, terms:[...A,['3d',1]], bad:[5], why:'Після 3p заповнюється 4s, а не 3d.' },
+  { z:12, terms:[['1s',2],['2s',2],['2p',6],['3s',1],['3p',1]], bad:[3,4], why:'Спочатку повністю заповнюється 3s, лише потім 3p.' },
+  { z:8,  terms:[['1s',2],['2s',3],['2p',3]], bad:[1], why:'На s-підрівні максимум 2 електрони.' },
+  { z:20, terms:[...A,['3d',2]], bad:[5], why:'Після 3p заповнюється 4s, а не 3d.' },
+  { z:13, terms:[['1s',2],['2s',2],['2p',6],['3p',3]], bad:[3], why:'Пропущено 3s. Спочатку 3s², потім 3p¹.' },
+  { z:17, terms:[...A], bad:[4], why:'Це 18 електронів, тобто Аргон. У Хлору 17, тож 3p⁵.' },
+  { z:6,  terms:[['1s',2],['2p',4]], bad:[1], why:'Пропущено 2s. Після 1s заповнюється 2s.' },
+  { z:9,  terms:[['1s',2],['2s',2],['2p',6]], bad:[2], why:'Це 10 електронів, тобто Неон. У Флуору 9, тож 2p⁵.' },
+  { z:14, terms:[['1s',3],['2s',2],['2p',6],['3s',2],['3p',1]], bad:[0], why:'На 1s максимум 2 електрони.' },
+  { z:16, terms:[...A.slice(0,4),['3p',2],['4s',2]], bad:[4,5], why:'4s заповнюється тільки після того, як 3p повний. У Сульфуру 3p⁴.' },
+  { z:26, terms:[...A,['3d',8]], bad:[5], why:'Пропущено 4s. 4s заповнюється раніше за 3d, тому у Феруму 3d⁶4s².' },
+  { z:24, terms:[...A,['3d',4],['4s',2]], bad:[5,6], why:'Провал електрона: у Хрому один електрон з 4s переходить на 3d, тому 3d⁵4s¹.' },
+  { z:29, terms:[...A,['3d',9],['4s',2]], bad:[5,6], why:'Провал електрона: у Купруму 3d¹⁰4s¹, бо повністю заповнений 3d вигідніший.' },
+  { z:30, terms:[...A,['3d',10],['4s',1],['4p',1]], bad:[6,7], why:'4p заповнюється тільки після того, як 4s повний. У Цинку 3d¹⁰4s².' },
+  { z:31, terms:[...A,['3d',10],['4s',2],['4p',3]], bad:[7], why:'Це 33 електрони, тобто Арсен. У Галію 31, тож 4p¹.' },
+  { z:21, terms:[...A,['4s',2],['4p',1]], bad:[6], why:'Після 4s заповнюється 3d, а не 4p. У Скандію 3d¹4s².' },
+  { z:35, terms:[...A,['3d',10],['4s',2],['4p',6]], bad:[7], why:'Це 36 електронів, тобто Криптон. У Брому 35, тож 4p⁵.' },
+  { z:34, terms:[...A,['3d',8],['4s',2],['4p',6]], bad:[5,7], why:'3d заповнюється повністю (10) раніше за 4p. У Селену 3d¹⁰4s²4p⁴.' },
+  { z:23, terms:[...A,['3d',4],['4s',1]], bad:[5,6], why:'Провал електрона буває в Хрому й Купруму, а не у Ванадію. У Ванадію 3d³4s².' },
+  { z:28, terms:[...A,['3d',10]], bad:[5], why:'4s заповнюється раніше за 3d. У Ніколу 3d⁸4s².' },
+  { z:25, terms:[...A,['3d',5],['4s',2],['4p',1]], bad:[7], why:'Зайвий електрон: у Мангану 25 електронів, тобто 3d⁵4s².' }
+];
+
+/* ---------- хімія ---------- */
+const el = z => EL[z - 1];
+function conf(z) {
+  let r = z; const c = {};
+  for (const s of SUB) { const k = Math.min(r, s.cap); r -= k; if (k) c[s.id] = k; }
+  return EXC[z] ? { ...c, ...EXC[z] } : c;
+}
+const termsOf = z => { const c = conf(z); return ORDER.filter(id => c[id]).map(id => [id, c[id]]); };
+const coreOf = z => CORES.find(([n]) => n < z) || null;
+function shortTerms(z) {
+  const co = coreOf(z), cc = co ? conf(co[0]) : {};
+  return termsOf(z).filter(([id]) => !(id in cc));
+}
+const unpairedIn = (id, k) => { const m = CAP[id] / 2; return k <= m ? k : 2 * m - k; };
+const unpaired = z => Object.entries(conf(z)).reduce((a, [id, k]) => a + unpairedIn(id, k), 0);
+const lastBlock = z => { const c = conf(z); return [...SUB].reverse().find(s => c[s.id]).l; };
+
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const supNum = n => String(n).split('').map(d => SUP[d]).join('');
+const plain = terms => terms.map(([id, k]) => id + supNum(k)).join('');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+
+const termHTML = ([id, k], cls = '') => `<span class="term ${id.slice(-1)} ${cls}">${id}<sup>${k}</sup></span>`;
+const formulaHTML = (terms, bad = []) => terms.map((t, i) => termHTML(t, bad.includes(i) ? 'wrong' : '')).join('');
+const shortHTML = z => `<span class="term core-term">[${coreOf(z)[1]}]</span>${formulaHTML(shortTerms(z))}`;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+
+// Розбір введеної формули: «1s2 2s2 2p6», «1s²2s²2p⁶», «[Ar]3d64s2», кирилиця с/р/д теж
+function parseFormula(raw) {
+  let s = raw
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, ch => SUP.indexOf(ch))
+    .replace(/[сС]/g, 's').replace(/[рР]/g, 'p').replace(/[дД]/g, 'd')
+    .replace(/[\s^·.,;+]/g, '').toLowerCase();
+  let core = null;
+  const m = s.match(/^\[?(he|ne|ar)\]?/);
+  if (m) { core = m[1][0].toUpperCase() + m[1][1]; s = s.slice(m[0].length); }
+  const terms = [];
+  while (s) {
+    const t = s.match(/^([1-4])([spd])(10|\d)/);
+    if (!t) return { core, terms, bad: true };
+    terms.push([t[1] + t[2], +t[3]]);
+    s = s.slice(t[0].length);
+  }
+  return { core, terms, bad: false };
+}
+const toMap = terms => terms.reduce((m, [id, k]) => { if (k) m[id] = (m[id] || 0) + k; return m; }, {});
+const sameMap = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+
+function facts(z) {
+  const c = conf(z);
+  const period = Math.max(...Object.keys(c).map(id => +id[0]));
+  const block = lastBlock(z);
+  let group;
+  if (block === 'd') {
+    const v = (c['4s'] || 0) + (c['3d'] || 0);
+    group = (v <= 7 ? ROMAN[v] : v <= 10 ? 'VIII' : ROMAN[v - 10]) + 'Б';
+  } else {
+    const outer = Object.entries(c).filter(([id]) => +id[0] === period).reduce((a, [, k]) => a + k, 0);
+    group = (z === 2 ? 'VIII' : ROMAN[outer]) + 'А';
+  }
+  return `<div class="facts">
+    <span class="chip">Період <b>${period}</b></span>
+    <span class="chip">Група <b>${group}</b></span>
+    <span class="chip"><b>${block}</b>-елемент</span>
+    <span class="chip">Неспарених електронів: <b>${unpaired(z)}</b></span>
+  </div>`;
+}
+function tileHTML(z, hidden) {
+  const [n, sym, name] = el(z);
+  return `<div class="tile${hidden ? ' hidden' : ''}" aria-label="${hidden ? 'Елемент приховано' : name}">
+    <span class="z">${n}</span><span class="sym">${sym}</span><span class="name">${name}</span></div>`;
+}
+
+/* ---------- комірки (спільне для тренажера й тесту) ---------- */
+// Для z > 18 ядро [Ar] вважається заповненим — розставляються лише 4s, 3d, 4p
+const orbSubs = z => z > 18 ? ['4s','3d','4p'] : ['1s','2s','2p','3s','3p'];
+const boxes = id => ({ s:1, p:3, d:5 })[id.slice(-1)];
+const emptyCells = z => Object.fromEntries(orbSubs(z).map(id => [id, Array(boxes(id)).fill(0)]));
+const placed = cells => Object.values(cells).flat().reduce((a, b) => a + b, 0);
+function solvedCells(z) {
+  const need = conf(z);
+  return Object.fromEntries(orbSubs(z).map(id => {
+    const n = boxes(id), k = need[id] || 0;
+    return [id, Array.from({ length: n }, (_, j) => (k > j ? 1 : 0) + (k - n > j ? 1 : 0))];
+  }));
+}
+function orbCheck(z, cells) {
+  const need = conf(z);
+  return orbSubs(z).map(id => {
+    const arr = cells[id], sum = arr.reduce((a, b) => a + b, 0), k = need[id] || 0;
+    if (sum !== k) {
+      if (k === 0) return { id, sum, ok: false, msg: `<strong>${id}</strong>: тут електронів не має бути.` };
+      return { id, sum, ok: false, msg: `<strong>${id}</strong>: має бути ${k}, а розставлено ${sum}.` };
+    }
+    if (arr.filter(c => c > 0).length !== Math.min(k, arr.length))
+      return { id, sum, ok: false, hund: true, msg: `<strong>${id}</strong>: правило Гунда — спочатку по одному електрону в кожну комірку, потім пари.` };
+    return { id, sum, ok: true, empty: k === 0 };
+  });
+}
+function orbHTML(z, cells, res) {
+  const core = z > 18 ? `<div class="sub core"><div class="core-box">[Ar]</div><span class="lbl">ядро</span></div>` : '';
+  return `<div class="orbitals">${core}${orbSubs(z).map((id, i) => {
+    const r = res && res[i];
+    const cls = r ? (r.ok ? (r.empty ? '' : 'ok') : 'bad') : '';
+    return `<div class="sub ${id.slice(-1)} ${cls}">
+      <div class="cells">${cells[id].map((v, j) =>
+        `<button class="cell" data-id="${id}" data-j="${j}" aria-label="${id}, комірка ${j + 1}: ${['порожня', 'один електрон', 'два електрони'][v]}">${['', '↑', '↑↓'][v]}</button>`).join('')}</div>
+      <span class="lbl">${id}</span></div>`;
+  }).join('')}</div>`;
+}
+function bindCells(cells, onChange) {
+  stage.querySelectorAll('.cell').forEach(b => b.onclick = () => {
+    const id = b.dataset.id, j = +b.dataset.j;
+    cells[id][j] = (cells[id][j] + 1) % 3;
+    onChange();
+    stage.querySelector(`.cell[data-id="${id}"][data-j="${j}"]`).focus();
+  });
+}
+const countText = (z, cells) => {
+  const n = placed(cells), need = z > 18 ? z - 18 : z;
+  return `<p class="count${n > need ? ' over' : ''}">Розставлено: ${n} з ${need}${z > 18 ? ' (поверх ядра [Ar])' : ''}</p>`;
+};
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  who: { deck: shuffle(EL.map(e => e[0])), i: 0, dir: 'f2e', shown: false },
+  fill: { z: 26, cells: null, checked: null },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+
+/* ---------- Хто я? ---------- */
+function renderWho() {
+  const st = S.who, z = st.deck[st.i];
+  const f2e = st.dir === 'f2e';
+  stage.innerHTML = `
+    ${f2e ? tileHTML(z, !st.shown) : tileHTML(z, false)}
+    <div class="task">
+      <div class="seg" role="group" aria-label="Напрямок">
+        <button data-dir="f2e" aria-pressed="${f2e}">Формула → елемент</button>
+        <button data-dir="e2f" aria-pressed="${!f2e}">Елемент → формула</button>
+      </div>
+      <div>
+        <p class="prompt">${f2e ? 'Який це елемент?' : 'Запишіть електронну формулу'}</p>
+        <div class="formula${!f2e && !st.shown ? ' blank' : ''}">${
+          f2e || st.shown ? formulaHTML(termsOf(z)) : '1s<sup>?</sup> …'}</div>
+      </div>
+      ${st.shown ? facts(z) : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати відповідь'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-dir]').forEach(b => b.onclick = () => { st.dir = b.dataset.dir; st.shown = false; renderWho(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextWho() : showWho();
+}
+function showWho() { S.who.shown = true; renderWho(); }
+function nextWho() {
+  const st = S.who; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderWho();
+}
+
+/* ---------- Заповни комірки ---------- */
+function resetCells() { S.fill.cells = emptyCells(S.fill.z); S.fill.checked = null; }
+function checkFill() { S.fill.checked = orbCheck(S.fill.z, S.fill.cells); renderFill(); }
+
+function renderFill() {
+  const st = S.fill, z = st.z;
+  const res = st.checked, allOk = res && res.every(r => r.ok);
+  const firstBad = res && res.find(r => !r.ok);
+  stage.innerHTML = `
+    ${tileHTML(z, false)}
+    <div class="task">
+      <div class="pick-row">
+        <label for="pick-el" class="kbd">Елемент:</label>
+        <select id="pick-el">${EL.map(([n, sym, name]) => `<option value="${n}"${n === z ? ' selected' : ''}>${n} · ${sym} · ${name}</option>`).join('')}</select>
+        <button class="icon-btn" id="pick-rand">Випадковий</button>
+      </div>
+      <div>
+        <p class="prompt">Розставте електрони · клік: порожньо → ↑ → ↑↓</p>
+        ${orbHTML(z, st.cells, res)}
+      </div>
+      ${countText(z, st.cells)}
+      ${res ? (allOk
+        ? `<div class="note ok"><strong>Правильно!</strong> <span class="formula" style="font-size:1.6rem;display:inline-flex">${formulaHTML(termsOf(z))}</span></div>`
+        : `<div class="note bad">${firstBad.msg}</div>`) : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${allOk ? 'Далі →' : 'Перевірити'}</button>
+        <button class="btn" id="act-answer">Показати відповідь</button>
+        <button class="btn" id="act-clear">Очистити</button>
+      </div>
+    </div>`;
+  bindCells(st.cells, () => { st.checked = null; renderFill(); });
+  document.getElementById('pick-el').onchange = e => { st.z = +e.target.value; resetCells(); renderFill(); };
+  document.getElementById('pick-rand').onclick = nextFill;
+  document.getElementById('act-main').onclick = () => allOk ? nextFill() : checkFill();
+  document.getElementById('act-answer').onclick = () => { st.cells = solvedCells(z); checkFill(); };
+  document.getElementById('act-clear').onclick = () => { resetCells(); renderFill(); };
+}
+function nextFill() {
+  let z; do { z = 1 + (Math.random() * EL.length | 0); } while (z === S.fill.z);
+  S.fill.z = z; resetCells(); renderFill();
+}
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.innerHTML = `
+    ${tileHTML(e.z, false)}
+    <div class="task">
+      <div>
+        <p class="prompt">Учень записав так. Де помилка?</p>
+        <div class="formula">${formulaHTML(e.terms, st.shown ? e.bad : [])}</div>
+      </div>
+      ${st.shown ? `
+        <div class="note bad">${e.why}</div>
+        <div><p class="prompt">Правильно</p><div class="formula">${formulaHTML(termsOf(e.z))}</div></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const TYPE = {
+  full: 'Повна формула', short: 'Скорочена формула', who: 'Хто я? (формула → елемент)',
+  orb: 'Комірки', unp: 'Неспарені електрони', err: 'Знайди помилку'
+};
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+function makeTest() {
+  const used = new Set();
+  const pick = pool => { const c = pool.filter(z => !used.has(z)); const z = c[Math.random() * c.length | 0]; used.add(z); return z; };
+  const errs = shuffle(ERRORS.map((e, i) => i).filter(i => ERRORS[i].z > 18)).slice(0, 2);
+  errs.forEach(i => used.add(ERRORS[i].z));
+  const tasks = [
+    { type: 'full',  z: pick([24, 29]), pts: 3 },          // провал електрона
+    { type: 'full',  z: pick(range(19, 36)), pts: 2 },
+    { type: 'short', z: pick(range(19, 36)), pts: 2 },
+    { type: 'who',   z: pick(range(15, 36)), pts: 1 },
+    { type: 'orb',   z: pick(range(21, 30)), pts: 2 },     // d-елемент
+    { type: 'orb',   z: pick(range(19, 36)), pts: 2 },
+    { type: 'unp',   z: pick([22, 23, 24, 25, 26, 27, 28]), pts: 2 },
+    { type: 'unp',   z: pick(range(13, 36)), pts: 1 },
+    ...errs.map(i => ({ type: 'err', e: i, z: ERRORS[i].z, pts: 2 }))
+  ];
+  return shuffle(tasks).map(t => ({
+    ...t, ans: t.type === 'unp' ? null : '',
+    cells: t.type === 'orb' ? emptyCells(t.z) : null,
+    sel: t.type === 'err' ? new Set() : null
+  }));
+}
+
+function answered(t) {
+  if (t.type === 'unp') return t.ans !== null;
+  if (t.type === 'err') return t.sel.size > 0;
+  if (t.type === 'orb') return placed(t.cells) > 0;
+  return t.ans.trim() !== '';
+}
+
+function grade(t) {
+  const [, sym, name] = el(t.z);
+  const label = `${TYPE[t.type]} · ${sym}`;
+  if (t.type === 'full' || t.type === 'short') {
+    const p = parseFormula(t.ans);
+    const full = t.type === 'full';
+    const want = full ? conf(t.z) : toMap(shortTerms(t.z));
+    const ok = !p.bad && (full ? !p.core : p.core === coreOf(t.z)[1]) && sameMap(toMap(p.terms), want);
+    return { ok, label, given: t.ans.trim(), right: full ? plain(termsOf(t.z)) : `[${coreOf(t.z)[1]}]` + plain(shortTerms(t.z)) };
+  }
+  if (t.type === 'who') {
+    const v = t.ans.trim().toLowerCase().replace(/[’ʼ`]/g, "'");
+    const ok = [sym, name, ...(ALT[t.z] || [])].some(x => x.toLowerCase() === v);
+    return { ok, label, given: t.ans.trim(), right: `${sym} (${name})` };
+  }
+  if (t.type === 'unp') {
+    const right = unpaired(t.z);
+    return { ok: t.ans === right, label, given: String(t.ans), right: String(right) };
+  }
+  if (t.type === 'orb') {
+    const res = orbCheck(t.z, t.cells);
+    const filled = res.filter(r => r.sum > 0).map(r => r.id + supNum(r.sum)).join('') || 'нічого';
+    const hund = res.some(r => r.hund);
+    const need = conf(t.z);
+    return { ok: res.every(r => r.ok), label, given: filled + (hund ? ' (порушено правило Гунда)' : ''),
+      right: orbSubs(t.z).filter(id => need[id]).map(id => id + supNum(need[id])).join('') };
+  }
+  const e = ERRORS[t.e];
+  const sel = [...t.sel].sort((a, b) => a - b);
+  const ok = sel.length === e.bad.length && sel.every((k, i) => k === e.bad[i]);
+  return { ok, label, given: sel.map(k => plain([e.terms[k]])).join(', '),
+    right: e.bad.map(k => plain([e.terms[k]])).join(', '), why: e.why };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  stage.classList.toggle('single', T.phase !== 'run');
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Електронні формули атомів 1–36</h1></div>
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="8-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Завдання: повні й скорочені формули, комірки, неспарені електрони, пошук помилок.</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+function previewHTML(raw) {
+  if (!raw.trim()) return '';
+  const p = parseFormula(raw);
+  if (p.bad) return `<p class="hint">Не вдалося прочитати запис. Пишіть так: 1s2 2s2 2p6</p>`;
+  return (p.core ? `<span class="term core-term">[${p.core}]</span>` : '') + formulaHTML(p.terms);
+}
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  let body = '';
+  if (t.type === 'full' || t.type === 'short') {
+    body = `
+      <p class="prompt">${t.type === 'full' ? 'Запишіть повну електронну формулу' : 'Запишіть скорочену електронну формулу'}</p>
+      <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="${t.type === 'full' ? '1s2 2s2 …' : 'Наприклад, для Na: [Ne] 3s1'}" value="${esc(t.ans)}">
+      <div class="preview" id="t-prev" aria-live="polite">${previewHTML(t.ans)}</div>
+      <p class="hint">Пишіть звичайними цифрами: 1s2 2s2 2p6 … Порядок підрівнів не важливий.</p>`;
+  } else if (t.type === 'who') {
+    body = `
+      <p class="prompt">Який це елемент?</p>
+      <div class="formula">${formulaHTML(termsOf(t.z))}</div>
+      <input class="answer" id="t-ans" autocomplete="off" spellcheck="false" placeholder="Символ або назва" value="${esc(t.ans)}">`;
+  } else if (t.type === 'unp') {
+    body = `
+      <p class="prompt">Скільки неспарених електронів в атомі?</p>
+      <div class="seg big" role="group" aria-label="Кількість">${range(0, 6).map(n =>
+        `<button data-n="${n}" aria-pressed="${t.ans === n}">${n}</button>`).join('')}</div>`;
+  } else if (t.type === 'orb') {
+    body = `
+      <p class="prompt">Розставте електрони · клік: порожньо → ↑ → ↑↓</p>
+      ${orbHTML(t.z, t.cells, null)}
+      ${countText(t.z, t.cells)}`;
+  } else {
+    const e = ERRORS[t.e];
+    body = `
+      <p class="prompt">Учень записав так. Клацніть на всі помилкові частини</p>
+      <div class="formula">${e.terms.map(([id, k], i) =>
+        `<button class="term pick ${id.slice(-1)}${t.sel.has(i) ? ' picked' : ''}" data-k="${i}" aria-pressed="${t.sel.has(i)}">${id}<sup>${k}</sup></button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    ${tileHTML(t.z, t.type === 'who')}
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    const prev = document.getElementById('t-prev');
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); if (prev) prev.innerHTML = previewHTML(t.ans); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  stage.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { t.ans = +b.dataset.n; renderTask(); });
+  stage.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
+    const k = +b.dataset.k; t.sel.has(k) ? t.sel.delete(k) : t.sel.add(k); renderTask();
+    stage.querySelector(`[data-k="${k}"]`).focus();
+  });
+  if (t.type === 'orb') bindCells(t.cells, renderTask);
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${r.label}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>${r.why ? `<div class="why">${r.why}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, who: renderWho, fill: renderFill, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  stage.classList.remove('single');
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    ({ who: nextWho, fill: nextFill, err: nextErr })[S.mode]();
+  } else if (e.key === ' ' && !e.target.closest('button')) {
+    e.preventDefault();
+    if (S.mode === 'who') S.who.shown ? nextWho() : showWho();
+    if (S.mode === 'err') S.err.shown ? nextErr() : showErr();
+    if (S.mode === 'fill') checkFill();
+  }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+resetCells();
+setMode('test');
+</script>
+</body>
+</html>

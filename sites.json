@@ -1,0 +1,16 @@
+[
+  {"slug": "algebra-8-kvadratni",            "file": "Алгебра 8 клас — Квадратні рівняння.html",                         "subject": "Алгебра", "grade": "8",   "title": "Квадратні рівняння"},
+  {"slug": "algebra-9-nerivnosti",           "file": "Алгебра 9 клас — Системи лінійних нерівностей.html",               "subject": "Алгебра", "grade": "9",   "title": "Системи лінійних нерівностей"},
+  {"slug": "chem-7-masova-chastka",          "file": "Хімія 7 клас — Відносна молекулярна маса і масова частка.html",    "subject": "Хімія",   "grade": "7",   "title": "Відносна молекулярна маса і масова частка"},
+  {"slug": "chem-8-elektronni-konfihuratsii","file": "Хімія 8 клас — Електронні конфігурації.html",                      "subject": "Хімія",   "grade": "8",   "title": "Електронні конфігурації"},
+  {"slug": "chem-8-kilkist-rechovyny",       "file": "Хімія 8 клас — Кількість речовини.html",                           "subject": "Хімія",   "grade": "8",   "title": "Кількість речовини"},
+  {"slug": "chem-8-klasy-spoluk",            "file": "Хімія 8 клас — Основні класи неорганічних сполук.html",            "subject": "Хімія",   "grade": "8",   "title": "Основні класи неорганічних сполук"},
+  {"slug": "chem-8-9-kilkist-rechovyny-plus","file": "Хімія 8–9 клас — Кількість речовини (поглиблений рівень).html",    "subject": "Хімія",   "grade": "8–9", "title": "Кількість речовини (поглиблений рівень)"},
+  {"slug": "chem-10-alkany",                 "file": "Хімія 10 клас — Алкани.html",                                      "subject": "Хімія",   "grade": "10",  "title": "Алкани"},
+  {"slug": "chem-10-alkeny",                 "file": "Хімія 10 клас — Алкени.html",                                      "subject": "Хімія",   "grade": "10",  "title": "Алкени"},
+  {"slug": "chem-10-alkiny",                 "file": "Хімія 10 клас — Алкіни.html",                                      "subject": "Хімія",   "grade": "10",  "title": "Алкіни"},
+  {"slug": "chem-10-vuhlevodni",             "file": "Хімія 10 клас — Вуглеводні (будова і назви).html",                 "subject": "Хімія",   "grade": "10",  "title": "Вуглеводні: будова і назви"},
+  {"slug": "chem-10-reaktsii-vuhlevodniv",   "file": "Хімія 10 клас — Реакції вуглеводнів.html",                         "subject": "Хімія",   "grade": "10",  "title": "Реакції вуглеводнів"},
+  {"slug": "chem-10-spyrty",                 "file": "Хімія 10 клас — Спирти.html",                                      "subject": "Хімія",   "grade": "10",  "title": "Спирти"},
+  {"slug": "frontend-intro",                 "file": "Знайомство — Що таке фронтенд-розробка.html",                      "subject": "Фронтенд","grade": "",    "title": "Знайомство: що таке фронтенд-розробка"}
+]

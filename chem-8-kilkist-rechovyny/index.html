@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кількість речовини</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with a substance card and the task. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --acc: #1f7a8c;
+  --acc-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --acc: #4fb6c9; --acc-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --acc: #4fb6c9; --acc-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+sub { font-size: .62em; line-height: 0; vertical-align: -.25em; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage.single { grid-template-columns: 1fr; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.q { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 600; line-height: 1.4; margin: 0; }
+
+/* formula card */
+.card { width: 260px; min-height: 220px; max-width: 100%; border: 3px solid var(--ink); border-radius: 6px; padding: 16px; display: grid; grid-template-rows: 1fr auto; justify-items: center; align-items: center; gap: 8px; background: var(--surface); }
+.card .big { font-weight: 700; line-height: 1.1; white-space: nowrap; }
+.card .cap { font-weight: 600; font-size: 1.15rem; color: var(--muted); text-align: center; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 500; font-size: 1.05rem; }
+.chip b { font-weight: 700; color: var(--acc); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: clamp(1.05rem, 1.9vw, 1.3rem); font-weight: 500; }
+.steps li { padding: 4px 0 4px 14px; border-left: 3px solid var(--acc); overflow-wrap: anywhere; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+/* choice */
+.opts { display: grid; gap: 10px; max-width: 720px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* table cells (n, m, V, N) */
+.cells { display: flex; flex-wrap: wrap; gap: 14px; }
+.cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.cell .sym { font-weight: 700; font-size: 1.15rem; }
+.cell input { width: 130px; font-size: 1.3rem; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.cell.wide input { width: 210px; }
+.formulas { display: flex; flex-wrap: wrap; gap: 8px; }
+.formulas .chip { font-weight: 700; }
+
+/* find the error */
+.lines { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.line { text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 10px; padding: 8px 14px; font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+button.line { cursor: pointer; }
+.line.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.line.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 420px; font-size: 1.3rem; }
+.ans-row { display: flex; align-items: center; gap: 10px; }
+.unit { font-weight: 700; font-size: 1.3rem; }
+.preview { min-height: 1.6em; font-size: 1.5rem; font-weight: 700; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li > div { min-width: 0; overflow-wrap: anywhere; }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); margin-top: 4px; }
+.review .why div + div { margin-top: 2px; }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { grid-template-columns: 1fr; padding: 22px; gap: 24px; justify-items: start; }
+  .stage > * { width: 100%; }
+  .stage > .card { min-height: 160px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .line, .opt { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Кількість речовини<small>Хімія · n, m, V, N</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="calc">Формули</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="prob">Задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="hard">Складні задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати розв'язання, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 12;
+const TOPIC = 'Хімія 8 клас — Кількість речовини';
+
+const NA = 6.02e23;   // стала Авогадро, моль⁻¹
+const VM = 22.4;      // молярний об'єм газу (н.у.), л/моль
+
+// Символ: [назва, Ar (шкільне округлення)]
+const EL = {
+  H:['Гідроген',1], C:['Карбон',12], N:['Нітроген',14], O:['Оксиген',16], F:['Флуор',19], Na:['Натрій',23],
+  Mg:['Магній',24], Al:['Алюміній',27], P:['Фосфор',31], S:['Сульфур',32], Cl:['Хлор',35.5], K:['Калій',39],
+  Ca:['Кальцій',40], Mn:['Манган',55], Fe:['Ферум',56], Cu:['Купрум',64], Zn:['Цинк',65], Ag:['Аргентум',108], Ba:['Барій',137]
+};
+
+// Гази (для V), молекулярні речовини (число молекул), метали й вуглець (число атомів), йонні сполуки (лише m ↔ n)
+const GAS = ['H2','O2','N2','Cl2','O3','CO2','CO','CH4','NH3','SO2','HCl','H2S','NO2','NO','C2H6','C2H4','C2H2','C3H8'];
+const MOL = [...GAS, 'H2O','H2SO4','HNO3','H3PO4','C6H12O6','C2H5OH','CH3COOH'];
+const ATOM = ['Fe','Cu','Al','Zn','Mg','C','Ca','Na','Ag'];
+const ION = ['NaCl','NaOH','KOH','CaCO3','CuSO4','Fe2O3','Ca(OH)2','Na2CO3','AgNO3','KMnO4','Al2O3','MgO','CaO','BaSO4','KNO3','Na2SO4'];
+const ALL = [...MOL, ...ATOM, ...ION];
+const PART = [...MOL, ...ATOM];
+
+// Кількості речовини, з якими виходять «шкільні» числа
+const NICE = [0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 0.8, 1.2, 1.5, 2, 2.5, 3, 4, 5];
+
+// Типові помилки учнів: bad — рядок, де помилку зроблено вперше
+const ERRORS = [
+  { task:'Обчисліть кількість речовини в 36 г води H₂O.', lines:['M(H₂O) = 2·1 + 16 = 18 г/моль', 'n = M / m = 18 / 36', '= 0,5 моль'], bad:1,
+    why:'Формулу перевернуто: n = m / M = 36 / 18 = 2 моль.' },
+  { task:'Який об\'єм (н.у.) займають 0,5 моль кисню O₂?', lines:['V = n · Vₘ', '= 0,5 · 22,4', '= 1,12 л'], bad:2,
+    why:'Арифметична помилка: 0,5 · 22,4 = 11,2 л.' },
+  { task:'Обчисліть масу 2 моль CO₂.', lines:['M(CO₂) = 12 + 16 = 28 г/моль', 'm = n · M = 2 · 28', '= 56 г'], bad:0,
+    why:'У CO₂ два атоми Оксигену: M = 12 + 2·16 = 44 г/моль, m = 2 · 44 = 88 г.' },
+  { task:'Скільки молекул міститься у 2 моль води?', lines:['N = n · Nₐ', '= 2 · 6,02·10²³', '= 12,04·10⁴⁶'], bad:2,
+    why:'Множимо лише 2 · 6,02, степінь не змінюється: 12,04·10²³ = 1,204·10²⁴.' },
+  { task:'Обчисліть масу 5,6 л (н.у.) метану CH₄.', lines:['n = V / Vₘ = 5,6 / 22,4 = 0,25 моль', 'M(CH₄) = 12 + 4·1 = 16 г/моль', 'm = n / M = 0,25 / 16 ≈ 0,016 г'], bad:2,
+    why:'Масу знаходять множенням: m = n · M = 0,25 · 16 = 4 г.' },
+  { task:'Яка кількість речовини міститься в 11,2 л азоту N₂ (н.у.)?', lines:['n = V · Vₘ', '= 11,2 · 22,4', '≈ 250,9 моль'], bad:0,
+    why:'Об\'єм ділять на молярний об\'єм: n = V / Vₘ = 11,2 / 22,4 = 0,5 моль.' },
+  { task:'Обчисліть масу 0,1 моль H₂SO₄.', lines:['M(H₂SO₄) = 2·1 + 32 + 4·16 = 98 г/моль', 'm = n · M = 0,1 · 98', '= 98 г'], bad:2,
+    why:'0,1 · 98 = 9,8 г.' },
+  { task:'Скільки атомів Оксигену міститься в 1 моль CO₂?', lines:['N(CO₂) = n · Nₐ = 1 · 6,02·10²³ = 6,02·10²³', 'N(O) = N(CO₂)', '= 6,02·10²³'], bad:1,
+    why:'У кожній молекулі CO₂ два атоми O: N(O) = 2 · 6,02·10²³ = 1,204·10²⁴.' },
+  { task:'Який об\'єм (н.у.) займають 8 г кисню O₂?', lines:['M(O₂) = 16 г/моль', 'n = m / M = 8 / 16 = 0,5 моль', 'V = n · Vₘ = 0,5 · 22,4 = 11,2 л'], bad:0,
+    why:'Молекула кисню двохатомна: M(O₂) = 32 г/моль, n = 0,25 моль, V = 5,6 л.' },
+  { task:'Яка кількість речовини відповідає 3,01·10²³ молекул H₂O?', lines:['n = N / Nₐ', '= 3,01·10²³ / 6,02·10²³', '= 2 моль'], bad:2,
+    why:'Дріб обчислено навпаки: 3,01 / 6,02 = 0,5 моль.' },
+  { task:'Який об\'єм (н.у.) займають 18 г води H₂O?', lines:['M(H₂O) = 2·1 + 16 = 18 г/моль', 'n = m / M = 18 / 18 = 1 моль', 'V = n · Vₘ = 1 · 22,4 = 22,4 л'], bad:2,
+    why:'Vₘ = 22,4 л/моль лише для газів. Вода за н.у. — рідина, 18 г води займають близько 18 мл.' },
+  { task:'Обчисліть масу 1,204·10²⁴ молекул NH₃.', lines:['n = N / Nₐ = 1,204·10²⁴ / 6,02·10²³ = 2 моль', 'M(NH₃) = 14 + 3·1 = 17 г/моль', 'm = n · M = 2 · 17 = 32 г'], bad:2,
+    why:'Арифметична помилка: 2 · 17 = 34 г.' },
+  { task:'Маса 2,24 л газу (н.у.) становить 4,4 г. Обчисліть молярну масу газу.', lines:['n = V / Vₘ = 2,24 / 22,4 = 0,1 моль', 'M = n / m = 0,1 / 4,4', '≈ 0,023 г/моль'], bad:1,
+    why:'M = m / n = 4,4 / 0,1 = 44 г/моль (наприклад, CO₂).' },
+  { task:'Обчисліть кількість речовини в 7,3 г HCl.', lines:['M(HCl) = 1 + 17 = 18 г/моль', 'n = m / M = 7,3 / 18', '≈ 0,41 моль'], bad:0,
+    why:'17 — порядковий номер Хлору, а Ar(Cl) = 35,5. M(HCl) = 36,5 г/моль, n = 7,3 / 36,5 = 0,2 моль.' },
+  { task:'Обчисліть відносну густину CO₂ за воднем.', lines:['D(H₂) = M(CO₂) / M(H₂)', '= 44 / 1', '= 44'], bad:1,
+    why:'Молекула водню двохатомна: M(H₂) = 2 г/моль, D = 44 / 2 = 22.' },
+  { task:'Відносна густина газу за повітрям 2. Обчисліть його молярну масу.', lines:['M = D · M(повітря)', '= 2 · 32', '= 64 г/моль'], bad:1,
+    why:'Середня молярна маса повітря — 29 г/моль: M = 2 · 29 = 58 г/моль.' },
+  { task:'Суміш 0,5 моль H₂ і 0,5 моль O₂. Обчисліть середню молярну масу суміші.', lines:['m = 0,5·2 + 0,5·32 = 17 г', 'n = 0,5 + 0,5 = 1 моль', 'M = (2 + 32) / 1 = 34 г/моль'], bad:2,
+    why:'Середня молярна маса = m(суміші) / n(суміші) = 17 / 1 = 17 г/моль, а не сума молярних мас.' }
+];
+
+/* ---------- утиліти ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',');   // без зайвих нулів
+const SUBD = '₀₁₂₃₄₅₆₇₈₉', SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const fTxt = s => s.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+
+// Стандартний запис: 1,204·10²⁴
+function sciParts(x) {
+  let e = Math.floor(Math.log10(x)), m = round(x / 10 ** e, 3);
+  if (m >= 10) { m = round(m / 10, 3); e++; }
+  return [m, e];
+}
+const sciHTML = x => { const [m, e] = sciParts(x); return `${fmt(m, 3)}·10<sup>${e}</sup>`; };
+const sciTxt = x => { const [m, e] = sciParts(x); return `${fmt(m, 3)}·10${[...String(e)].map(c => c === '-' ? '⁻' : SUP[c]).join('')}`; };
+
+/* ---------- хімія ---------- */
+const AR = s => EL[s][1];
+const nm = s => EL[s][0];
+const gen = s => { const n = nm(s); return n.endsWith('ій') ? n.slice(0, -2) + 'ію' : n + 'у'; };   // родовий відмінок
+
+// Розбір формули: H2SO4, Ca(OH)2 → { counts, order }
+function group(s) {
+  const st = [[]]; let i = 0;
+  while (i < s.length) {
+    if (s[i] === '(') { st.push([]); i++; continue; }
+    if (s[i] === ')') {
+      if (st.length < 2) return null;
+      const g = st.pop(); i++;
+      const d = s.slice(i).match(/^([1-9]\d*)?/)[0]; i += d.length;
+      if (!g.length) return null;
+      st[st.length - 1].push(...g.map(([e, n]) => [e, n * (d ? +d : 1)]));
+      continue;
+    }
+    const m = s.slice(i).match(/^([A-Z][a-z]?)([1-9]\d*)?/);
+    if (!m || !EL[m[1]]) return null;
+    st[st.length - 1].push([m[1], m[2] ? +m[2] : 1]); i += m[0].length;
+  }
+  return st.length === 1 && st[0].length ? st[0] : null;
+}
+const PF = new Map();
+function parseF(s) {
+  if (PF.has(s)) return PF.get(s);
+  const counts = {}, order = [];
+  const ok = s.split('·').every(part => {
+    const m = part.match(/^([1-9]\d*)?(.+)$/);
+    const g = m && group(m[2]);
+    if (!g) return false;
+    g.forEach(([e, n]) => { if (!(e in counts)) { counts[e] = 0; order.push(e); } counts[e] += n * (m[1] ? +m[1] : 1); });
+    return true;
+  });
+  const r = ok ? { counts, order } : null;
+  PF.set(s, r);
+  return r;
+}
+const molar = f => { const p = parseF(f); return round(p.order.reduce((a, e) => a + p.counts[e] * AR(e), 0), 2); };
+const atomsIn = f => { const p = parseF(f); return p.order.reduce((a, e) => a + p.counts[e], 0); };
+const nA = (n, x) => n === 1 ? x : `${n}·${x}`;
+const isGas = f => GAS.includes(f);
+const partWord = f => ATOM.includes(f) ? 'атомів' : 'молекул';
+const pl = k => k === 1 ? 'атом' : k < 5 ? 'атоми' : 'атомів';
+const sameCounts = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+const isRound2 = x => Math.abs(x * 100 - Math.round(x * 100)) < 1e-6;
+
+function mLine(f) {
+  const p = parseF(f), M = molar(f);
+  const terms = p.order.map(e => nA(p.counts[e], fmt(AR(e))));
+  return `M(${fHTML(f)}) = ${terms.length === 1 && p.counts[p.order[0]] === 1 ? '' : terms.join(' + ') + ' = '}${fmt(M)} г/моль`;
+}
+
+// Усі величини для порції речовини
+const vals = (f, n) => ({ n, m: round(n * molar(f), 4), V: round(n * VM, 4), N: n * NA, M: molar(f) });
+function pickN(f, needV) {
+  const M = molar(f);
+  return pick(NICE.filter(n => isRound2(n * M) && (!needV || isRound2(n * VM)) && n * M >= 1 && n * M <= 2000));
+}
+
+const UNIT = { n:'моль', m:'г', V:'л', M:'г/моль' };
+const vH = (k, x) => k === 'N' ? sciHTML(x) : `${fmt(x, k === 'n' ? 3 : 2)} ${UNIT[k]}`;
+const vT = (k, x) => k === 'N' ? sciTxt(x) : vH(k, x);
+// «22 г CO₂», «5,6 л CO₂ (н.у.)», «3,01·10²³ молекул CO₂»
+function phrase(k, v, f, html = true) {
+  const F = html ? fHTML(f) : fTxt(f), x = html ? vH(k, v[k]) : vT(k, v[k]);
+  return k === 'N' ? `${x} ${partWord(f)} ${F}` : k === 'V' ? `${x} ${F} (н.у.)` : `${x} ${F}`;
+}
+function askQ(to, ph, f) {
+  return {
+    n: `Яка кількість речовини міститься в ${ph}?`,
+    m: `Обчисліть масу ${ph}.`,
+    V: `Який об'єм (н.у.) відповідає ${ph}?`,
+    N: `Скільки ${partWord(f)} міститься в ${ph}?`
+  }[to];
+}
+// Крок: n із величини k / величина k з n
+function stepFrom(k, v) {
+  return {
+    m: `n = m / M = ${fmt(v.m)} / ${fmt(v.M)} = ${fmt(v.n, 3)} моль`,
+    V: `n = V / Vₘ = ${fmt(v.V)} / 22,4 = ${fmt(v.n, 3)} моль`,
+    N: `n = N / Nₐ = ${sciHTML(v.N)} / ${sciHTML(NA)} = ${fmt(v.n, 3)} моль`
+  }[k];
+}
+function stepTo(k, v) {
+  return {
+    m: `m = n · M = ${fmt(v.n, 3)} · ${fmt(v.M)} = ${fmt(v.m)} г`,
+    V: `V = n · Vₘ = ${fmt(v.n, 3)} · 22,4 = ${fmt(v.V)} л`,
+    N: `N = n · Nₐ = ${fmt(v.n, 3)} · ${sciHTML(NA)} = ${sciHTML(v.N)}`
+  }[k];
+}
+
+/* ---------- розбір введення ---------- */
+// 0,5 · 22,4 л · 1,204·10^24 · 12,04*10²³ · 1.204e24
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase()
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, m => '^' + [...m].map(c => c === '⁻' ? '-' : SUP.indexOf(c)).join(''))
+    .replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-')
+    .replace(/(г\/моль|моль|молекули|молекул|атоми|атомів|частинок|г|л|g|l)$/, '');
+  const sci = s.match(/^(\d+(?:\.\d+)?)[·*×xх⋅•∙]10(?:\^|\*\*)?(-?\d+)$/);
+  if (sci) return +sci[1] * 10 ** +sci[2];
+  const pow = s.match(/^10(?:\^|\*\*)(-?\d+)$/);
+  if (pow) return 10 ** +pow[1];
+  return /^\d+(?:\.\d+)?(?:e[+-]?\d+)?$/.test(s) ? +s : NaN;
+}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+const latin = s => s.replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]);
+const normF = raw => latin(raw.trim()).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/[[{]/g, '(').replace(/[\]}]/g, ')').replace(/\s+/g, '');
+const TOL = { n: x => Math.max(0.005, x * 0.02), m: x => Math.max(0.01, x * 0.01), V: x => Math.max(0.01, x * 0.01), N: x => x * 0.015, M: () => 0.5 };
+const near = (k, a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= TOL[k](x); };
+
+/* ---------- генератори завдань ---------- */
+// Кожне завдання: type, label, card [велике, підпис] або null, q, input, unit, right, check(ans), sol[]
+const TYPE = {
+  nm: 'Маса і кількість речовини', nv: 'Об\'єм газу', nN: 'Число частинок', cmp: 'Порівняння порцій',
+  err: 'Знайди помилку', mV: 'Маса ↔ об\'єм', mN: 'Маса ↔ число частинок', table: 'Таблиця величин',
+  atoms: 'Число атомів', mgas: 'Молярна маса газу', mix: 'Суміш газів', dmix: 'Густина суміші',
+  dfind: 'Формула за густиною', equal: 'Однакове число атомів', hydr: 'Кристалогідрат', molmass: 'Маса молекули'
+};
+
+// Одна величина → n → інша величина
+function tChain(type, f, from, to) {
+  const v = vals(f, pickN(f, from === 'V' || to === 'V'));
+  const sol = [];
+  if (from === 'm' || to === 'm') sol.push(mLine(f));
+  if (from !== 'n') sol.push(stepFrom(from, v));
+  if (to !== 'n') sol.push(stepTo(to, v));
+  return { type, label: `${phrase(from, v, f, false)} → ${to}`, card: [fHTML(f), `${from} = ${vH(from, v[from])}<br>${to} — ?`],
+    q: askQ(to, phrase(from, v, f), f), input: to === 'N' ? 'sci' : 'num', unit: to === 'N' ? partWord(f) : UNIT[to],
+    right: vT(to, v[to]), check: a => near(to, a, v[to]), sol };
+}
+const dir = (a, b) => Math.random() < .5 ? [a, b] : [b, a];
+const tNm = () => tChain('nm', pick(ALL), ...dir('m', 'n'));
+const tNv = () => tChain('nv', pick(GAS), ...dir('V', 'n'));
+const tNN = () => tChain('nN', pick(PART), ...dir('N', 'n'));
+const tMV = () => tChain('mV', pick(GAS), ...dir('m', 'V'));
+const tMN = () => { const f = pick(PART); return tChain('mN', f, ...(isGas(f) && Math.random() < .3 ? dir('V', 'N') : dir('m', 'N'))); };
+
+// Скільки атомів елемента (або всіх атомів) у порції молекулярної речовини
+function tAtoms() {
+  const f = pick(MOL), p = parseF(f);
+  const total = p.order.length > 1 && Math.random() < .3;
+  const e = total ? null : pick(p.order), k = total ? atomsIn(f) : p.counts[e];
+  const from = pick(isGas(f) ? ['m', 'V', 'n'] : ['m', 'n']);
+  const v = vals(f, pickN(f, from === 'V')), Nat = k * v.N;
+  const sol = [];
+  if (from === 'm') sol.push(mLine(f));
+  if (from !== 'n') sol.push(stepFrom(from, v));
+  sol.push(`N(${fHTML(f)}) = n · Nₐ = ${fmt(v.n, 3)} · ${sciHTML(NA)} = ${sciHTML(v.N)}`);
+  const word = k === 1 ? 'атом' : k < 5 ? 'атоми' : 'атомів';
+  sol.push(total
+    ? `У молекулі ${fHTML(f)} — ${k} ${word}: N = ${k} · ${sciHTML(v.N)} = ${sciHTML(Nat)}`
+    : `У молекулі ${fHTML(f)} — ${k} ${word} ${e}: N(${e}) = ${k} · ${sciHTML(v.N)} = ${sciHTML(Nat)}`);
+  return { type:'atoms', label: `${total ? 'усі атоми' : 'атоми ' + e} у ${phrase(from, v, f, false)}`,
+    card: [fHTML(f), `${from} = ${vH(from, v[from])}<br>N(${total ? 'атомів' : e}) — ?`],
+    q: total ? `Скільки всього атомів міститься в ${phrase(from, v, f)}?` : `Скільки атомів ${gen(e)} міститься в ${phrase(from, v, f)}?`,
+    input:'sci', unit:'атомів', right: sciTxt(Nat), check: a => near('N', a, Nat), sol };
+}
+
+// Молярна маса газу за масою і об'ємом; або впізнати газ
+function tMgas(choice = Math.random() < .5) {
+  const g = pick(GAS), v = vals(g, pickN(g, true));
+  const same = GAS.filter(x => molar(x) === v.M);
+  const sol = [stepFrom('V', v), `M = m / n = ${fmt(v.m)} / ${fmt(v.n, 3)} = ${fmt(v.M)} г/моль`];
+  const card = ['?', `V = ${fmt(v.V)} л<br>m = ${fmt(v.m)} г`];
+  if (!choice) {
+    sol.push(`Таку молярну масу має ${same.map(fHTML).join(', ')}.`);
+    return { type:'mgas', label: `${fmt(v.V)} л, ${fmt(v.m)} г → M`, card,
+      q: `Маса ${fmt(v.V)} л невідомого газу (н.у.) становить ${fmt(v.m)} г. Обчисліть молярну масу газу.`,
+      input:'num', unit:'г/моль', right: vT('M', v.M), check: a => near('M', a, v.M), sol };
+  }
+  const opts = [g];
+  for (const x of shuffle(GAS)) {
+    if (opts.length === 4) break;
+    if (opts.every(o => Math.abs(molar(o) - molar(x)) >= 2)) opts.push(x);
+  }
+  const order = shuffle(opts), ri = order.indexOf(g);
+  sol.push(...order.map(x => `M(${fHTML(x)}) = ${fmt(molar(x))} г/моль`));
+  return { type:'mgas', label: `${fmt(v.V)} л, ${fmt(v.m)} г → який газ`, card,
+    q: `Маса ${fmt(v.V)} л газу (н.у.) становить ${fmt(v.m)} г. Який це газ?`, input:'choice',
+    opts: order.map(x => ({ html: fHTML(x), txt: fTxt(x) })), right: fTxt(g), check: a => a === ri, sol };
+}
+
+// Де найбільше / найменше молекул: порції задані різними величинами
+function tCmp() {
+  for (;;) {
+    const reps = shuffle(['m', 'V', 'N', 'n']), ns = shuffle(NICE).slice(0, 4);
+    const sorted = ns.slice().sort((a, b) => a - b);
+    if (sorted.some((x, i) => i && x / sorted[i - 1] < 1.25)) continue;
+    const items = [];
+    for (let i = 0; i < 4; i++) {
+      const pool = (reps[i] === 'V' ? GAS : MOL).filter(f => !items.some(it => it.f === f));
+      const f = pick(pool), v = vals(f, ns[i]);
+      if (!isRound2(v.m) || v.m < 1 || (reps[i] === 'V' && !isRound2(v.V))) break;
+      items.push({ f, k: reps[i], v });
+    }
+    if (items.length < 4) continue;
+    const max = Math.random() < .6;
+    const best = items.reduce((a, b) => (max ? b.v.n > a.v.n : b.v.n < a.v.n) ? b : a), ri = items.indexOf(best);
+    return { type:'cmp', label: max ? 'найбільше молекул' : 'найменше молекул', card:null,
+      q: `У якій порції речовини ${max ? 'найбільше' : 'найменше'} молекул?`, input:'choice',
+      opts: items.map(it => ({ html: phrase(it.k, it.v, it.f), txt: phrase(it.k, it.v, it.f, false) })),
+      right: phrase(best.k, best.v, best.f, false), check: a => a === ri,
+      sol: [...items.map(it => `${phrase(it.k, it.v, it.f)} → n = ${fmt(it.v.n, 3)} моль`), 'Чим більша n, тим більше молекул.'] };
+  }
+}
+
+// Таблиця: дано одну величину — знайти решту
+function tTable(f = pick([...MOL, ...ATOM])) {
+  const keys = ['n', 'm', ...(isGas(f) ? ['V'] : []), 'N'];
+  const from = pick(keys), cells = keys.filter(k => k !== from);
+  const v = vals(f, pickN(f, isGas(f)));
+  const sol = [mLine(f)];
+  if (from !== 'n') sol.push(stepFrom(from, v));
+  cells.filter(k => k !== 'n').forEach(k => sol.push(stepTo(k, v)));
+  return { type:'table', label: `${fTxt(f)}, ${from} = ${vT(from, v[from])}`, card: [fHTML(f), `${from} = ${vH(from, v[from])}`],
+    q: `Дано ${phrase(from, v, f)}. Знайдіть ${cells.map(k => ({ n:'n', m:'m', V:'V (н.у.)', N:'N' })[k]).join(', ')}.`,
+    input:'cells', els: cells, part: partWord(f), vals: v,
+    right: cells.map(k => `${k} = ${vT(k, v[k])}`).join(', '),
+    check: a => cells.every(k => near(k, a[k] ?? '', v[k])), sol };
+}
+
+function tErr(i = Math.random() * ERRORS.length | 0) {
+  const e = ERRORS[i];
+  return { type:'err', label: e.task, card:null, q: e.task, input:'err', lines: e.lines,
+    right: e.lines[e.bad], check: a => a === e.bad, sol: [e.why] };
+}
+
+/* ---------- складні задачі ---------- */
+// Гази, що не реагують між собою за звичайних умов
+const MIXG = ['H2', 'N2', 'O2', 'CO2', 'CO', 'CH4', 'C2H6', 'C3H8', 'SO2'];
+const NICE_MIX = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 0.8, 1, 1.2, 1.5, 2];
+const HYD = { 'CuSO4·5H2O':'мідного купоросу', 'Na2CO3·10H2O':'кристалічної соди', 'FeSO4·7H2O':'залізного купоросу',
+  'Na2SO4·10H2O':'глауберової солі', 'CaSO4·2H2O':'гіпсу', 'MgSO4·7H2O':'гіркої солі', 'BaCl2·2H2O':'кристалогідрату' };
+// Клас речовини (родовий відмінок) → кандидати; молярні маси в межах класу відрізняються щонайменше на 4
+const DCLS = [
+  ['вуглеводню складу C<sub>n</sub>H<sub>2n+2</sub>', ['CH4', 'C2H6', 'C3H8', 'C4H10', 'C5H12']],
+  ['оксиду Нітрогену', ['N2O', 'NO', 'NO2']],
+  ['оксиду Карбону', ['CO', 'CO2']],
+  ['оксиду Сульфуру', ['SO2', 'SO3']],
+  ['простої газоподібної речовини', ['H2', 'N2', 'O2', 'F2', 'Cl2', 'O3']]
+];
+const REF = { H2: ['воднем', 'M(H<sub>2</sub>)', 2], air: ['повітрям', 'M(повітря)', 29] };
+const TWO = pool => { for (;;) { const a = pick(pool), b = pick(pool); if (Math.abs(molar(a) - molar(b)) >= 4) return [a, b]; } };
+const nearD = (a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= Math.max(0.03, x * 0.005); };
+const nearPct = (a, x) => { const v = parseNum(String(a).replace('%', '')); return isFinite(v) && Math.abs(v - x) <= 0.5; };
+
+// Суміш двох газів: відомі загальний об'єм і маса → об'єм або об'ємна частка одного з газів
+function tMix() {
+  for (;;) {
+    const [A, B] = TWO(MIXG), n1 = pick(NICE_MIX), n2 = pick(NICE_MIX), n = round(n1 + n2, 6);
+    const MA = molar(A), MB = molar(B), V = round(n * VM, 6), m = round(n1 * MA + n2 * MB, 6);
+    if (!isRound2(V) || !isRound2(m)) continue;
+    const askV = Math.random() < .5, V1 = round(n1 * VM, 6), phi = n1 / n * 100;
+    const sol = [
+      `n(суміші) = V / Vₘ = ${fmt(V)} / 22,4 = ${fmt(n, 3)} моль`,
+      `M(${fHTML(A)}) = ${fmt(MA)} г/моль, M(${fHTML(B)}) = ${fmt(MB)} г/моль`,
+      `Нехай n(${fHTML(A)}) = x моль, тоді n(${fHTML(B)}) = (${fmt(n, 3)} − x) моль`,
+      `${fmt(MA)}·x + ${fmt(MB)}·(${fmt(n, 3)} − x) = ${fmt(m)}`,
+      MA > MB ? `x = (${fmt(m)} − ${fmt(MB)}·${fmt(n, 3)}) / (${fmt(MA)} − ${fmt(MB)}) = ${fmt(n1, 3)} моль`
+              : `x = (${fmt(MB)}·${fmt(n, 3)} − ${fmt(m)}) / (${fmt(MB)} − ${fmt(MA)}) = ${fmt(n1, 3)} моль`,
+      askV ? `V(${fHTML(A)}) = x · Vₘ = ${fmt(n1, 3)} · 22,4 = ${fmt(V1)} л`
+           : `φ(${fHTML(A)}) = n(${fHTML(A)}) / n(суміші) · 100% = ${fmt(n1, 3)} / ${fmt(n, 3)} · 100% ≈ ${fmt(phi, 1)}%`
+    ];
+    return { type:'mix', label: `${fTxt(A)} + ${fTxt(B)}, ${fmt(V)} л, ${fmt(m)} г → ${askV ? 'V' : 'φ'}(${fTxt(A)})`, card:null,
+      q: `Суміш ${fHTML(A)} і ${fHTML(B)} об'ємом ${fmt(V)} л (н.у.) має масу ${fmt(m)} г. Обчисліть ${askV ? `об'єм ${fHTML(A)} у суміші (н.у.)` : `об'ємну частку ${fHTML(A)} у суміші`}.`,
+      input:'num', unit: askV ? 'л' : '%', right: askV ? vT('V', V1) : `${fmt(phi, 1)} %`,
+      check: a => askV ? near('V', a, V1) : nearPct(a, phi), sol };
+  }
+}
+
+// Відносна густина суміші: один газ заданий масою, другий — об'ємом
+function tDmix() {
+  for (;;) {
+    const [A, B] = TWO(MIXG), n1 = pick(NICE_MIX), n2 = pick(NICE_MIX);
+    const a = vals(A, n1), b = vals(B, n2);
+    if (!isRound2(a.m) || !isRound2(b.V) || !isRound2(b.m) || a.m < 1) continue;
+    const ref = pick(['H2', 'air']), [word, mref, Mr] = REF[ref];
+    const Mavg = (a.m + b.m) / (n1 + n2), D = Mavg / Mr;
+    return { type:'dmix', label: `${fmt(a.m)} г ${fTxt(A)} + ${fmt(b.V)} л ${fTxt(B)}, D за ${word}`, card:null,
+      q: `Змішали ${fmt(a.m)} г ${fHTML(A)} і ${fmt(b.V)} л ${fHTML(B)} (н.у.). Обчисліть відносну густину одержаної суміші за ${word}.`,
+      input:'num', unit:'', right: fmt(D, 2), check: x => nearD(x, D),
+      sol: [
+        `n(${fHTML(A)}) = m / M = ${fmt(a.m)} / ${fmt(a.M)} = ${fmt(n1, 3)} моль`,
+        `n(${fHTML(B)}) = V / Vₘ = ${fmt(b.V)} / 22,4 = ${fmt(n2, 3)} моль, m(${fHTML(B)}) = ${fmt(n2, 3)} · ${fmt(b.M)} = ${fmt(b.m)} г`,
+        `M(суміші) = m(суміші) / n(суміші) = (${fmt(a.m)} + ${fmt(b.m)}) / (${fmt(n1, 3)} + ${fmt(n2, 3)}) ≈ ${fmt(Mavg, 2)} г/моль`,
+        `D = M(суміші) / ${mref} = ${fmt(Mavg, 2)} / ${Mr} ≈ ${fmt(D, 2)}`
+      ] };
+  }
+}
+
+// Формула газу за відносною густиною + маса заданого об'єму
+function tDfind() {
+  const [cls, list] = pick(DCLS), g = pick(list), M = molar(g);
+  const ref = pick(['H2', 'air']), [word, mref, Mr] = REF[ref];
+  const D = ref === 'H2' ? M / 2 : round(M / 29, 2), Mcalc = D * Mr;
+  const v = vals(g, pickN(g, true));
+  const sol = [`M = D · ${mref} = ${fmt(D, 2)} · ${Mr} ${ref === 'H2' ? '=' : '≈'} ${fmt(Mcalc, 1)} г/моль`];
+  if (list[0] === 'CH4') {
+    const k = (M - 2) / 14;
+    sol.push(`M(C<sub>n</sub>H<sub>2n+2</sub>) = 12n + 2n + 2 = 14n + 2 = ${fmt(M)} → n = ${k}`);
+  } else {
+    sol.push(list.map(x => `M(${fHTML(x)}) = ${fmt(molar(x))}`).join('; '));
+  }
+  sol.push(`Отже, це ${fHTML(g)}.`, stepFrom('V', v), `m = n · M = ${fmt(v.n, 3)} · ${fmt(M)} = ${fmt(v.m)} г`);
+  return { type:'dfind', label: `D за ${word} = ${fmt(D, 2)}, ${fmt(v.V)} л`, card:null,
+    q: `Відносна густина ${cls} за ${word} дорівнює ${fmt(D, 2)}. Визначте формулу речовини та обчисліть масу ${fmt(v.V)} л цього газу (н.у.).`,
+    input:'multi', fields: [{ k:'f', label:'Формула' }, { k:'m', label:'m, г' }], hint:'Формулу пишіть латиницею: C3H8, NO2. Десяткові дроби — з комою.',
+    right: `${fTxt(g)}, m = ${fmt(v.m)} г`,
+    check: a => { const p = parseF(normF(a.f ?? '')); return !!p && sameCounts(p.counts, parseF(g).counts) && near('m', a.m ?? '', v.m); }, sol };
+}
+
+// «Стільки ж атомів, скільки в …»
+function tEqual() {
+  for (;;) {
+    const A = pick(MOL), B = pick([...MOL, ...ION].filter(x => x !== A));
+    const pA = parseF(A), pB = parseF(B), common = pA.order.filter(e => pB.counts[e]);
+    const total = !common.length || Math.random() < .35, e = total ? null : pick(common);
+    const kA = total ? atomsIn(A) : pA.counts[e], kB = total ? atomsIn(B) : pB.counts[e];
+    if (kA === kB) continue;
+    const from = isGas(A) && Math.random() < .5 ? 'V' : 'm', a = vals(A, pickN(A, from === 'V'));
+    const nat = round(a.n * kA, 6), nB = nat / kB, toV = isGas(B) && Math.random() < .4;
+    const ans = round(toV ? nB * VM : nB * molar(B), 6);
+    if (!isRound2(ans) || ans < 1) continue;
+    const what = total ? 'атомів' : `атомів ${gen(e)}`, ph = phrase(from, a, A);
+    const sol = [];
+    if (from === 'm') sol.push(mLine(A));
+    sol.push(stepFrom(from, a));
+    sol.push(`Частинка ${fHTML(A)} містить ${kA} ${pl(kA)}${total ? '' : ' ' + e}: n(${total ? 'атомів' : e}) = ${kA} · ${fmt(a.n, 3)} = ${fmt(nat, 3)} моль`);
+    sol.push(`Частинка ${fHTML(B)} містить ${kB} ${pl(kB)}${total ? '' : ' ' + e}: n(${fHTML(B)}) = ${fmt(nat, 3)} / ${kB}${Number.isInteger(round(nB * 1e4, 6)) ? ' = ' + fmt(nB, 4) : ' ≈ ' + fmt(nB, 4)} моль`);
+    if (toV) sol.push(`V(${fHTML(B)}) = n · Vₘ = ${fmt(nat, 3)} / ${kB} · 22,4 = ${fmt(ans)} л`);
+    else sol.push(mLine(B), `m(${fHTML(B)}) = n · M = ${fmt(nat, 3)} / ${kB} · ${fmt(molar(B))} = ${fmt(ans)} г`);
+    return { type:'equal', label: `${fTxt(B)} ↔ ${phrase(from, a, A, false)}, ${what}`, card:null,
+      q: toV ? `Який об'єм ${fHTML(B)} (н.у.) містить стільки ж ${what}, скільки їх міститься в ${ph}?`
+             : `Яку масу ${fHTML(B)} треба взяти, щоб у ній містилося стільки ж ${what}, скільки їх міститься в ${ph}?`,
+      input:'num', unit: toV ? 'л' : 'г', right: vT(toV ? 'V' : 'm', ans), check: x => near(toV ? 'V' : 'm', x, ans), sol };
+  }
+}
+
+// Кристалогідрати
+function tHydr() {
+  const h = pick(Object.keys(HYD)), name = HYD[h], [anh, w] = h.split('·'), x = parseInt(w, 10);
+  const M = molar(h), v = vals(h, pickN(h, false)), p = parseF(h);
+  const H = `${name} ${fHTML(h)}`;
+  const sol = [`M(${fHTML(h)}) = M(${fHTML(anh)}) + ${x}·M(H<sub>2</sub>O) = ${fmt(molar(anh))} + ${x}·18 = ${fmt(M)} г/моль`];
+  const kind = pick(['O', 'H', 'water', 'rev']);
+  if (kind === 'rev') {
+    const Nw = v.n * x * NA;
+    sol.push(`n(H<sub>2</sub>O) = N / Nₐ = ${sciHTML(Nw)} / ${sciHTML(NA)} = ${fmt(v.n * x, 3)} моль`,
+      `В 1 моль кристалогідрату — ${x} моль води: n(${fHTML(h)}) = ${fmt(v.n * x, 3)} / ${x} = ${fmt(v.n, 3)} моль`,
+      `m = n · M = ${fmt(v.n, 3)} · ${fmt(M)} = ${fmt(v.m)} г`);
+    return { type:'hydr', label: `m(${fTxt(h)}) з ${sciTxt(Nw)} молекул H₂O`, card:null,
+      q: `Яку масу ${H} треба взяти, щоб у ній містилося ${sciHTML(Nw)} молекул води?`,
+      input:'num', unit:'г', right: vT('m', v.m), check: a => near('m', a, v.m), sol };
+  }
+  sol.push(`n(${fHTML(h)}) = m / M = ${fmt(v.m)} / ${fmt(M)} = ${fmt(v.n, 3)} моль`);
+  if (kind === 'water') {
+    const mw = round(v.n * x * 18, 6);
+    sol.push(`n(H<sub>2</sub>O) = ${x} · ${fmt(v.n, 3)} = ${fmt(v.n * x, 3)} моль`, `m(H<sub>2</sub>O) = ${fmt(v.n * x, 3)} · 18 = ${fmt(mw)} г`);
+    return { type:'hydr', label: `m(H₂O) у ${fmt(v.m)} г ${fTxt(h)}`, card:null,
+      q: `Обчисліть масу води, яка міститься в ${fmt(v.m)} г ${H}.`,
+      input:'num', unit:'г', right: vT('m', mw), check: a => near('m', a, mw), sol };
+  }
+  const e = kind, k = p.counts[e], Nat = v.n * k * NA;
+  sol.push(e === 'O'
+    ? `В одній формульній одиниці ${fHTML(h)} — ${k - x} ${pl(k - x)} O в солі + ${x} у воді = ${k} ${pl(k)} O`
+    : `В одній формульній одиниці ${fHTML(h)} — ${x}·2 = ${k} ${pl(k)} H`,
+    `N(${e}) = ${k} · n · Nₐ = ${k} · ${fmt(v.n, 3)} · ${sciHTML(NA)} = ${sciHTML(Nat)}`);
+  return { type:'hydr', label: `атоми ${e} у ${fmt(v.m)} г ${fTxt(h)}`, card:null,
+    q: `Скільки атомів ${gen(e)} міститься в ${fmt(v.m)} г ${H}?`,
+    input:'sci', unit:'атомів', right: sciTxt(Nat), check: a => near('N', a, Nat), sol };
+}
+
+// Маса однієї молекули → який газ
+function tMolmass() {
+  const g = pick(GAS), M = molar(g), m1 = M / NA;
+  const opts = [g];
+  for (const y of shuffle(GAS)) {
+    if (opts.length === 4) break;
+    if (opts.every(o => Math.abs(molar(o) - molar(y)) >= 2)) opts.push(y);
+  }
+  const order = shuffle(opts), ri = order.indexOf(g);
+  return { type:'molmass', label: `m(молекули) = ${sciTxt(m1)} г`, card:null,
+    q: `Маса однієї молекули газу дорівнює ${sciHTML(m1)} г. Який це газ?`, input:'choice',
+    opts: order.map(y => ({ html: fHTML(y), txt: fTxt(y) })), right: fTxt(g), check: a => a === ri,
+    sol: [`Маса 1 моль = маса молекули · Nₐ`, `M = ${sciHTML(m1)} · ${sciHTML(NA)} ≈ ${fmt(M)} г/моль`,
+      order.map(y => `M(${fHTML(y)}) = ${fmt(molar(y))}`).join('; '), `Отже, це ${fHTML(g)}.`] };
+}
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  calc: { t: null, shown: false },
+  prob: { kind: 'all', t: null, shown: false },
+  hard: { kind: 'all', t: null, shown: false },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+
+function cardHTML([big, cap]) {
+  const len = big.replace(/<sub>(\d+)<\/sub>/g, (m, d) => '.'.repeat(Math.ceil(d.length * .62))).length;
+  const fs = Math.min(76, Math.floor(220 / (Math.max(len, 1) * .66)));
+  return `<div class="card"><span class="big" style="font-size:${fs}px">${big}</span><span class="cap">${cap}</span></div>`;
+}
+const stepsHTML = sol => `<ol class="steps">${sol.map(s => `<li>${s}</li>`).join('')}</ol>`;
+const FORMULAS = `<div class="formulas"><span class="chip">n = m / M</span><span class="chip">n = V / V<sub>m</sub></span><span class="chip">n = N / N<sub>A</sub></span></div>`;
+
+/* ---------- Формули ---------- */
+function renderCalc() {
+  const st = S.calc;
+  if (!st.t) st.t = tTable();
+  const t = st.t;
+  stage.innerHTML = `
+    ${cardHTML(t.card)}
+    <div class="task">
+      ${FORMULAS}
+      <p class="q">${t.q}</p>
+      ${st.shown ? `
+        ${stepsHTML(t.sol)}
+        <div class="facts">${['n', ...t.els].filter((k, i, a) => a.indexOf(k) === i).map(k => `<span class="chip">${k} = <b>${vH(k, t.vals[k])}</b></span>`).join('')}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextCalc() : showCalc();
+}
+function showCalc() { S.calc.shown = true; renderCalc(); }
+function nextCalc() { S.calc.shown = false; S.calc.t = tTable(); renderCalc(); }
+
+/* ---------- Задачі ---------- */
+const PROB_KINDS = [['all', 'Усі'], ['mV', 'm ↔ V'], ['mN', 'm ↔ N'], ['atoms', 'Число атомів'], ['mgas', 'Молярна маса газу'], ['cmp', 'Порівняння']];
+const PROB_GEN = { mV: tMV, mN: tMN, atoms: tAtoms, mgas: () => tMgas(), cmp: tCmp };
+const HARD_KINDS = [['all', 'Усі'], ['mix', 'Суміші газів'], ['dfind', 'Формула за D'], ['equal', 'Однакове число атомів'], ['hydr', 'Кристалогідрати'], ['molmass', 'Маса молекули']];
+const HARD_GEN = { mix: () => (Math.random() < .5 ? tMix : tDmix)(), dfind: tDfind, equal: tEqual, hydr: tHydr, molmass: tMolmass };
+const GEN_TABS = {
+  prob: { kinds: PROB_KINDS, gen: k => PROB_GEN[k === 'all' ? pick(['mV', 'mN', 'atoms', 'atoms', 'mgas', 'cmp']) : k]() },
+  hard: { kinds: HARD_KINDS, gen: k => HARD_GEN[k === 'all' ? pick(['mix', 'mix', 'dfind', 'equal', 'equal', 'hydr', 'molmass']) : k]() }
+};
+const genProb = kind => GEN_TABS[S.mode].gen(kind);
+function renderProb() {
+  const st = S[S.mode];
+  if (!st.t) st.t = genProb(st.kind);
+  const t = st.t;
+  stage.classList.toggle('single', !t.card);
+  stage.innerHTML = `
+    ${t.card ? cardHTML(t.card) : ''}
+    <div class="task">
+      <div class="seg" role="group" aria-label="Тип задач">${GEN_TABS[S.mode].kinds.map(([k, l]) =>
+        `<button data-kind="${k}" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+      <p class="q">${t.q}</p>
+      ${t.input === 'choice' ? `<div class="opts">${t.opts.map(o => `<div class="opt">${o.html}</div>`).join('')}</div>` : ''}
+      ${st.shown ? `${stepsHTML(t.sol)}<div class="note ok">Відповідь: <strong>${esc(t.right)}${t.unit && t.input !== 'choice' ? ' ' + t.unit : ''}</strong></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.kind = b.dataset.kind; nextProb(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextProb() : showProb();
+}
+function showProb() { S[S.mode].shown = true; renderProb(); }
+function nextProb() { const st = S[S.mode]; st.shown = false; st.t = genProb(st.kind); renderProb(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.classList.add('single');
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Учень розв'язав так. У якому рядку помилка?</p>
+        <p class="q">${e.task}</p>
+      </div>
+      <div class="lines">${e.lines.map((l, i) => `<div class="line${st.shown && i === e.bad ? ' wrong' : ''}">${l}</div>`).join('')}</div>
+      ${st.shown ? `<div class="note bad">${e.why}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+// Бали за завдання залежно від складності (разом 31)
+const PTS = { nm: 2, nv: 2, nN: 2, cmp: 2, err: 2, mV: 3, mN: 3, table: 3, atoms: 3, mgas: 3, mix: 3, dmix: 3, dfind: 3, equal: 3, hydr: 3, molmass: 3 };
+
+// Від простого до складного
+function makeTest() {
+  const big = shuffle([tMix, tDmix, tDfind, tEqual, tHydr]).slice(0, 2);
+  const tasks = [tNm(), tNv(), tNN(), tCmp(), tErr(), tMV(), tMN(), tTable(), tAtoms(), tMgas(), ...big.map(g => g())];
+  return tasks.map(t => ({ ...t, pts: PTS[t.type], ans: t.input === 'choice' || t.input === 'err' ? null : t.input === 'cells' || t.input === 'multi' ? {} : '' }));
+}
+
+function answered(t) {
+  if (t.input === 'choice' || t.input === 'err') return t.ans !== null;
+  if (t.input === 'cells') return t.els.every(k => String(t.ans[k] ?? '').trim() !== '');
+  if (t.input === 'multi') return t.fields.every(f => String(t.ans[f.k] ?? '').trim() !== '');
+  return t.ans.trim() !== '';
+}
+
+function givenText(t) {
+  if (t.input === 'choice') return t.opts[t.ans].txt;
+  if (t.input === 'err') return t.lines[t.ans];
+  if (t.input === 'cells') return t.els.map(k => `${k} = ${t.ans[k]}`).join(', ');
+  if (t.input === 'multi') return t.fields.map(f => `${f.label}: ${t.ans[f.k]}`).join(', ');
+  return t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+}
+function grade(t) {
+  return { ok: t.check(t.ans), label: TYPE[t.type] + (t.label ? ' · ' + t.label : ''), given: givenText(t), right: t.right, sol: t.sol };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  stage.classList.toggle('single', T.phase !== 'run');
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань</p><h1 class="h">Кількість речовини</h1></div>
+      ${FORMULAS}
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="8-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Задачі на масу, об'єм газу, число молекул і атомів, порівняння порцій, пошук помилок. Останні дві — великі задачі (суміші газів, відносна густина, кристалогідрати).</li>
+        <li>N<sub>A</sub> = 6,02·10<sup>23</sup> моль⁻¹, V<sub>m</sub> = 22,4 л/моль (н.у.). Ar — з періодичної системи, округлені до цілих (Cl — 35,5).</li>
+        <li>Число частинок записуйте так: 3,01·10^23 (можна * або x замість ·).</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+// Показує, як програма прочитала число в стандартному вигляді
+function sciPreview(raw) {
+  if (!raw.trim()) return '';
+  const v = parseNum(raw);
+  return isFinite(v) && v > 0 ? `= ${sciHTML(v)}` : `<p class="hint">Не вдалося прочитати число. Приклад: 1,204·10^24</p>`;
+}
+
+const PH = { num: 'Число', sci: 'Наприклад, 3,01·10^23' };
+const HINT = {
+  num: 'Десятковий дріб можна писати з комою: 0,25',
+  sci: 'Степінь пишіть через ^: 1,204·10^24 (можна * або x замість ·)'
+};
+const CELL = { n: 'n, моль', m: 'm, г', V: 'V, л (н.у.)' };
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  stage.classList.toggle('single', !t.card);
+  let body = '';
+  if (t.input === 'num' || t.input === 'sci') {
+    body = `
+      <div class="ans-row">
+        <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"${t.input === 'num' ? ' inputmode="decimal"' : ''}
+          placeholder="${PH[t.input]}" aria-label="Відповідь" value="${esc(t.ans)}">
+        ${t.unit ? `<span class="unit">${t.unit}</span>` : ''}
+      </div>
+      ${t.input === 'sci' ? `<div class="preview" id="t-prev" aria-live="polite">${sciPreview(t.ans)}</div>` : ''}
+      <p class="hint">${HINT[t.input]}</p>`;
+  } else if (t.input === 'choice') {
+    body = `<div class="opts">${t.opts.map((o, i) =>
+      `<button class="opt" data-o="${i}" aria-pressed="${t.ans === i}">${o.html}</button>`).join('')}</div>`;
+  } else if (t.input === 'multi') {
+    body = `<div class="cells">${t.fields.map(f =>
+      `<label class="cell"><span class="sym">${f.label}</span><input data-k="${f.k}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(t.ans[f.k] ?? '')}"></label>`).join('')}</div>
+      <p class="hint">${t.hint}</p>`;
+  } else if (t.input === 'cells') {
+    body = `<div class="cells">${t.els.map(k =>
+      `<label class="cell${k === 'N' ? ' wide' : ''}"><span class="sym">${k === 'N' ? `N, ${t.part}` : CELL[k]}</span><input data-k="${k}" autocomplete="off" spellcheck="false"${k === 'N' ? '' : ' inputmode="decimal"'} value="${esc(t.ans[k] ?? '')}"></label>`).join('')}</div>
+      <p class="hint">Число частинок: 3,01·10^23. Десяткові дроби — з комою.</p>`;
+  } else {
+    body = `
+      <p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>
+      <div class="lines">${t.lines.map((l, i) =>
+        `<button class="line${t.ans === i ? ' picked' : ''}" data-l="${i}" aria-pressed="${t.ans === i}">${l}</button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    ${t.card ? cardHTML(t.card) : ''}
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE}</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      <p class="q">${t.q}</p>
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    const prev = document.getElementById('t-prev');
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); if (prev) prev.innerHTML = sciPreview(t.ans); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  const cells = stage.querySelectorAll('[data-k]');
+  cells.forEach(c => {
+    c.oninput = () => { t.ans[c.dataset.k] = c.value; next.disabled = !answered(t); };
+    c.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+  });
+  if (cells.length) cells[0].focus();
+  stage.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.o; renderTask(); stage.querySelector(`[data-o="${b.dataset.o}"]`).focus();
+  });
+  stage.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.l; renderTask(); stage.querySelector(`[data-l="${b.dataset.l}"]`).focus();
+  });
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${esc(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, calc: renderCalc, prob: renderProb, hard: renderProb, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  stage.classList.remove('single');
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const st = S[S.mode];
+  const show = { calc: showCalc, prob: showProb, hard: showProb, err: showErr }[S.mode];
+  const next = { calc: nextCalc, prob: nextProb, hard: nextProb, err: nextErr }[S.mode];
+  if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); st.shown ? next() : show(); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>

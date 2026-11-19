@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кількість речовини: поглиблено</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one projector screen — top bar (tabs + timer), a centered "stage" with a substance card and the task. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #15202e;
+  --muted: #5b6878;
+  --line: #d3dae2;
+  --acc: #1f7a8c;
+  --acc-soft: #d8eef2;
+  --ok: #2f8a4c;
+  --ok-soft: #dcf1e2;
+  --bad: #c23b3b;
+  --bad-soft: #f8dede;
+  --focus: #1f7a8c;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+    --acc: #4fb6c9; --acc-soft: #15323a;
+    --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161d; --surface: #18212b; --ink: #e8eef4; --muted: #95a3b3; --line: #2c3845;
+  --acc: #4fb6c9; --acc-soft: #15323a;
+  --ok: #5cc27e; --ok-soft: #173323; --bad: #ef6b6b; --bad-soft: #3a1c1c; --focus: #4fb6c9;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 18px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+[hidden] { display: none !important; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+sub { font-size: .62em; line-height: 0; vertical-align: -.25em; }
+
+.app { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; min-height: 100%; }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+.brand small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; padding: 10px 16px; border-radius: 9px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.timer { display: flex; align-items: center; gap: 8px; }
+.timer output { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
+.timer.done output { color: var(--bad); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+
+/* stage */
+.stage { display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 40px; }
+.stage.single { grid-template-columns: 1fr; }
+.stage > * { min-width: 0; }
+.prompt { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+.task { display: flex; flex-direction: column; gap: 20px; }
+.h { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.5rem, 3.2vw, 2.2rem); line-height: 1.2; margin: 0; }
+.q { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 600; line-height: 1.4; margin: 0; }
+
+/* formula card */
+.card { width: 260px; min-height: 220px; max-width: 100%; border: 3px solid var(--ink); border-radius: 6px; padding: 16px; display: grid; grid-template-rows: 1fr auto; justify-items: center; align-items: center; gap: 8px; background: var(--surface); }
+.card .big { font-weight: 700; line-height: 1.1; white-space: nowrap; }
+.card .cap { font-weight: 600; font-size: 1.15rem; color: var(--muted); text-align: center; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-weight: 500; font-size: 1.05rem; }
+.chip b { font-weight: 700; color: var(--acc); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: clamp(1.05rem, 1.9vw, 1.3rem); font-weight: 500; }
+.steps li { padding: 4px 0 4px 14px; border-left: 3px solid var(--acc); overflow-wrap: anywhere; }
+
+.note { border-radius: 12px; padding: 14px 18px; font-size: 1.05rem; }
+.note.ok { background: var(--ok-soft); color: var(--ok); }
+.note.bad { background: var(--bad-soft); color: var(--bad); }
+.note.info { background: var(--bg); color: var(--ink); }
+.note strong { font-weight: 700; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--surface); border-radius: 12px; padding: 12px 22px; font-weight: 700; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .4; cursor: default; }
+.kbd { font-size: .8rem; color: var(--muted); }
+.kbd kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 6px 12px; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--ink); }
+
+/* choice */
+.opts { display: grid; gap: 10px; max-width: 720px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 1.15rem; cursor: pointer; }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--bg); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* table cells (n, m, V, N) */
+.cells { display: flex; flex-wrap: wrap; gap: 14px; }
+.cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.cell .sym { font-weight: 700; font-size: 1.15rem; }
+.cell input { width: 130px; font-size: 1.3rem; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.cell.wide input { width: 210px; }
+.formulas { display: flex; flex-wrap: wrap; gap: 8px; }
+.formulas .chip { font-weight: 700; }
+
+/* find the error */
+.lines { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.line { text-align: left; border: 2px dashed var(--line); background: transparent; border-radius: 10px; padding: 8px 14px; font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; max-width: 100%; overflow-wrap: anywhere; }
+button.line { cursor: pointer; }
+.line.picked { border-style: solid; border-color: var(--bad); background: var(--bad-soft); }
+.line.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+/* test */
+.fields { display: flex; flex-wrap: wrap; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .95rem; color: var(--muted); flex: 1 1 220px; max-width: 420px; }
+.field input, .answer { font-size: 1.15rem; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.answer { max-width: 420px; font-size: 1.3rem; }
+.ans-row { display: flex; align-items: center; gap: 10px; }
+.unit { font-weight: 700; font-size: 1.3rem; }
+.preview { min-height: 1.6em; font-size: 1.5rem; font-weight: 700; }
+.hint { font-size: 1rem; font-weight: 500; color: var(--muted); margin: 0; }
+.rules { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.rules li + li { margin-top: 4px; }
+.progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 14px; max-width: 420px; }
+.progress i { display: block; height: 100%; background: var(--ink); }
+.score { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1.1; }
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.review li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg); }
+.review li > div { min-width: 0; overflow-wrap: anywhere; }
+.review li.bad { background: var(--bad-soft); }
+.review .mark { font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.review li.ok .mark { color: var(--ok); }
+.review li.bad .mark { color: var(--bad); }
+.review .pts { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.score small { font-size: .4em; color: var(--muted); }
+.review .why { color: var(--muted); margin-top: 4px; }
+.review .why div + div { margin-top: 2px; }
+
+.foot { color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .stage { grid-template-columns: 1fr; padding: 22px; gap: 24px; justify-items: start; }
+  .stage > * { width: 100%; }
+  .stage > .card { min-height: 160px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note, .line, .opt { transition: background-color .2s, color .2s; }
+}
+/* рівняння реакції */
+.eqn { font-weight: 700; font-size: clamp(1.15rem, 2.3vw, 1.6rem); line-height: 1.5; background: var(--bg); border-radius: 12px; padding: 10px 18px; overflow-wrap: anywhere; }
+.eqn div + div { margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">Кількість речовини<small>Хімія · поглиблений рівень</small></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Режими">
+      <button class="tab" role="tab" aria-selected="true" data-mode="test">Тест</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="eq">За рівнянням</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="hard">Складні задачі</button>
+      <button class="tab" role="tab" aria-selected="false" data-mode="err">Знайди помилку</button>
+    </nav>
+    <div class="timer" id="timer">
+      <output id="timer-out" aria-live="off">5:00</output>
+      <button class="icon-btn" id="timer-go">Старт</button>
+      <button class="icon-btn" id="timer-reset" aria-label="Скинути таймер">↺</button>
+    </div>
+  </header>
+
+  <main class="stage single" id="stage"></main>
+
+  <p class="foot" id="foot">Клавіші: <span class="kbd"><kbd>Пробіл</kbd> — показати розв'язання, <kbd>→</kbd> — далі</span></p>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TEST_SIZE = 12;
+const TOPIC = 'Хімія 8–9 клас — Кількість речовини (поглиблений рівень)';
+
+const VM = 22.4;      // молярний об'єм газу (н.у.), л/моль
+
+// Символ: [назва, Ar (шкільне округлення)]
+const EL = {
+  H:['Гідроген',1], C:['Карбон',12], N:['Нітроген',14], O:['Оксиген',16], Na:['Натрій',23],
+  Mg:['Магній',24], Al:['Алюміній',27], P:['Фосфор',31], S:['Сульфур',32], Cl:['Хлор',35.5], K:['Калій',39],
+  Ca:['Кальцій',40], Mn:['Манган',55], Fe:['Ферум',56], Cu:['Купрум',64], Zn:['Цинк',65], Ag:['Аргентум',108], Ba:['Барій',137]
+};
+const GAS = ['H2','O2','N2','Cl2','CO2','CO','CH4','NH3','SO2','HCl','NO','C2H6','C2H2','C3H8'];
+
+// Рівняння реакцій: [рівняння, ΔH у кДж (для термохімії), речовини в розчині, що не вважаються газами]
+const RX_SRC = [
+  ['2H2 + O2 = 2H2O', -572],
+  ['CH4 + 2O2 = CO2 + 2H2O', -890],
+  ['C3H8 + 5O2 = 3CO2 + 4H2O', -2220],
+  ['2C2H6 + 7O2 = 4CO2 + 6H2O', -3120],
+  ['2C2H2 + 5O2 = 4CO2 + 2H2O', -2610],
+  ['C + O2 = CO2', -393],
+  ['S + O2 = SO2', -297],
+  ['4P + 5O2 = 2P2O5', -3010],
+  ['2Mg + O2 = 2MgO', -1204],
+  ['4Al + 3O2 = 2Al2O3', -3352],
+  ['2CO + O2 = 2CO2', -566],
+  ['N2 + 3H2 = 2NH3', -92],
+  ['H2 + Cl2 = 2HCl', -184],
+  ['2SO2 + O2 = 2SO3', -198],
+  ['CaCO3 = CaO + CO2', 178],
+  ['N2 + O2 = 2NO', 180],
+  ['2KMnO4 = K2MnO4 + MnO2 + O2'],
+  ['2KClO3 = 2KCl + 3O2'],
+  ['2H2O2 = 2H2O + O2'],
+  ['Zn + 2HCl = ZnCl2 + H2', null, ['HCl']],
+  ['Mg + 2HCl = MgCl2 + H2', null, ['HCl']],
+  ['Fe + 2HCl = FeCl2 + H2', null, ['HCl']],
+  ['2Al + 6HCl = 2AlCl3 + 3H2', null, ['HCl']],
+  ['Zn + H2SO4 = ZnSO4 + H2'],
+  ['CaCO3 + 2HCl = CaCl2 + H2O + CO2', null, ['HCl']],
+  ['CuO + H2 = Cu + H2O'],
+  ['Fe2O3 + 3H2 = 2Fe + 3H2O'],
+  ['2Na + 2H2O = 2NaOH + H2'],
+  ['Ca + 2H2O = Ca(OH)2 + H2'],
+  ['CaO + H2O = Ca(OH)2'],
+  ['NaOH + HCl = NaCl + H2O', null, ['HCl']],
+  ['2NaOH + H2SO4 = Na2SO4 + 2H2O'],
+  ['CuSO4 + 2NaOH = Cu(OH)2 + Na2SO4'],
+  ['BaCl2 + H2SO4 = BaSO4 + 2HCl', null, ['HCl']],
+  ['AgNO3 + NaCl = AgCl + NaNO3']
+];
+
+// Кількості речовини, з якими виходять «шкільні» числа
+const NICE = [0.02, 0.04, 0.05, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2, 0.24, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.75, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5, 3, 4, 5];
+const NICE_MIX = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6];
+const VLIST = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 50, 60, 100];
+
+// Типові помилки учнів: bad — рядок, де помилку зроблено вперше
+const ERRORS = [
+  { task:'Zn + 2HCl = ZnCl₂ + H₂. Який об\'єм водню (н.у.) виділиться при розчиненні 13 г цинку?',
+    lines:['n(Zn) = 13 / 65 = 0,2 моль', 'n(H₂) = 2 · n(Zn) = 0,4 моль', 'V(H₂) = 0,4 · 22,4 = 8,96 л'], bad:1,
+    why:'Коефіцієнт 2 стоїть перед HCl, а не перед H₂. За рівнянням n(H₂) = n(Zn) = 0,2 моль, V = 4,48 л.' },
+  { task:'2H₂ + O₂ = 2H₂O. Яка маса води утвориться з 8 г кисню?',
+    lines:['n(O₂) = 8 / 32 = 0,25 моль', 'n(H₂O) = n(O₂) = 0,25 моль', 'm(H₂O) = 0,25 · 18 = 4,5 г'], bad:1,
+    why:'Не враховано коефіцієнти: n(H₂O) = 2 · n(O₂) = 0,5 моль, m = 0,5 · 18 = 9 г.' },
+  { task:'CaCO₃ = CaO + CO₂. Який об\'єм CO₂ (н.у.) утвориться при прожарюванні 50 г вапняку, що містить 20 % домішок?',
+    lines:['n(CaCO₃) = 50 / 100 = 0,5 моль', 'n(CO₂) = n(CaCO₃) = 0,5 моль', 'V(CO₂) = 0,5 · 22,4 = 11,2 л'], bad:0,
+    why:'Спершу треба відняти домішки: m(CaCO₃) = 50 · 0,8 = 40 г, n = 0,4 моль, V(CO₂) = 8,96 л.' },
+  { task:'CH₄ + 2O₂ = CO₂ + 2H₂O; ΔH = −890 кДж. Скільки теплоти виділиться, якщо витратиться 32 г кисню?',
+    lines:['n(O₂) = 32 / 32 = 1 моль', 'За рівнянням 890 кДж виділяється на 1 моль O₂', 'Q = 1 · 890 = 890 кДж'], bad:1,
+    why:'890 кДж виділяється на 2 моль O₂ (коефіцієнт 2). Q = 1 · 890 / 2 = 445 кДж.' },
+  { task:'Теоретично мало утворитися 20 г продукту, а одержали 16 г. Обчисліть вихід продукту.',
+    lines:['m(теор.) = 20 г, m(практ.) = 16 г', 'η = m(теор.) / m(практ.) · 100 %', '= 20 / 16 · 100 % = 125 %'], bad:1,
+    why:'Дріб перевернуто: η = m(практ.) / m(теор.) · 100 % = 16 / 20 · 100 % = 80 %. Вихід не може перевищувати 100 %.' },
+  { task:'Zn + 2HCl = ZnCl₂ + H₂. Взяли 13 г цинку і 7,3 г HCl. Який об\'єм водню (н.у.) виділиться?',
+    lines:['n(Zn) = 13 / 65 = 0,2 моль, n(HCl) = 7,3 / 36,5 = 0,2 моль', 'Кількості однакові, тому рахуємо за Zn: n(H₂) = n(Zn) = 0,2 моль', 'V(H₂) = 0,2 · 22,4 = 4,48 л'], bad:1,
+    why:'Порівнюють n / коефіцієнт: Zn — 0,2 / 1 = 0,2, HCl — 0,2 / 2 = 0,1. HCl у нестачі: n(H₂) = 0,2 / 2 = 0,1 моль, V = 2,24 л.' },
+  { task:'Zn + 2HCl = ZnCl₂ + H₂. До 200 г розчину хлоридної кислоти з масовою часткою HCl 7,3 % додали надлишок цинку. Який об\'єм водню (н.у.) виділився?',
+    lines:['n(HCl) = 200 / 36,5 ≈ 5,48 моль', 'n(H₂) = n(HCl) / 2 ≈ 2,74 моль', 'V(H₂) ≈ 2,74 · 22,4 ≈ 61,4 л'], bad:0,
+    why:'200 г — маса розчину, а не HCl. m(HCl) = 200 · 0,073 = 14,6 г, n = 0,4 моль, n(H₂) = 0,2 моль, V = 4,48 л.' },
+  { task:'N₂ + 3H₂ = 2NH₃. Який об\'єм амоніаку утвориться з 15 л водню (об\'єми за однакових умов)?',
+    lines:['V(NH₃) : V(H₂) = 2 : 3', 'V(NH₃) = 15 · 3 / 2', '= 22,5 л'], bad:1,
+    why:'Співвідношення перевернуто: V(NH₃) = 15 · 2 / 3 = 10 л.' },
+  { task:'4Al + 3O₂ = 2Al₂O₃. Яка маса оксиду утвориться з 5,4 г алюмінію?',
+    lines:['n(Al) = 5,4 / 27 = 0,2 моль', 'n(Al₂O₃) = 0,2 · 2 / 4 = 0,1 моль', 'M(Al₂O₃) = 27 + 3 · 16 = 75 г/моль', 'm = 0,1 · 75 = 7,5 г'], bad:2,
+    why:'У Al₂O₃ два атоми Al: M = 2 · 27 + 3 · 16 = 102 г/моль, m = 10,2 г.' },
+  { task:'Вуглеводень містить 80 % Карбону, його відносна густина за воднем 15. Виведіть формулу.',
+    lines:['M = D · M(H₂) = 15 · 1 = 15 г/моль', 'N(C) = 15 · 0,8 / 12 = 1', 'N(H) = 15 · 0,2 / 1 = 3 → CH₃'], bad:0,
+    why:'M(H₂) = 2 г/моль: M = 30 г/моль, N(C) = 30 · 0,8 / 12 = 2, N(H) = 6 → C₂H₆.' },
+  { task:'2KMnO₄ = K₂MnO₄ + MnO₂ + O₂. Який об\'єм кисню (н.у.) утвориться з 31,6 г KMnO₄?',
+    lines:['M(KMnO₄) = 39 + 55 + 4 · 16 = 158 г/моль', 'n(KMnO₄) = 31,6 / 158 = 0,2 моль', 'n(O₂) = 2 · n(KMnO₄) = 0,4 моль', 'V(O₂) = 0,4 · 22,4 = 8,96 л'], bad:2,
+    why:'Із 2 моль KMnO₄ утворюється 1 моль O₂: n(O₂) = 0,2 / 2 = 0,1 моль, V = 2,24 л.' },
+  { task:'Суміш міді та цинку масою 20 г обробили надлишком хлоридної кислоти, виділилося 4,48 л водню (н.у.). Обчисліть масову частку міді.',
+    lines:['n(H₂) = 4,48 / 22,4 = 0,2 моль', 'n(Cu) = n(H₂) = 0,2 моль, m(Cu) = 0,2 · 64 = 12,8 г', 'w(Cu) = 12,8 / 20 · 100 % = 64 %'], bad:1,
+    why:'Мідь не реагує з хлоридною кислотою — водень дає лише цинк. n(Zn) = 0,2 моль, m(Zn) = 13 г, m(Cu) = 7 г, w(Cu) = 35 %.' },
+  { task:'CaCO₃ = CaO + CO₂. З 10 г CaCO₃ одержали CaO, вихід 80 %. Яку масу CaO одержали?',
+    lines:['n(CaCO₃) = 10 / 100 = 0,1 моль', 'm(CaO, теор.) = 0,1 · 56 = 5,6 г', 'm(CaO, практ.) = 5,6 / 0,8 = 7 г'], bad:2,
+    why:'Практична маса менша за теоретичну: m(практ.) = 5,6 · 0,8 = 4,48 г.' },
+  { task:'2Na + 2H₂O = 2NaOH + H₂. Який об\'єм водню (н.у.) виділиться при взаємодії 4,6 г натрію з водою?',
+    lines:['n(Na) = 4,6 / 23 = 0,2 моль', 'n(H₂) = n(Na) = 0,2 моль', 'V(H₂) = 0,2 · 22,4 = 4,48 л'], bad:1,
+    why:'Із 2 моль Na утворюється 1 моль H₂: n(H₂) = 0,1 моль, V = 2,24 л.' }
+];
+
+/* ---------- утиліти ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',');   // без зайвих нулів
+const isR = (x, d = 2) => Math.abs(x * 10 ** d - Math.round(x * 10 ** d)) < 1e-6;
+const SUBD = '₀₁₂₃₄₅₆₇₈₉', SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const fTxt = s => s.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+
+/* ---------- хімія ---------- */
+const AR = s => EL[s][1];
+
+// Розбір формули: H2SO4, Ca(OH)2 → { counts, order }
+function group(s) {
+  const st = [[]]; let i = 0;
+  while (i < s.length) {
+    if (s[i] === '(') { st.push([]); i++; continue; }
+    if (s[i] === ')') {
+      if (st.length < 2) return null;
+      const g = st.pop(); i++;
+      const d = s.slice(i).match(/^([1-9]\d*)?/)[0]; i += d.length;
+      if (!g.length) return null;
+      st[st.length - 1].push(...g.map(([e, n]) => [e, n * (d ? +d : 1)]));
+      continue;
+    }
+    const m = s.slice(i).match(/^([A-Z][a-z]?)([1-9]\d*)?/);
+    if (!m || !EL[m[1]]) return null;
+    st[st.length - 1].push([m[1], m[2] ? +m[2] : 1]); i += m[0].length;
+  }
+  return st.length === 1 && st[0].length ? st[0] : null;
+}
+const PF = new Map();
+function parseF(s) {
+  if (PF.has(s)) return PF.get(s);
+  const g = group(s), counts = {}, order = [];
+  if (g) g.forEach(([e, n]) => { if (!(e in counts)) { counts[e] = 0; order.push(e); } counts[e] += n; });
+  const r = g ? { counts, order } : null;
+  PF.set(s, r);
+  return r;
+}
+const molar = f => { const p = parseF(f); return round(p.order.reduce((a, e) => a + p.counts[e] * AR(e), 0), 2); };
+const nA = (n, x) => n === 1 ? x : `${n}·${x}`;
+const sameCounts = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
+
+function mLine(f) {
+  const p = parseF(f), M = molar(f);
+  const terms = p.order.map(e => nA(p.counts[e], fmt(AR(e))));
+  return `M(${fHTML(f)}) = ${terms.length === 1 && p.counts[p.order[0]] === 1 ? '' : terms.join(' + ') + ' = '}${fmt(M)} г/моль`;
+}
+
+// Рівняння → учасники { c, f, prod, gas }
+const RX = RX_SRC.map(([eq, dH = null, aq = []]) => {
+  const [L, R] = eq.split(' = ');
+  const side = (s, prod) => s.split(' + ').map(t => { const m = t.match(/^(\d*)(\D.*)$/); return { c: m[1] ? +m[1] : 1, f: m[2], prod }; });
+  const sp = [...side(L, false), ...side(R, true)];
+  sp.forEach(x => { x.gas = GAS.includes(x.f) && !aq.includes(x.f); });
+  return { eq, dH, sp };
+});
+const rxOf = eq => RX.find(r => r.eq === eq);
+const spOf = (r, f) => r.sp.find(x => x.f === f);
+const coefHTML = x => (x.c > 1 ? x.c : '') + fHTML(x.f);
+function eqHTML(r, withH = false) {
+  const s = p => r.sp.filter(x => x.prod === p).map(coefHTML).join(' + ');
+  const h = withH && r.dH ? `; ΔH = ${r.dH < 0 ? '−' : '+'}${Math.abs(r.dH)} кДж` : '';
+  return `${s(false)} = ${s(true)}${h}`;
+}
+const eqTxt = r => r.eq.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + [...d].map(c => SUBD[c]).join(''));
+
+/* ---------- величини ---------- */
+const UNIT = { n:'моль', m:'г', V:'л' };
+const qv = (k, f, n) => k === 'm' ? n * molar(f) : k === 'V' ? n * VM : n;
+// «Гарна» порція: n до тисячних, маса/об'єм до сотих
+const okQ = (k, f, n) => { const x = qv(k, f, n); return isR(n, 3) && isR(x, 2) && x >= 0.1 && x <= 1000; };
+const pickNice = (cond, pool = NICE) => { for (const n of shuffle(pool)) if (cond(n)) return n; return null; };
+const valTxt = (k, f, n) => k === 'n' ? `${fmt(n, 3)} моль` : `${fmt(qv(k, f, n))} ${UNIT[k]}`;
+// «13 г Zn», «4,48 л H₂ (н.у.)», «0,2 моль Zn»
+const giv = (k, f, n, html = true) => `${valTxt(k, f, n)} ${html ? fHTML(f) : fTxt(f)}${k === 'V' ? ' (н.у.)' : ''}`;
+const givS = (k, x, n) => `${x.prod ? 'Утворилося' : 'У реакцію вступило'} ${giv(k, x.f, n)}.`;
+function askWhat(k, x) {
+  const F = fHTML(x.f);
+  if (k === 'm') return x.prod ? `Яка маса ${F} утворилася?` : `Яка маса ${F} вступила в реакцію?`;
+  if (k === 'V') return x.prod ? `Який об'єм ${F} (н.у.) утворився?` : `Який об'єм ${F} (н.у.) вступив у реакцію?`;
+  return x.prod ? `Яка кількість речовини ${F} утворилася?` : `Яка кількість речовини ${F} вступила в реакцію?`;
+}
+const sym = k => ({ m:'m', V:'V', n:'n' })[k];
+// Крок «величина → n» і «n → величина»
+function nFrom(k, f, n) {
+  if (k === 'm') return `n(${fHTML(f)}) = m / M = ${fmt(qv('m', f, n))} / ${fmt(molar(f))} = ${fmt(n, 3)} моль`;
+  if (k === 'V') return `n(${fHTML(f)}) = V / Vₘ = ${fmt(qv('V', f, n))} / 22,4 = ${fmt(n, 3)} моль`;
+  return null;
+}
+function qTo(k, f, n) {
+  if (k === 'm') return `m(${fHTML(f)}) = n · M = ${fmt(n, 3)} · ${fmt(molar(f))} = ${fmt(qv('m', f, n))} г`;
+  if (k === 'V') return `V(${fHTML(f)}) = n · Vₘ = ${fmt(n, 3)} · 22,4 = ${fmt(qv('V', f, n))} л`;
+  return null;
+}
+function ratioLine(a, na, b, nb) {
+  const A = fHTML(a.f), B = fHTML(b.f);
+  if (a.c === b.c) return `За рівнянням n(${B}) = n(${A}) = ${fmt(nb, 3)} моль`;
+  return `За рівнянням n(${B}) : n(${A}) = ${b.c} : ${a.c}, тому n(${B}) = ${fmt(na, 3)} · ${b.c} / ${a.c} = ${fmt(nb, 3)} моль`;
+}
+// Повний ланцюжок a → n(a) → n(b) → b
+function chain(ka, a, na, kb, b, nb) {
+  const sol = [];
+  if (ka === 'm') sol.push(mLine(a.f));
+  if (ka !== 'n') sol.push(nFrom(ka, a.f, na));
+  sol.push(ratioLine(a, na, b, nb));
+  if (kb === 'm') sol.push(mLine(b.f));
+  if (kb !== 'n') sol.push(qTo(kb, b.f, nb));
+  return sol;
+}
+
+/* ---------- розбір введення ---------- */
+// 0,5 · 22,4 л · 12,5 % · −445 кДж
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase()
+    .replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-')
+    .replace(/(г\/моль|моль|кдж|г|л|%|g|l)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X',
+  'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+const latin = s => s.replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]);
+const normF = raw => latin(raw.trim()).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/[[{]/g, '(').replace(/[\]}]/g, ')').replace(/\s+/g, '');
+const TOL = { n: x => Math.max(0.005, x * 0.02), m: x => Math.max(0.01, x * 0.01), V: x => Math.max(0.01, x * 0.01), Q: x => Math.max(0.5, x * 0.01) };
+const near = (k, a, x) => { const v = parseNum(a); return isFinite(v) && v >= 0 && Math.abs(v - x) <= TOL[k](x); };
+const nearQ = (a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(Math.abs(v) - x) <= TOL.Q(x); };
+const nearPct = (a, x) => { const v = parseNum(a); return isFinite(v) && Math.abs(v - x) <= 0.5; };
+// Формули тут лише з C, H, O — тож «c3h8» / «с3н8» можна прочитати у верхньому регістрі
+const sameF = (raw, f) => [normF(raw ?? ''), normF(String(raw ?? '').toUpperCase())]
+  .some(x => { const p = parseF(x); return !!p && sameCounts(p.counts, parseF(f).counts); });
+
+/* ---------- завдання за рівнянням ---------- */
+// Кожне завдання: type, label, eq (HTML), q, input, unit, right, check(ans), sol[]
+const TYPE = {
+  eqn: 'Кількість речовини за рівнянням', eqVV: 'Об\'ємні відношення газів', eqmm: 'Маса → маса', eqmV: 'Маса ↔ об\'єм',
+  thermo: 'Термохімічне рівняння', err: 'Знайди помилку', excess: 'Надлишок і нестача', yield: 'Вихід продукту',
+  impur: 'Домішки', sol: 'Розчини', alloy: 'Суміш металів', formula: 'Формула речовини'
+};
+
+function tEq(type) {
+  for (;;) {
+    const r = pick(RX), [a, b] = shuffle(r.sp).slice(0, 2);
+    let ka, kb;
+    if (type === 'eqn') [ka, kb] = ['n', 'n'];
+    else if (type === 'eqmm') { if (a.c === b.c && Math.random() < .7) continue; [ka, kb] = ['m', 'm']; }
+    else if (a.gas && b.gas) [ka, kb] = Math.random() < .5 ? ['V', 'm'] : ['m', 'V'];
+    else if (b.gas) [ka, kb] = ['m', 'V'];
+    else if (a.gas) [ka, kb] = ['V', 'm'];
+    else continue;
+    if (type === 'eqn' && a.c === b.c) continue;
+    const na = pickNice(n => okQ(ka, a.f, n) && okQ(kb, b.f, n * b.c / a.c));
+    if (na === null) continue;
+    const nb = round(na * b.c / a.c, 8);
+    return { type, label: `${eqTxt(r)}: ${giv(ka, a.f, na, false)} → ${sym(kb)}(${fTxt(b.f)})`, eq: eqHTML(r),
+      q: `${givS(ka, a, na)} ${askWhat(kb, b)}`, input:'num', unit: UNIT[kb],
+      right: valTxt(kb, b.f, nb), check: x => near(kb, x, qv(kb, b.f, nb)), sol: chain(ka, a, na, kb, b, nb) };
+  }
+}
+const tEqn = () => tEq('eqn');
+const tEqmm = () => tEq('eqmm');
+const tEqmV = () => tEq('eqmV');
+
+// Закон об'ємних відношень: вибір із варіантів
+function tEqVV() {
+  for (;;) {
+    const r = pick(RX), gs = r.sp.filter(x => x.gas);
+    if (gs.length < 2) continue;
+    const [a, b] = shuffle(gs);
+    if (a.c === b.c && Math.random() < .7) continue;
+    const V = pick(VLIST), Vb = V * b.c / a.c;
+    if (!isR(Vb, 2)) continue;
+    const vals = [Vb];
+    for (const w of [V * a.c / b.c, V, V * b.c, V * (a.c + b.c), Vb * 2, Vb / 2, Vb * 3, Vb + V]) {
+      if (vals.length === 4) break;
+      if (isR(w, 2) && w > 0 && !vals.some(v => Math.abs(v - w) < 1e-6)) vals.push(w);
+    }
+    const order = shuffle(vals), ri = order.indexOf(Vb), A = fHTML(a.f), B = fHTML(b.f);
+    const verb = b.prod ? 'утвориться' : 'витратиться';
+    return { type:'eqVV', label: `${eqTxt(r)}: ${fmt(V)} л ${fTxt(a.f)} → V(${fTxt(b.f)})`, eq: eqHTML(r),
+      q: `${a.prod ? 'Утворилося' : 'У реакцію вступило'} ${fmt(V)} л ${A}. Який об'єм ${B} ${verb}? Об'єми виміряно за однакових умов.`,
+      input:'choice', opts: order.map(v => ({ html: `${fmt(v)} л`, txt: `${fmt(v)} л` })), right: `${fmt(Vb)} л`, check: x => x === ri,
+      sol: ['Для газів за однакових умов об\'єми відносяться як коефіцієнти в рівнянні (закон об\'ємних відношень).',
+        a.c === b.c ? `V(${B}) = V(${A}) = ${fmt(Vb)} л` : `V(${B}) : V(${A}) = ${b.c} : ${a.c}, тому V(${B}) = ${fmt(V)} · ${b.c} / ${a.c} = ${fmt(Vb)} л`] };
+  }
+}
+
+// Термохімічні рівняння: порція → теплота або теплота → порція
+function tThermo() {
+  for (;;) {
+    const r = pick(RX.filter(x => x.dH)), a = pick(r.sp), H = Math.abs(r.dH), exo = r.dH < 0;
+    const k = a.gas && Math.random() < .5 ? 'V' : 'm';
+    const n = pickNice(n => okQ(k, a.f, n) && isR(H * n / a.c, 2) && H * n / a.c >= 1);
+    if (n === null) continue;
+    const Q = round(H * n / a.c, 6), rev = Math.random() < .4, A = fHTML(a.f);
+    const per = `За рівнянням ${exo ? 'виділяється' : 'поглинається'} ${H} кДж на ${a.c} моль ${A}`;
+    if (!rev) {
+      const sol = [];
+      if (k === 'm') sol.push(mLine(a.f));
+      sol.push(nFrom(k, a.f, n), per, `Q = ${fmt(n, 3)} · ${H} / ${a.c} = ${fmt(Q)} кДж`);
+      return { type:'thermo', label: `${eqTxt(r)}: ${giv(k, a.f, n, false)} → Q`, eq: eqHTML(r, true),
+        q: `${givS(k, a, n)} Скільки теплоти ${exo ? 'виділилося' : 'поглинулося'}?`, input:'num', unit:'кДж',
+        right: `${fmt(Q)} кДж`, check: x => nearQ(x, Q), sol };
+    }
+    const sol = [per, `n(${A}) = Q · ${a.c} / ${H} = ${fmt(Q)} · ${a.c} / ${H} = ${fmt(n, 3)} моль`];
+    if (k === 'm') sol.push(mLine(a.f));
+    sol.push(qTo(k, a.f, n));
+    return { type:'thermo', label: `${eqTxt(r)}: Q = ${fmt(Q)} кДж → ${sym(k)}(${fTxt(a.f)})`, eq: eqHTML(r, true),
+      q: `Під час реакції ${exo ? 'виділилося' : 'поглинулося'} ${fmt(Q)} кДж теплоти. ${askWhat(k, a)}`, input:'num', unit: UNIT[k],
+      right: valTxt(k, a.f, n), check: x => near(k, x, qv(k, a.f, n)), sol };
+  }
+}
+
+function tErr(i = Math.random() * ERRORS.length | 0) {
+  const e = ERRORS[i];
+  return { type:'err', label: e.task, eq: null, q: e.task, input:'err', lines: e.lines,
+    right: e.lines[e.bad], check: a => a === e.bad, sol: [e.why] };
+}
+
+/* ---------- складні задачі ---------- */
+const RX2 = RX.filter(r => r.sp.filter(x => !x.prod).length === 2 && r.sp.some(x => x.prod && x.f !== 'H2O'));
+
+// Надлишок і нестача
+function tExcess() {
+  for (;;) {
+    const r = pick(RX2), [A, B] = r.sp.filter(x => !x.prod), P = pick(r.sp.filter(x => x.prod && x.f !== 'H2O'));
+    const [L, E] = Math.random() < .5 ? [A, B] : [B, A];
+    const kOf = x => x.gas && Math.random() < .4 ? 'V' : 'm';
+    const kL = kOf(L), kE = kOf(E), kP = P.gas && Math.random() < .7 ? 'V' : 'm', f = pick([1.25, 1.5, 2, 2.5, 3, 4]);
+    const nL = pickNice(n => okQ(kL, L.f, n) && okQ(kE, E.f, n * E.c / L.c * f) && okQ(kP, P.f, n * P.c / L.c));
+    if (nL === null) continue;
+    const nE = round(nL * E.c / L.c * f, 8), nP = round(nL * P.c / L.c, 8);
+    const g = { [L.f]: [kL, nL], [E.f]: [kE, nE] };
+    const sol = [];
+    [A, B].forEach(x => { const [k, n] = g[x.f]; if (k === 'm') sol.push(mLine(x.f)); sol.push(nFrom(k, x.f, n)); });
+    sol.push(`Порівнюємо n / коефіцієнт: ${[A, B].map(x => `${fHTML(x.f)} — ${fmt(g[x.f][1], 3)} / ${x.c} = ${fmt(g[x.f][1] / x.c, 4)}`).join('; ')}`,
+      `Менше значення — у ${fHTML(L.f)}: ця речовина в нестачі, ${fHTML(E.f)} — у надлишку. Розрахунок ведемо за ${fHTML(L.f)}.`,
+      ratioLine(L, nL, P, nP));
+    if (kP === 'm') sol.push(mLine(P.f));
+    sol.push(qTo(kP, P.f, nP));
+    return { type:'excess', label: `${eqTxt(r)}: ${giv(g[A.f][0], A.f, g[A.f][1], false)} + ${giv(g[B.f][0], B.f, g[B.f][1], false)} → ${sym(kP)}(${fTxt(P.f)})`,
+      eq: eqHTML(r), q: `Для реакції взяли ${giv(g[A.f][0], A.f, g[A.f][1])} і ${giv(g[B.f][0], B.f, g[B.f][1])}. ${askWhat(kP, P)}`,
+      input:'num', unit: UNIT[kP], right: valTxt(kP, P.f, nP), check: x => near(kP, x, qv(kP, P.f, nP)), sol };
+  }
+}
+
+// Вихід продукту реакції: знайти η, практичну масу (об'єм) або потрібну масу реагенту
+function tYield() {
+  for (;;) {
+    const r = pick(RX), a = pick(r.sp.filter(x => !x.prod)), P = pick(r.sp.filter(x => x.prod && x.f !== 'H2O'));
+    if (!P) continue;
+    const ka = a.gas && Math.random() < .3 ? 'V' : 'm', kp = P.gas && Math.random() < .6 ? 'V' : 'm';
+    const eta = pick([60, 70, 75, 80, 85, 90, 95]), kind = pick(['eta', 'pract', 'need']);
+    const na = pickNice(n => okQ(ka, a.f, n) && okQ(kp, P.f, n * P.c / a.c) && isR(qv(kp, P.f, n * P.c / a.c) * eta / 100, 2));
+    if (na === null) continue;
+    const np = round(na * P.c / a.c, 8), th = qv(kp, P.f, np), pr = round(th * eta / 100, 6), u = UNIT[kp], PF = fHTML(P.f);
+    const prTxt = `${fmt(pr)} ${u} ${PF}${kp === 'V' ? ' (н.у.)' : ''}`;
+    const thLine = `${sym(kp)}(${PF}, теор.) = ${fmt(th)} ${u}`;
+    const base = { type:'yield', eq: eqHTML(r) };
+    if (kind === 'eta') return { ...base, label: `${eqTxt(r)}: ${giv(ka, a.f, na, false)}, одержали ${fmt(pr)} ${u} → η`,
+      q: `З ${giv(ka, a.f, na)} одержали ${prTxt}. Обчисліть вихід продукту реакції.`, input:'num', unit:'%',
+      right: `${eta} %`, check: x => nearPct(x, eta),
+      sol: [...chain(ka, a, na, kp, P, np), thLine, `η = ${sym(kp)}(практ.) / ${sym(kp)}(теор.) · 100 % = ${fmt(pr)} / ${fmt(th)} · 100 % = ${eta} %`] };
+    if (kind === 'pract') return { ...base, label: `${eqTxt(r)}: ${giv(ka, a.f, na, false)}, η = ${eta} % → ${sym(kp)}(${fTxt(P.f)})`,
+      q: `З ${giv(ka, a.f, na)} одержали ${PF}. Вихід продукту становить ${eta} %. ${kp === 'V' ? `Який об'єм ${PF} (н.у.) одержали` : `Яку масу ${PF} одержали`} практично?`,
+      input:'num', unit: u, right: `${fmt(pr)} ${u}`, check: x => near(kp, x, pr),
+      sol: [...chain(ka, a, na, kp, P, np), thLine, `${sym(kp)}(практ.) = ${sym(kp)}(теор.) · η = ${fmt(th)} · ${fmt(eta / 100)} = ${fmt(pr)} ${u}`] };
+    const sol = [`${sym(kp)}(${PF}, теор.) = ${sym(kp)}(практ.) / η = ${fmt(pr)} / ${fmt(eta / 100)} = ${fmt(th)} ${u}`];
+    if (kp === 'm') sol.push(mLine(P.f));
+    sol.push(nFrom(kp, P.f, np), ratioLine(P, np, a, na));
+    if (ka === 'm') sol.push(mLine(a.f));
+    sol.push(qTo(ka, a.f, na));
+    return { ...base, label: `${eqTxt(r)}: ${fmt(pr)} ${u} ${fTxt(P.f)}, η = ${eta} % → ${sym(ka)}(${fTxt(a.f)})`,
+      q: `${ka === 'V' ? `Який об'єм ${fHTML(a.f)} (н.у.) треба взяти` : `Яку масу ${fHTML(a.f)} треба взяти`}, щоб одержати ${prTxt}, якщо вихід продукту становить ${eta} %?`,
+      input:'num', unit: UNIT[ka], right: valTxt(ka, a.f, na), check: x => near(ka, x, qv(ka, a.f, na)), sol };
+  }
+}
+
+// Домішки: [зразок (знах.), зразок (місц.)], дія
+const IMPS = [
+  { eq:'CaCO3 = CaO + CO2', a:'CaCO3', smp:['Вапняк', 'вапняку'], act:'прожарили', t:['CO2', 'CaO'] },
+  { eq:'CaCO3 + 2HCl = CaCl2 + H2O + CO2', a:'CaCO3', smp:['Мармур', 'мармурі'], act:'обробили надлишком хлоридної кислоти', t:['CO2'] },
+  { eq:'Zn + 2HCl = ZnCl2 + H2', a:'Zn', smp:['Технічний цинк', 'технічному цинку'], act:'розчинили в надлишку хлоридної кислоти', t:['H2', 'ZnCl2'] },
+  { eq:'Fe + 2HCl = FeCl2 + H2', a:'Fe', smp:['Технічне залізо', 'технічному залізі'], act:'розчинили в надлишку хлоридної кислоти', t:['H2'] },
+  { eq:'Mg + 2HCl = MgCl2 + H2', a:'Mg', smp:['Технічний магній', 'технічному магнії'], act:'розчинили в надлишку хлоридної кислоти', t:['H2'] },
+  { eq:'2KMnO4 = K2MnO4 + MnO2 + O2', a:'KMnO4', smp:['Калій перманганат', 'калій перманганаті'], act:'розклали нагріванням', t:['O2'] },
+  { eq:'Fe2O3 + 3H2 = 2Fe + 3H2O', a:'Fe2O3', smp:['Червоний залізняк', 'червоному залізняку'], act:'повністю відновили воднем', t:['Fe'] },
+  { eq:'4P + 5O2 = 2P2O5', a:'P', smp:['Технічний фосфор', 'технічному фосфорі'], act:'спалили', t:['P2O5'] }
+];
+function tImpur() {
+  for (;;) {
+    const it = pick(IMPS), r = rxOf(it.eq), a = spOf(r, it.a), P = spOf(r, pick(it.t)), kp = P.gas ? 'V' : 'm';
+    const w = pick([4, 5, 8, 10, 12, 15, 20, 25, 30]);
+    const na = pickNice(n => okQ('m', a.f, n) && okQ(kp, P.f, n * P.c / a.c) && isR(qv('m', a.f, n) / (1 - w / 100), 2));
+    if (na === null) continue;
+    const np = round(na * P.c / a.c, 8), mp = round(qv('m', a.f, na), 6), ms = round(mp / (1 - w / 100), 6), A = fHTML(a.f);
+    if (ms > 2000) continue;
+    const pure = `m(${A}) = ${fmt(ms)} · (100 % − ${w} %) / 100 % = ${fmt(ms)} · ${fmt(1 - w / 100)} = ${fmt(mp)} г`;
+    if (Math.random() < .6) return { type:'impur', label: `${it.smp[0]} ${fmt(ms)} г, ${w} % домішок → ${sym(kp)}(${fTxt(P.f)})`, eq: eqHTML(r),
+      q: `${it.smp[0]} масою ${fmt(ms)} г, що містить ${w} % домішок, ${it.act}. ${askWhat(kp, P)}`,
+      input:'num', unit: UNIT[kp], right: valTxt(kp, P.f, np), check: x => near(kp, x, qv(kp, P.f, np)),
+      sol: [pure, ...chain('m', a, na, kp, P, np)] };
+    const sol = [];
+    if (kp === 'm') sol.push(mLine(P.f));
+    sol.push(nFrom(kp, P.f, np), ratioLine(P, np, a, na), mLine(a.f), qTo('m', a.f, na),
+      `m(домішок) = ${fmt(ms)} − ${fmt(mp)} = ${fmt(ms - mp)} г`, `w(домішок) = ${fmt(ms - mp)} / ${fmt(ms)} · 100 % = ${w} %`);
+    return { type:'impur', label: `${it.smp[0]} ${fmt(ms)} г, ${giv(kp, P.f, np, false)} → w(домішок)`, eq: eqHTML(r),
+      q: `${it.smp[0]} масою ${fmt(ms)} г ${it.act}. ${P.prod ? 'Утворилося' : 'Витратилося'} ${giv(kp, P.f, np)}. Обчисліть масову частку домішок у ${it.smp[1]}.`,
+      input:'num', unit:'%', right: `${w} %`, check: x => nearPct(x, w), sol };
+  }
+}
+
+// Розчини: s — речовина в розчині, o — інший реагент, t — продукт
+const SOLS = [
+  { eq:'Zn + 2HCl = ZnCl2 + H2', s:'HCl', sn:'хлоридної кислоти', o:'Zn', on:'цинку', t:'H2' },
+  { eq:'Mg + 2HCl = MgCl2 + H2', s:'HCl', sn:'хлоридної кислоти', o:'Mg', on:'магнію', t:'H2' },
+  { eq:'CaCO3 + 2HCl = CaCl2 + H2O + CO2', s:'HCl', sn:'хлоридної кислоти', o:'CaCO3', on:'кальцій карбонату', t:'CO2' },
+  { eq:'NaOH + HCl = NaCl + H2O', s:'HCl', sn:'хлоридної кислоти', o:'NaOH', on:'натрій гідроксиду', t:'NaCl' },
+  { eq:'Zn + H2SO4 = ZnSO4 + H2', s:'H2SO4', sn:'сульфатної кислоти', o:'Zn', on:'цинку', t:'H2' },
+  { eq:'BaCl2 + H2SO4 = BaSO4 + 2HCl', s:'H2SO4', sn:'сульфатної кислоти', o:'BaCl2', on:'барій хлориду', t:'BaSO4', ppt:true },
+  { eq:'2NaOH + H2SO4 = Na2SO4 + 2H2O', s:'NaOH', sn:'натрій гідроксиду', o:'H2SO4', on:'сульфатної кислоти', t:'Na2SO4' },
+  { eq:'CuSO4 + 2NaOH = Cu(OH)2 + Na2SO4', s:'CuSO4', sn:'купрум(II) сульфату', o:'NaOH', on:'натрій гідроксиду', t:'Cu(OH)2', ppt:true },
+  { eq:'CuSO4 + 2NaOH = Cu(OH)2 + Na2SO4', s:'NaOH', sn:'натрій гідроксиду', o:'CuSO4', on:'купрум(II) сульфату', t:'Cu(OH)2', ppt:true },
+  { eq:'AgNO3 + NaCl = AgCl + NaNO3', s:'NaCl', sn:'натрій хлориду', o:'AgNO3', on:'аргентум нітрату', t:'AgCl', ppt:true }
+];
+const WLIST = [2, 4, 5, 7.3, 8, 9.8, 10, 12, 14.6, 15, 16, 20, 25];
+function tSol() {
+  for (;;) {
+    const it = pick(SOLS), r = rxOf(it.eq), s = spOf(r, it.s), o = spOf(r, it.o), P = spOf(r, it.t), kp = P.gas ? 'V' : 'm';
+    const w = pick(WLIST), S = fHTML(s.f), sn = `${it.sn} з масовою часткою ${S} ${fmt(w, 1)} %`;
+    if (Math.random() < .6) {
+      const ns = pickNice(n => okQ('m', s.f, n) && isR(qv('m', s.f, n) * 100 / w, 1) && qv('m', s.f, n) * 100 / w <= 1000 && okQ(kp, P.f, n * P.c / s.c));
+      if (ns === null) continue;
+      const msub = round(qv('m', s.f, ns), 6), msol = round(msub * 100 / w, 6), np = round(ns * P.c / s.c, 8);
+      const ask = it.ppt ? `Яка маса осаду ${fHTML(P.f)} утворилася?` : askWhat(kp, P);
+      return { type:'sol', label: `${fmt(msol)} г розчину ${fTxt(s.f)} ${fmt(w, 1)} % + ${fTxt(o.f)} → ${sym(kp)}(${fTxt(P.f)})`, eq: eqHTML(r),
+        q: `До ${fmt(msol)} г розчину ${sn} додали надлишок ${it.on}. ${ask}`,
+        input:'num', unit: UNIT[kp], right: valTxt(kp, P.f, np), check: x => near(kp, x, qv(kp, P.f, np)),
+        sol: [`m(${S}) = m(розчину) · w = ${fmt(msol)} · ${fmt(w / 100, 3)} = ${fmt(msub)} г`, ...chain('m', s, ns, kp, P, np)] };
+    }
+    const no = pickNice(n => okQ('m', o.f, n) && okQ('m', s.f, n * s.c / o.c) && isR(qv('m', s.f, n * s.c / o.c) * 100 / w, 2));
+    if (no === null) continue;
+    const ns = round(no * s.c / o.c, 8), msub = round(qv('m', s.f, ns), 6), msol = round(msub * 100 / w, 6);
+    if (msol > 2000) continue;
+    return { type:'sol', label: `${giv('m', o.f, no, false)} → m(розчину ${fTxt(s.f)} ${fmt(w, 1)} %)`, eq: eqHTML(r),
+      q: `Яка маса розчину ${sn} потрібна для повної реакції з ${giv('m', o.f, no)}?`,
+      input:'num', unit:'г', right: `${fmt(msol)} г`, check: x => near('m', x, msol),
+      sol: [...chain('m', o, no, 'm', s, ns), `m(розчину) = m(${S}) / w = ${fmt(msub)} / ${fmt(w / 100, 3)} = ${fmt(msol)} г`] };
+  }
+}
+
+// Суміш двох металів + надлишок хлоридної кислоти → водень
+// Метал: [родовий відмінок, рівняння з HCl (null — не реагує), називний відмінок]
+const MET = { Zn:['цинку', 'Zn + 2HCl = ZnCl2 + H2', 'цинк'], Fe:['заліза', 'Fe + 2HCl = FeCl2 + H2', 'залізо'], Mg:['магнію', 'Mg + 2HCl = MgCl2 + H2', 'магній'],
+  Al:['алюмінію', '2Al + 6HCl = 2AlCl3 + 3H2', 'алюміній'], Cu:['міді', null, 'Мідь'], Ag:['срібла', null, 'Срібло'] };
+const ALLOYS = [['Cu', 'Zn'], ['Cu', 'Fe'], ['Cu', 'Mg'], ['Cu', 'Al'], ['Ag', 'Zn'], ['Ag', 'Mg'],
+  ['Mg', 'Zn'], ['Mg', 'Fe'], ['Zn', 'Fe'], ['Al', 'Mg'], ['Al', 'Zn'], ['Al', 'Fe']];
+const kH = x => { const eq = MET[x][1]; if (!eq) return 0; const r = rxOf(eq); return spOf(r, 'H2').c / spOf(r, x).c; };
+function tAlloy() {
+  for (;;) {
+    const [X, Y] = pick(ALLOYS), kx = kH(X), ky = kH(Y), MX = AR(X), MY = AR(Y);
+    const nx = pick(NICE_MIX), ny = pick(NICE_MIX);
+    const mx = round(nx * MX, 6), my = round(ny * MY, 6), m = round(mx + my, 6), nH = round(nx * kx + ny * ky, 8), V = round(nH * VM, 6);
+    if (!isR(m, 2) || !isR(V, 2) || !isR(mx, 2)) continue;
+    const askX = Math.random() < .5, Z = askX ? X : Y, mz = askX ? mx : my, wz = mz / m * 100;
+    if (!isR(wz, 1) && Math.random() < .7) continue;   // частіше — «круглі» відповіді
+    const sol = [];
+    [X, Y].filter(e => MET[e][1]).forEach(e => sol.push(eqHTML(rxOf(MET[e][1]))));
+    sol.push(`n(H<sub>2</sub>) = V / Vₘ = ${fmt(V)} / 22,4 = ${fmt(nH, 3)} моль`);
+    if (!kx) {
+      const ky_ = ky === 1 ? `n(${Y}) = n(H<sub>2</sub>) = ${fmt(ny, 3)} моль` : `n(${Y}) = n(H<sub>2</sub>) · 2 / 3 = ${fmt(ny, 3)} моль`;
+      sol.push(`${MET[X][2]} з хлоридною кислотою не реагує — водень виділяє лише ${MET[Y][2]}.`,
+        ky_, `m(${Y}) = ${fmt(ny, 3)} · ${MY} = ${fmt(my)} г, m(${X}) = ${fmt(m)} − ${fmt(my)} = ${fmt(mx)} г`);
+    } else {
+      const c = k => k === 1 ? '' : fmt(k) + '·';
+      sol.push(`Нехай n(${X}) = x моль, n(${Y}) = y моль`,
+        `${MX}x + ${MY}y = ${fmt(m)} (маса суміші)`,
+        `${c(kx)}x + ${c(ky)}y = ${fmt(nH, 3)} (кількість водню)`,
+        `Розв'язуємо систему: x = ${fmt(nx, 3)} моль, y = ${fmt(ny, 3)} моль`,
+        `m(${X}) = ${fmt(nx, 3)} · ${MX} = ${fmt(mx)} г, m(${Y}) = ${fmt(ny, 3)} · ${MY} = ${fmt(my)} г`);
+    }
+    sol.push(`w(${Z}) = ${fmt(mz)} / ${fmt(m)} · 100 % ≈ ${fmt(wz, 1)} %`);
+    return { type:'alloy', label: `${X} + ${Y}, ${fmt(m)} г, ${fmt(V)} л H₂ → w(${Z})`,
+      eq: [X, Y].filter(e => MET[e][1]).map(e => `<div>${eqHTML(rxOf(MET[e][1]))}</div>`).join(''),
+      q: `Суміш ${MET[X][0]} та ${MET[Y][0]} масою ${fmt(m)} г обробили надлишком хлоридної кислоти. Виділилося ${fmt(V)} л водню (н.у.). Обчисліть масову частку ${MET[Z][0]} у суміші.`,
+      input:'num', unit:'%', right: `${fmt(wz, 1)} %`, check: x => nearPct(x, wz), sol };
+  }
+}
+
+// Молекулярна формула за масовими частками й відносною густиною
+const FORM = ['C2H2', 'C2H4', 'C2H6', 'C3H4', 'C3H6', 'C3H8', 'C4H8', 'C4H10', 'C5H12', 'C6H6', 'C6H14', 'CH4O', 'C2H6O', 'C2H4O2', 'CH2O2', 'C3H6O', 'C3H8O'];
+const REF = { H2: ['воднем', 'M(H<sub>2</sub>)', 2], air: ['повітрям', 'M(повітря)', 29], O2: ['киснем', 'M(O<sub>2</sub>)', 32] };
+function tFormula() {
+  const f = pick(FORM), p = parseF(f), M = molar(f), hc = !p.counts.O;
+  const ref = pick(['H2', 'H2', 'air', 'O2']), [word, mref, Mr] = REF[ref];
+  const D = round(M / Mr, 2), Mc = D * Mr;
+  const w = e => round(p.counts[e] * AR(e) / M * 100, 1);
+  const wC = w('C'), wH = hc ? round(100 - wC, 1) : w('H'), wO = hc ? 0 : round(100 - wC - wH, 1);
+  const cnt = (e, we) => `N(${e}) = M · w(${e}) / Ar(${e}) = ${fmt(Mc, 2)} · ${fmt(we / 100, 3)} / ${AR(e)} ≈ ${fmt(Mc * we / 100 / AR(e), 2)} → ${p.counts[e]}`;
+  const sol = [`M = D · ${mref} = ${fmt(D, 2)} · ${Mr} ${isR(M / Mr, 2) ? '=' : '≈'} ${fmt(Mc, 2)} г/моль`];
+  if (hc) sol.push(`w(H) = 100 % − ${fmt(wC, 1)} % = ${fmt(wH, 1)} %`);
+  else sol.push(`w(O) = 100 % − ${fmt(wC, 1)} % − ${fmt(wH, 1)} % = ${fmt(wO, 1)} %`);
+  sol.push(cnt('C', wC), cnt('H', wH));
+  if (!hc) sol.push(cnt('O', wO));
+  sol.push(`Формула: ${fHTML(f)} (перевірка: M = ${fmt(M)} г/моль)`);
+  return { type:'formula', label: `w(C) = ${fmt(wC, 1)} %${hc ? '' : `, w(H) = ${fmt(wH, 1)} %`}, D за ${word} = ${fmt(D, 2)}`, eq: null,
+    q: hc ? `Масова частка Карбону у вуглеводні становить ${fmt(wC, 1)} %, а відносна густина цього вуглеводню за ${word} — ${fmt(D, 2)}. Виведіть молекулярну формулу.`
+          : `Речовина містить ${fmt(wC, 1)} % Карбону, ${fmt(wH, 1)} % Гідрогену, решта — Оксиген. Відносна густина пари цієї речовини за ${word} — ${fmt(D, 2)}. Виведіть молекулярну формулу.`,
+    input:'formula', unit:'', right: fTxt(f), check: x => sameF(x, f), sol };
+}
+
+/* ---------- стан ---------- */
+const stage = document.getElementById('stage');
+const tabs = document.getElementById('tabs');
+const foot = document.getElementById('foot');
+const S = {
+  mode: 'test',
+  eq: { kind: 'all', t: null, shown: false },
+  hard: { kind: 'all', t: null, shown: false },
+  err: { deck: shuffle(ERRORS.map((_, i) => i)), i: 0, shown: false }
+};
+
+const stepsHTML = sol => `<ol class="steps">${sol.map(s => `<li>${s}</li>`).join('')}</ol>`;
+const eqBox = t => t.eq ? `<div class="eqn">${t.eq}</div>` : '';
+const FORMULAS = `<div class="formulas"><span class="chip">n = m / M</span><span class="chip">n = V / V<sub>m</sub></span><span class="chip">w = m(реч.) / m(розч.)</span><span class="chip">η = m(практ.) / m(теор.)</span></div>`;
+
+/* ---------- тренажери ---------- */
+const EQ_KINDS = [['all', 'Усі'], ['eqn', 'n → n'], ['eqmm', 'm → m'], ['eqmV', 'm ↔ V'], ['eqVV', 'V → V'], ['thermo', 'Термохімія']];
+const EQ_GEN = { eqn: tEqn, eqmm: tEqmm, eqmV: tEqmV, eqVV: tEqVV, thermo: tThermo };
+const HARD_KINDS = [['all', 'Усі'], ['excess', 'Надлишок'], ['yield', 'Вихід'], ['impur', 'Домішки'], ['sol', 'Розчини'], ['alloy', 'Суміші металів'], ['formula', 'Формула']];
+const HARD_GEN = { excess: tExcess, yield: tYield, impur: tImpur, sol: tSol, alloy: tAlloy, formula: tFormula };
+const GEN_TABS = {
+  eq: { kinds: EQ_KINDS, gen: k => EQ_GEN[k === 'all' ? pick(Object.keys(EQ_GEN)) : k]() },
+  hard: { kinds: HARD_KINDS, gen: k => HARD_GEN[k === 'all' ? pick(Object.keys(HARD_GEN)) : k]() }
+};
+const genProb = kind => GEN_TABS[S.mode].gen(kind);
+function renderProb() {
+  const st = S[S.mode];
+  if (!st.t) st.t = genProb(st.kind);
+  const t = st.t;
+  stage.classList.add('single');
+  stage.innerHTML = `
+    <div class="task">
+      <div class="seg" role="group" aria-label="Тип задач">${GEN_TABS[S.mode].kinds.map(([k, l]) =>
+        `<button data-kind="${k}" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+      ${eqBox(t)}
+      <p class="q">${t.q}</p>
+      ${t.input === 'choice' ? `<div class="opts">${t.opts.map(o => `<div class="opt">${o.html}</div>`).join('')}</div>` : ''}
+      ${st.shown ? `${stepsHTML(t.sol)}<div class="note ok">Відповідь: <strong>${esc(t.right)}</strong></div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати розв\'язання'}</button>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.kind = b.dataset.kind; nextProb(); });
+  document.getElementById('act-main').onclick = () => st.shown ? nextProb() : showProb();
+}
+function showProb() { S[S.mode].shown = true; renderProb(); }
+function nextProb() { const st = S[S.mode]; st.shown = false; st.t = genProb(st.kind); renderProb(); }
+
+/* ---------- Знайди помилку ---------- */
+function renderErr() {
+  const st = S.err, e = ERRORS[st.deck[st.i]];
+  stage.classList.add('single');
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Учень розв'язав так. У якому рядку помилка?</p>
+        <p class="q">${e.task}</p>
+      </div>
+      <div class="lines">${e.lines.map((l, i) => `<div class="line${st.shown && i === e.bad ? ' wrong' : ''}">${l}</div>`).join('')}</div>
+      ${st.shown ? `<div class="note bad">${e.why}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" id="act-main">${st.shown ? 'Далі →' : 'Показати помилку'}</button>
+        <span class="kbd">${st.i + 1} / ${st.deck.length}</span>
+      </div>
+    </div>`;
+  document.getElementById('act-main').onclick = () => st.shown ? nextErr() : showErr();
+}
+function showErr() { S.err.shown = true; renderErr(); }
+function nextErr() {
+  const st = S.err; st.shown = false; st.i++;
+  if (st.i >= st.deck.length) { st.deck = shuffle(st.deck); st.i = 0; }
+  renderErr();
+}
+
+/* ---------- Тест ---------- */
+const T = { phase: 'start', name: '', cls: '', tasks: [], i: 0, results: [], sent: null };
+
+// Бали за завдання залежно від складності (разом 28)
+const PTS = { eqn: 1, eqVV: 1, eqmm: 2, eqmV: 2, thermo: 2, err: 2, excess: 3, yield: 3, impur: 3, sol: 3, alloy: 3, formula: 3 };
+
+// Від простого до складного
+function makeTest() {
+  const tasks = [tEqn(), tEqVV(), tEqmm(), tEqmV(), tThermo(), tErr(), tExcess(), tYield(), tImpur(), tSol(), tAlloy(), tFormula()];
+  return tasks.map(t => ({ ...t, pts: PTS[t.type], ans: t.input === 'choice' || t.input === 'err' ? null : '' }));
+}
+
+function answered(t) {
+  if (t.input === 'choice' || t.input === 'err') return t.ans !== null;
+  return t.ans.trim() !== '';
+}
+
+function givenText(t) {
+  if (t.input === 'choice') return t.opts[t.ans].txt;
+  if (t.input === 'err') return t.lines[t.ans];
+  return t.ans.trim() + (t.unit ? ' ' + t.unit : '');
+}
+function grade(t) {
+  return { ok: t.check(t.ans), label: TYPE[t.type] + (t.label && t.type !== 'err' ? ' · ' + t.label : ''), given: givenText(t), right: t.right, sol: t.sol };
+}
+
+function renderTest() {
+  tabs.hidden = T.phase === 'run';
+  stage.classList.add('single');
+  if (T.phase === 'start') renderStart();
+  else if (T.phase === 'run') renderTask();
+  else renderDone();
+}
+
+function renderStart() {
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">Тест · ${TEST_SIZE} завдань · поглиблений рівень</p><h1 class="h">Кількість речовини: розрахунки за рівняннями</h1></div>
+      ${FORMULAS}
+      <div class="fields">
+        <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" value="${esc(T.name)}"></label>
+        <label class="field">Клас<input id="t-cls" placeholder="9-А" value="${esc(T.cls)}"></label>
+      </div>
+      <ul class="rules">
+        <li>Розрахунки за рівняннями реакцій, закон об'ємних відношень, термохімія, пошук помилки. Далі — великі задачі: надлишок і нестача, вихід продукту, домішки, розчини, суміші металів, виведення формули.</li>
+        <li>V<sub>m</sub> = 22,4 л/моль (н.у.). Ar — з періодичної системи, округлені до цілих (Cl — 35,5). Рівняння реакцій подано в умові.</li>
+        <li>Відповідь — лише число (одиниці вже підписано). Десяткові дроби можна писати з комою: 4,48. Формули — латиницею: C3H8.</li>
+        <li>Кожне завдання оцінюється від 1 до 3 балів залежно від складності. Оцінка — за 12-бальною шкалою.</li>
+        <li>Після кожної відповіді натисніть «Далі». Повернутися назад не можна.</li>
+        <li>Результат ви побачите в кінці, і він автоматично надійде вчителю.</li>
+      </ul>
+      <div class="actions"><button class="btn primary" id="t-go"${T.name.trim() ? '' : ' disabled'}>Почати тест</button></div>
+    </div>`;
+  const nameIn = document.getElementById('t-name'), clsIn = document.getElementById('t-cls'), go = document.getElementById('t-go');
+  const start = () => {
+    if (!T.name.trim()) return nameIn.focus();
+    Object.assign(T, { phase: 'run', tasks: makeTest(), i: 0, results: [], sent: null });
+    renderTest();
+  };
+  nameIn.oninput = () => { T.name = nameIn.value; go.disabled = !T.name.trim(); };
+  clsIn.oninput = () => { T.cls = clsIn.value; };
+  [nameIn, clsIn].forEach(i => i.onkeydown = e => { if (e.key === 'Enter') start(); });
+  go.onclick = start;
+  nameIn.focus();
+}
+
+const PH = { num: 'Число', formula: 'Наприклад, C3H8' };
+const HINT = {
+  num: 'Десятковий дріб можна писати з комою: 4,48',
+  formula: 'Пишіть латиницею, індекси — звичайними цифрами: C3H8, C2H6O'
+};
+
+function renderTask() {
+  const t = T.tasks[T.i], last = T.i === TEST_SIZE - 1;
+  let body = '';
+  if (t.input === 'num' || t.input === 'formula') {
+    body = `
+      <div class="ans-row">
+        <input class="answer" id="t-ans" autocomplete="off" autocapitalize="off" spellcheck="false"${t.input === 'num' ? ' inputmode="decimal"' : ''}
+          placeholder="${PH[t.input]}" aria-label="Відповідь" value="${esc(t.ans)}">
+        ${t.unit ? `<span class="unit">${t.unit}</span>` : ''}
+      </div>
+      <p class="hint">${HINT[t.input]}</p>`;
+  } else if (t.input === 'choice') {
+    body = `<div class="opts">${t.opts.map((o, i) =>
+      `<button class="opt" data-o="${i}" aria-pressed="${t.ans === i}">${o.html}</button>`).join('')}</div>`;
+  } else {
+    body = `
+      <p class="prompt">Учень розв'язав так. Клацніть на рядок, де вперше зроблено помилку</p>
+      <div class="lines">${t.lines.map((l, i) =>
+        `<button class="line${t.ans === i ? ' picked' : ''}" data-l="${i}" aria-pressed="${t.ans === i}">${l}</button>`).join('')}</div>`;
+  }
+  stage.innerHTML = `
+    <div class="task">
+      <div>
+        <p class="prompt">Завдання ${T.i + 1} з ${TEST_SIZE} · ${t.pts} б.</p>
+        <div class="progress"><i style="width:${T.i / TEST_SIZE * 100}%"></i></div>
+      </div>
+      ${eqBox(t)}
+      <p class="q">${t.q}</p>
+      <div class="task">${body}</div>
+      <div class="actions">
+        <button class="btn primary" id="t-next"${answered(t) ? '' : ' disabled'}>${last ? 'Завершити й надіслати' : 'Далі →'}</button>
+      </div>
+    </div>`;
+
+  const next = document.getElementById('t-next');
+  const goNext = () => {
+    if (!answered(t)) return;
+    T.i++;
+    if (T.i >= TEST_SIZE) finishTest(); else renderTask();
+  };
+  next.onclick = goNext;
+
+  const input = document.getElementById('t-ans');
+  if (input) {
+    input.oninput = () => { t.ans = input.value; next.disabled = !answered(t); };
+    input.onkeydown = e => { if (e.key === 'Enter') goNext(); };
+    input.focus();
+  }
+  stage.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.o; renderTask(); stage.querySelector(`[data-o="${b.dataset.o}"]`).focus();
+  });
+  stage.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    t.ans = +b.dataset.l; renderTask(); stage.querySelector(`[data-l="${b.dataset.l}"]`).focus();
+  });
+}
+
+// Бали за складністю → 12-бальна шкала (мінімум 1)
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0);
+  const got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+
+function finishTest() {
+  T.results = T.tasks.map(t => ({ ...grade(t), pts: t.pts }));
+  T.phase = 'done';
+  renderTest();
+  sendResults();
+}
+
+function renderDone() {
+  const { got, max, mark } = total();
+  stage.innerHTML = `
+    <div class="task">
+      <div><p class="prompt">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</p><div class="score">${mark} <small>з 12</small></div><p class="hint">${got} з ${max} балів</p></div>
+      <div id="t-send"></div>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="mark">${r.ok ? '✓' : '✗'}</span><div>
+          <b>${i + 1}. ${esc(r.label)}</b> <span class="pts">· ${r.pts} б.</span>
+          ${r.ok ? '' : `<div>Ваша відповідь: ${esc(r.given)}</div><div>Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+      <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button></div>
+    </div>`;
+  drawSend();
+  document.getElementById('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+
+function drawSend() {
+  const box = document.getElementById('t-send');
+  if (!box) return;
+  const msg = {
+    sending: ['info', 'Надсилаю результат…'],
+    ok:      ['ok', '<strong>Результат надіслано вчителю ✓</strong>'],
+    fail:    ['bad', 'Не вдалося надіслати. Перевірте інтернет і натисніть «Надіслати ще раз». <button class="btn" id="t-resend">Надіслати ще раз</button>'],
+    nourl:   ['info', 'Таблицю результатів ще не підключено. Покажіть цей екран учителю.']
+  }[T.sent] || ['info', ''];
+  box.className = 'note ' + msg[0];
+  box.innerHTML = msg[1];
+  const re = document.getElementById('t-resend');
+  if (re) re.onclick = sendResults;
+}
+
+function sendResults() {
+  if (!SHEET_URL) { T.sent = 'nourl'; return drawSend(); }
+  T.sent = 'sending'; drawSend();
+  const { got, max, mark } = total();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); })
+    .catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ---------- перемикання ---------- */
+const RENDER = { test: renderTest, eq: renderProb, hard: renderProb, err: renderErr };
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.mode === mode));
+  tabs.hidden = false;
+  foot.hidden = mode === 'test';
+  RENDER[mode]();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.mode));
+
+document.addEventListener('keydown', e => {
+  if (S.mode === 'test' || e.target.closest('select, input')) return;
+  const st = S[S.mode];
+  const show = S.mode === 'err' ? showErr : showProb, next = S.mode === 'err' ? nextErr : nextProb;
+  if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+  else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); st.shown ? next() : show(); }
+});
+
+/* ---------- таймер ---------- */
+const TM = { left: 300, id: null };
+const tOut = document.getElementById('timer-out'), tGo = document.getElementById('timer-go'), tBox = document.getElementById('timer');
+const tDraw = () => { tOut.textContent = `${TM.left / 60 | 0}:${String(TM.left % 60).padStart(2, '0')}`; tBox.classList.toggle('done', TM.left === 0); };
+const tStop = () => { clearInterval(TM.id); TM.id = null; tGo.textContent = 'Старт'; };
+tGo.onclick = () => {
+  if (TM.id) return tStop();
+  if (TM.left === 0) TM.left = 300;
+  tGo.textContent = 'Пауза';
+  TM.id = setInterval(() => { TM.left--; tDraw(); if (TM.left <= 0) tStop(); }, 1000);
+  tDraw();
+};
+document.getElementById('timer-reset').onclick = () => { tStop(); TM.left = 300; tDraw(); };
+
+setMode('test');
+</script>
+</body>
+</html>
