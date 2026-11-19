@@ -202,6 +202,7 @@ footer{font-size:13px;color:var(--muted);text-align:center}
     <nav class="tabs" role="tablist" aria-label="Розділи">
       <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
       <button class="tab" role="tab" data-v="praktyka" aria-selected="false">Практика</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
     </nav>
   </header>
 
@@ -361,10 +362,17 @@ footer{font-size:13px;color:var(--muted);text-align:center}
   <!-- ================= ПРАКТИКА ================= -->
   <section id="v-praktyka" class="stack" hidden></section>
 
+  <!-- ================= ТЕСТ ================= -->
+  <section id="v-test" class="stack" hidden></section>
+
   <footer>Хімія · 8–9 клас · Реакції неорганічних сполук</footer>
 </div>
 
 <script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TOPIC = 'Хімія 8–9 клас — Реакції неорганічних сполук';
+
 /* ---------- утиліти ---------- */
 const $ = id => document.getElementById(id);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -653,6 +661,128 @@ function renderPractice(focus) {
   if ($('p-next')) $('p-next').onclick = newPractice;
 }
 
+/* ================= ТЕСТ ================= */
+const answered = t => t.input === 'choice' ? t.ans !== null : String(t.ans ?? '').trim() !== '';
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, results:[], sent:'', warn:false };
+try { T.name = localStorage.getItem('chem_name') || ''; T.cls = localStorage.getItem('chem_group') || ''; } catch (e) {}
+
+// Від простого до складного: 15 завдань
+function makeTest() {
+  const list = [GEN.ox(), GEN.ox(), GEN.ac(), tMetalAcid(), GEN.bs(), GEN.bs(), GEN.sl(), tMetalSalt(), GEN.type(), GEN.type(),
+    GEN.gen(), GEN.gen(), tSalt(), tSalt(), tCoef()];
+  return list.map(t => ({ ...t, ans: t.input === 'choice' ? null : '' }));
+}
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0), got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+const givenText = t => !answered(t) ? '—' : t.input === 'choice' ? plain(t.opts[t.ans].html) : t.ans.trim();
+
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `
+      <div class="card stack">
+        <div><div class="eyebrow">Тест · 15 завдань</div><h2 style="margin-top:4px">Реакції неорганічних сполук</h2></div>
+        <div class="row">
+          <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" placeholder="Напр., Марія Коваленко" value="${esc(T.name)}"></label>
+          <label class="field">Клас<input id="t-cls" placeholder="9-А" value="${esc(T.cls)}"></label>
+        </div>
+        <ul class="rules">
+          <li>Оксиди, кислоти, основи, солі, типи реакцій, ланцюжки перетворень, формули солей і коефіцієнти — від простого до складного.</li>
+          <li>Кожне завдання — 1 або 2 бали. Оцінка — за 12-бальною шкалою.</li>
+          <li>Правильні відповіді побачиш у кінці. До будь-якого завдання можна повернутися.</li>
+          <li>Формули пиши латиницею, з великої літери, індекси — звичайними цифрами: Al2(SO4)3.</li>
+        </ul>
+        <div class="actions"><button class="btn" id="t-go">Почати тест</button></div>
+        <div class="err" id="t-err" hidden></div>
+      </div>`;
+    $('t-name').oninput = e => T.name = e.target.value;
+    $('t-cls').oninput = e => T.cls = e.target.value;
+    $('t-go').onclick = () => {
+      if (!T.name.trim()) { $('t-err').textContent = 'Впиши ім\'я та прізвище так, як тебе записав вчитель, щоб результат потрапив у твою вкладку.'; $('t-err').hidden = false; $('t-name').focus(); return; }
+      try { localStorage.setItem('chem_name', T.name.trim()); localStorage.setItem('chem_group', T.cls.trim()); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.warn = false; T.phase = 'run'; renderTest(); window.scrollTo({ top:0 });
+    };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1, left = T.tasks.filter(x => !answered(x)).length;
+    v.innerHTML = `
+      <div class="dots" role="group" aria-label="Завдання">${T.tasks.map((x, j) => `<button class="dot ${answered(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}" aria-label="Завдання ${j + 1}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${CAT[t.cat].c}">
+        <div class="tline"><span class="tag">${esc(t.label)}</span><span class="count">${T.i + 1} / ${N} · ${t.pts} б.</span></div>
+        <div class="q">${t.q}</div>
+        ${area(t, t.ans, 't', false)}
+        <div class="actions">
+          <button class="btn ghost" id="t-prev" ${T.i === 0 ? 'disabled' : ''}>Назад</button>
+          ${last ? `<button class="btn" id="t-fin">Завершити тест</button>` : `<button class="btn" id="t-next">Далі</button>`}
+        </div>
+        ${T.warn && left ? `<div class="err">Без відповіді: ${left}. Натисни «Завершити тест» ще раз, щоб здати роботу.</div>` : ''}
+      </div>`;
+    const go = j => { T.i = j; T.warn = false; renderTest(); };
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => go(+b.dataset.j));
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.ans = +b.dataset.i; renderTest(); });
+    const inp = $('t-in');
+    if (inp) {
+      inp.oninput = () => { t.ans = inp.value; v.querySelectorAll('.dot')[T.i].classList.toggle('done', answered(t)); };
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); last ? $('t-fin').click() : go(T.i + 1); } };
+      if (matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+    }
+    $('t-prev').onclick = () => go(T.i - 1);
+    if ($('t-next')) $('t-next').onclick = () => go(T.i + 1);
+    if ($('t-fin')) $('t-fin').onclick = () => {
+      if (left && !T.warn) { T.warn = true; renderTest(); return; }
+      finishTest();
+    };
+    return;
+  }
+  const { got, max, mark } = total(), okc = T.results.filter(r => r.ok).length;
+  v.innerHTML = `
+    <div class="card stack">
+      <div class="eyebrow">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</div>
+      <div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+      <div class="hint">${got} з ${max} балів · правильно ${okc} з ${T.results.length} завдань</div>
+      <div class="send" id="t-send"></div>
+    </div>
+    <div class="card stack">
+      <h2>Розбір</h2>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="m">${r.ok ? '✓' : '✗'}</span><div class="rb">
+          <b>${i + 1}. ${esc(r.label)} <span class="hint">· ${r.pts} б.</span></b>
+          ${r.ok ? '' : `<div class="yours">Твоя відповідь: ${esc(r.given)}</div><div class="right">Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+    </div>
+    <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button><button class="btn ghost" id="t-train">Потренуватися</button></div>`;
+  drawSend();
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); window.scrollTo({ top:0 }); };
+  $('t-train').onclick = () => go2('praktyka');
+}
+function finishTest() {
+  T.results = T.tasks.map(t => ({ label: t.label, pts: t.pts, ok: answered(t) && t.check(t.ans), given: givenText(t), right: t.right, sol: t.sol || [] }));
+  T.phase = 'done'; renderTest(); window.scrollTo({ top:0 });
+  sendResults();
+}
+function drawSend() {
+  const box = $('t-send'); if (!box) return;
+  box.className = 'send ' + (T.sent || 'wait');
+  box.innerHTML = T.sent === 'ok' ? 'Результат надіслано вчителю.'
+    : T.sent === 'fail' ? `Не вдалося надіслати результат. <button class="btn ghost" id="t-resend">Надіслати ще раз</button>`
+    : 'Надсилаю результат вчителю…';
+  if ($('t-resend')) $('t-resend').onclick = sendResults;
+}
+function sendResults() {
+  const { got, max, mark } = total();
+  T.sent = 'wait'; drawSend();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); }).catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
 /* ================= ТЕОРІЯ: формули й рівняння ================= */
 document.querySelectorAll('#v-teoriya .f').forEach(el => { if (!el.children.length) el.innerHTML = fHTML(el.textContent); });
 document.querySelectorAll('[data-eq]').forEach(el => { const [l, c, r] = el.dataset.eq.split('|'); el.innerHTML = EQ(l, c, r); });
@@ -662,12 +792,13 @@ document.querySelectorAll('#toc button').forEach(b => b.onclick = () => {
 });
 
 /* ================= перемикання розділів ================= */
-const VIEWS = ['teoriya', 'praktyka'];
+const VIEWS = ['teoriya', 'praktyka', 'test'];
 function show(v) {
   if (!VIEWS.includes(v)) v = 'teoriya';
   VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
   document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
   if (v === 'praktyka' && !P.t) newPractice();
+  if (v === 'test') renderTest();
 }
 function go2(v) { show(v); try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo({ top:0 }); }
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => go2(b.dataset.v));
