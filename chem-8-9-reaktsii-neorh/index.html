@@ -1,0 +1,892 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Реакції неорганічних сполук</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · 8–9 клас · Основні класи неорганічних сполук</div>
+    <div class="brand"><h1>Реакції неорганічних сполук</h1><span class="ohbadge" aria-hidden="true">↓ ↑ H₂O</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="praktyka" aria-selected="false">Практика</button>
+    </nav>
+  </header>
+
+  <!-- ================= ТЕОРІЯ ================= -->
+  <section id="v-teoriya" class="stack">
+    <div class="toc" id="toc">
+      <button data-to="s-map">Схема</button><button data-to="s-ox">Оксиди</button><button data-to="s-ac">Кислоти</button><button data-to="s-bs">Основи</button><button data-to="s-sl">Солі</button><button data-to="s-cond">Умови реакцій</button><button data-to="s-salt">Формула солі</button><button data-to="s-gen">Ланцюжки</button>
+    </div>
+
+    <article class="card sec" id="s-map">
+      <h2>Хто з ким реагує</h2>
+      <p>Головне правило: <b>протилежності притягуються</b>. Основні речовини (метали, основні оксиди, основи) реагують з кислотними (неметалами, кислотними оксидами, кислотами). Речовини одного характеру між собою, як правило, не реагують.</p>
+      <div class="two">
+        <div class="def">
+          <div class="lbl">Основний ряд</div>
+          <div class="big" style="font-size:20px">метал → основний оксид → основа</div>
+          <div class="hint"><span class="f">Ca</span> → <span class="f">CaO</span> → <span class="f">Ca(OH)2</span></div>
+        </div>
+        <div class="def">
+          <div class="lbl">Кислотний ряд</div>
+          <div class="big" style="font-size:20px">неметал → кислотний оксид → кислота</div>
+          <div class="hint"><span class="f">S</span> → <span class="f">SO3</span> → <span class="f">H2SO4</span></div>
+        </div>
+      </div>
+      <p>Будь-яка речовина з лівого ряду + будь-яка з правого = <b>сіль</b> (іноді ще вода або водень).</p>
+      <div class="tblw"><table>
+        <thead><tr><th></th><th>Кислотний оксид</th><th>Кислота</th></tr></thead>
+        <tbody>
+          <tr><th>Метал</th><td>—</td><td>сіль + <span class="f">H2</span>↑ (метали до H)</td></tr>
+          <tr><th>Основний оксид</th><td>сіль</td><td>сіль + <span class="f">H2O</span></td></tr>
+          <tr><th>Основа</th><td>сіль + <span class="f">H2O</span> (луги)</td><td>сіль + <span class="f">H2O</span></td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <article class="card sec" id="s-ox">
+      <h2>Оксиди</h2>
+      <p><b>Основні</b> — оксиди металів зі ступенем окиснення +1, +2: <span class="f">Na2O</span>, <span class="f">CaO</span>, <span class="f">MgO</span>, <span class="f">CuO</span>. <b>Кислотні</b> — оксиди неметалів: <span class="f">CO2</span>, <span class="f">SO2</span>, <span class="f">SO3</span>, <span class="f">P2O5</span>, <span class="f">SiO2</span>. <b>Амфотерні</b> — <span class="f">ZnO</span>, <span class="f">Al2O3</span>: реагують і з кислотами, і з лугами.</p>
+      <h3>Основні оксиди</h3>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">+ вода → луг</div><div class="eq" data-eq="CaO + H2O||Ca(OH)2"></div><div class="hint">Лише оксиди лужних і лужноземельних металів (Li, Na, K, Ca, Ba). <span class="f">CuO</span>, <span class="f">FeO</span> з водою не реагують.</div></div>
+        <div class="rxi"><div class="rxn">+ кислота → сіль + вода</div><div class="eq" data-eq="CuO + H2SO4||CuSO4 + H2O"></div><div class="hint">Чорний порошок розчиняється, розчин стає блакитним.</div></div>
+        <div class="rxi"><div class="rxn">+ кислотний оксид → сіль</div><div class="eq" data-eq="CaO + CO2||CaCO3"></div></div>
+      </div>
+      <h3>Кислотні оксиди</h3>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">+ вода → кислота</div><div class="eq" data-eq="SO3 + H2O||H2SO4"></div><div class="hint"><span class="f">P2O5</span> + 3<span class="f">H2O</span> → 2<span class="f">H3PO4</span>. Виняток: <span class="f">SiO2</span> (пісок) з водою не реагує.</div></div>
+        <div class="rxi"><div class="rxn">+ луг → сіль + вода</div><div class="eq" data-eq="CO2 + 2NaOH||Na2CO3 + H2O"></div></div>
+        <div class="rxi"><div class="rxn">+ основний оксид → сіль</div><div class="eq" data-eq="SO3 + Na2O||Na2SO4"></div></div>
+      </div>
+      <p class="note">Оксиду відповідає кислота з тим самим ступенем окиснення елемента: <span class="f">CO2</span> → <span class="f">H2CO3</span>, <span class="f">SO2</span> → <span class="f">H2SO3</span>, <span class="f">SO3</span> → <span class="f">H2SO4</span>, <span class="f">N2O5</span> → <span class="f">HNO3</span>, <span class="f">P2O5</span> → <span class="f">H3PO4</span>.</p>
+    </article>
+
+    <article class="card sec" id="s-ac">
+      <h2>Кислоти</h2>
+      <p>Лакмус у кислоті — <b>червоний</b>, метиловий оранжевий — <b>рожевий</b>, фенолфталеїн — безбарвний.</p>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">+ метал → сіль + водень</div><div class="eq" data-eq="Zn + 2HCl||ZnCl2 + H2↑"></div><div class="hint">Лише метали, що стоять у ряду активності <b>до водню</b>. Cu, Ag, Au з хлоридною й розбавленою сульфатною кислотами не реагують. Нітратна кислота водню не виділяє.</div></div>
+        <div class="rxi"><div class="rxn">+ основний оксид → сіль + вода</div><div class="eq" data-eq="MgO + 2HNO3||Mg(NO3)2 + H2O"></div></div>
+        <div class="rxi"><div class="rxn">+ основа → сіль + вода (нейтралізація)</div><div class="eq" data-eq="NaOH + HCl||NaCl + H2O"></div><div class="hint">Йде з будь-якими основами, і з лугами, і з нерозчинними: <span class="f">Cu(OH)2</span> + 2<span class="f">HCl</span> → <span class="f">CuCl2</span> + 2<span class="f">H2O</span>.</div></div>
+        <div class="rxi"><div class="rxn">+ сіль → нова сіль + нова кислота</div><div class="eq" data-eq="BaCl2 + H2SO4||BaSO4↓ + 2HCl"></div><div class="hint">Якщо випадає осад або виділяється газ: <span class="f">Na2CO3</span> + 2<span class="f">HCl</span> → 2<span class="f">NaCl</span> + <span class="f">H2O</span> + <span class="f">CO2</span>↑</div></div>
+        <div class="rxi"><div class="rxn">Розклад нестійких кислот</div><div class="eq" data-eq="H2CO3||H2O + CO2↑"></div><div class="hint">Так само <span class="f">H2SO3</span> → <span class="f">H2O</span> + <span class="f">SO2</span>↑. Тому «вугільну кислоту» в продуктах завжди пишемо як <span class="f">H2O</span> + <span class="f">CO2</span>.</div></div>
+      </div>
+    </article>
+
+    <article class="card sec" id="s-bs">
+      <h2>Основи</h2>
+      <p><b>Луги</b> — розчинні основи: <span class="f">NaOH</span>, <span class="f">KOH</span>, <span class="f">Ba(OH)2</span>, <span class="f">Ca(OH)2</span> (малорозчинна). Решта — <b>нерозчинні</b>: <span class="f">Cu(OH)2</span>, <span class="f">Fe(OH)3</span>, <span class="f">Mg(OH)2</span>… Фенолфталеїн у лузі — <b>малиновий</b>, лакмус — синій.</p>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">+ кислота → сіль + вода</div><div class="eq" data-eq="Ca(OH)2 + 2HNO3||Ca(NO3)2 + 2H2O"></div><div class="hint">Усі основи.</div></div>
+        <div class="rxi"><div class="rxn">Луг + кислотний оксид → сіль + вода</div><div class="eq" data-eq="Ca(OH)2 + CO2||CaCO3↓ + H2O"></div><div class="hint">Вапняна вода каламутніє — так виявляють вуглекислий газ.</div></div>
+        <div class="rxi"><div class="rxn">Луг + сіль → нова основа + нова сіль</div><div class="eq" data-eq="2NaOH + CuSO4||Cu(OH)2↓ + Na2SO4"></div><div class="hint">Голубий осад. З <span class="f">FeCl3</span> — бурий осад <span class="f">Fe(OH)3</span>. Сіль має бути розчинною, а одна з нових речовин — випадати в осад.</div></div>
+        <div class="rxi"><div class="rxn">Нерозчинна основа розкладається при нагріванні</div><div class="eq" data-eq="Cu(OH)2|t|CuO + H2O"></div><div class="hint">Блакитний осад чорніє. Луги (крім <span class="f">LiOH</span>) при нагріванні не розкладаються.</div></div>
+      </div>
+      <p class="note">Амфотерні гідроксиди <span class="f">Zn(OH)2</span>, <span class="f">Al(OH)3</span> реагують і з кислотами, і з лугами.</p>
+    </article>
+
+    <article class="card sec" id="s-sl">
+      <h2>Солі</h2>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">+ метал → нова сіль + новий метал</div><div class="eq" data-eq="Fe + CuSO4||FeSO4 + Cu"></div><div class="hint">Активніший метал витісняє менш активний з розчину його солі (лівіший у ряду — правішого). На залізному цвяху з'являється червоний наліт міді.</div></div>
+        <div class="rxi"><div class="rxn">+ кислота → нова сіль + нова кислота</div><div class="eq" data-eq="CaCO3 + 2HCl||CaCl2 + H2O + CO2↑"></div><div class="hint">Крейда «шипить» у кислоті.</div></div>
+        <div class="rxi"><div class="rxn">+ луг → нова сіль + нова основа</div><div class="eq" data-eq="FeCl3 + 3NaOH||Fe(OH)3↓ + 3NaCl"></div></div>
+        <div class="rxi"><div class="rxn">+ сіль → дві нові солі</div><div class="eq" data-eq="AgNO3 + NaCl||AgCl↓ + NaNO3"></div><div class="hint">Обидві вихідні солі розчинні, одна з нових — осад. <span class="f">AgCl</span> — білий сирнистий осад (якісна реакція на хлориди).</div></div>
+        <div class="rxi"><div class="rxn">Розклад при нагріванні</div><div class="eq" data-eq="CaCO3|t|CaO + CO2↑"></div><div class="hint">Так добувають негашене вапно.</div></div>
+      </div>
+    </article>
+
+    <article class="card sec" id="s-cond">
+      <h2>Умови перебігу реакцій</h2>
+      <h3>Реакції обміну йдуть до кінця, якщо утворюється</h3>
+      <div class="chips">
+        <span class="chip">осад ↓</span>
+        <span class="chip">газ ↑ (<span class="f">CO2</span>, <span class="f">SO2</span>, <span class="f">H2S</span>)</span>
+        <span class="chip">вода <span class="f">H2O</span></span>
+      </div>
+      <p>Якщо в продуктах лише розчинні солі, реакція не йде: <span class="f">NaCl</span> + <span class="f">KNO3</span> ↛.</p>
+      <h3>Що розчинне, а що ні (мінімум)</h3>
+      <ul>
+        <li>Завжди розчинні: усі солі <b>Na, K, NH<sub>4</sub></b> і всі <b>нітрати</b>.</li>
+        <li>Нерозчинні: <span class="f">AgCl</span>, <span class="f">BaSO4</span>, <span class="f">CaCO3</span>, <span class="f">BaCO3</span>, <span class="f">Ca3(PO4)2</span>, більшість карбонатів і ортофосфатів (крім Na, K).</li>
+        <li>Основи нерозчинні, крім лугів <span class="f">NaOH</span>, <span class="f">KOH</span>, <span class="f">Ba(OH)2</span> (і малорозчинного <span class="f">Ca(OH)2</span>).</li>
+      </ul>
+      <h3>Ряд активності металів</h3>
+      <div class="eq" style="font-size:16px;flex-wrap:wrap">K Ba Ca Na Mg Al Zn Fe Ni Sn Pb <b class="hl">(H)</b> Cu Hg Ag Pt Au</div>
+      <ul>
+        <li>Метали <b>до (H)</b> витісняють водень з кислот (крім нітратної).</li>
+        <li>Кожен метал витісняє з розчину солі ті метали, що стоять <b>правіше</b>. Дуже активні K, Ca, Na, Ba для цього не беруть: вони реагують з водою.</li>
+      </ul>
+      <h3>Типи реакцій</h3>
+      <div class="tblw"><table>
+        <thead><tr><th>Тип</th><th>Схема</th><th>Приклад</th></tr></thead>
+        <tbody>
+          <tr><td>сполучення</td><td>A + B → AB</td><td><span class="f">CaO</span> + <span class="f">H2O</span> → <span class="f">Ca(OH)2</span></td></tr>
+          <tr><td>розкладу</td><td>AB → A + B</td><td><span class="f">CaCO3</span> → <span class="f">CaO</span> + <span class="f">CO2</span></td></tr>
+          <tr><td>заміщення</td><td>A + BC → AC + B</td><td><span class="f">Zn</span> + 2<span class="f">HCl</span> → <span class="f">ZnCl2</span> + <span class="f">H2</span></td></tr>
+          <tr><td>обміну</td><td>AB + CD → AD + CB</td><td><span class="f">NaOH</span> + <span class="f">HCl</span> → <span class="f">NaCl</span> + <span class="f">H2O</span></td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <article class="card sec" id="s-salt">
+      <h2>Як скласти формулу солі</h2>
+      <ol>
+        <li>Визнач валентність металу та кислотного залишку (залишок має валентність, що дорівнює кількості H у кислоті).</li>
+        <li>Знайди найменше спільне кратне (НСК) валентностей.</li>
+        <li>Індекс металу = НСК / валентність металу, індекс залишку = НСК / валентність залишку.</li>
+        <li>Якщо залишок складний (<span class="f">SO4</span>, <span class="f">NO3</span>, <span class="f">PO4</span>, <span class="f">CO3</span>) і його більше одного — бери в дужки.</li>
+      </ol>
+      <div class="example">Ca (II) + PO<sub>4</sub> (III) → НСК = 6 → Ca<sub>6/2</sub>(PO<sub>4</sub>)<sub>6/3</sub> = <b><span class="f">Ca3(PO4)2</span></b> — кальцій ортофосфат</div>
+      <div class="tblw"><table>
+        <thead><tr><th>Кислота</th><th>Залишок</th><th>Валентність</th><th>Назва солі</th></tr></thead>
+        <tbody>
+          <tr><td><span class="f">HCl</span></td><td><span class="f">Cl</span></td><td class="n">I</td><td>хлорид</td></tr>
+          <tr><td><span class="f">HNO3</span></td><td><span class="f">NO3</span></td><td class="n">I</td><td>нітрат</td></tr>
+          <tr><td><span class="f">H2SO4</span></td><td><span class="f">SO4</span></td><td class="n">II</td><td>сульфат</td></tr>
+          <tr><td><span class="f">H2SO3</span></td><td><span class="f">SO3</span></td><td class="n">II</td><td>сульфіт</td></tr>
+          <tr><td><span class="f">H2CO3</span></td><td><span class="f">CO3</span></td><td class="n">II</td><td>карбонат</td></tr>
+          <tr><td><span class="f">H3PO4</span></td><td><span class="f">PO4</span></td><td class="n">III</td><td>ортофосфат</td></tr>
+        </tbody>
+      </table></div>
+      <p class="hint">Після формули розстав коефіцієнти: спочатку метал, потім кислотний залишок, Гідроген і наприкінці Оксиген.</p>
+    </article>
+
+    <article class="card sec" id="s-gen">
+      <h2>Генетичні зв'язки (ланцюжки)</h2>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">Метал</div><div class="eq" style="flex-wrap:wrap">Ca → CaO → Ca(OH)<sub>2</sub> → CaCO<sub>3</sub></div><div class="hint">+ O<sub>2</sub>; + H<sub>2</sub>O; + CO<sub>2</sub></div></div>
+        <div class="rxi"><div class="rxn">Неметал</div><div class="eq" style="flex-wrap:wrap">S → SO<sub>2</sub> → SO<sub>3</sub> → H<sub>2</sub>SO<sub>4</sub> → BaSO<sub>4</sub></div><div class="hint">+ O<sub>2</sub>; + O<sub>2</sub> (кат.); + H<sub>2</sub>O; + BaCl<sub>2</sub></div></div>
+        <div class="rxi"><div class="rxn">Нерозчинна основа</div><div class="eq" style="flex-wrap:wrap">Cu → CuO → CuSO<sub>4</sub> → Cu(OH)<sub>2</sub> → CuO</div><div class="hint">+ O<sub>2</sub>; + H<sub>2</sub>SO<sub>4</sub>; + NaOH; нагрівання</div></div>
+        <div class="rxi"><div class="rxn">Фосфор</div><div class="eq" style="flex-wrap:wrap">P → P<sub>2</sub>O<sub>5</sub> → H<sub>3</sub>PO<sub>4</sub> → Na<sub>3</sub>PO<sub>4</sub></div><div class="hint">+ O<sub>2</sub>; + H<sub>2</sub>O; + NaOH</div></div>
+      </div>
+      <p class="note">Нерозчинну основу не можна одержати з оксиду і води: <span class="f">CuO</span> → <span class="f">Cu(OH)2</span> йде лише через сіль (<span class="f">CuSO4</span> + <span class="f">NaOH</span>).</p>
+    </article>
+  </section>
+
+  <!-- ================= ПРАКТИКА ================= -->
+  <section id="v-praktyka" class="stack" hidden></section>
+
+  <footer>Хімія · 8–9 клас · Реакції неорганічних сполук</footer>
+</div>
+
+<script>
+/* ---------- утиліти ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const F = s => `<span class="f">${fHTML(s)}</span>`;
+const EQ = (l, c, r) => `<span class="f">${fHTML(esc(l))} <span class="arr">${c ? `<small>${fHTML(esc(c))}</small>` : ''}→</span> ${fHTML(esc(r))}</span>`;
+const plain = h => String(h).replace(/<sub>(\d+)<\/sub>/g, (m, d) => [...d].map(c => SUBD[c]).join(''))
+  .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+const ROM = ['', 'I', 'II', 'III', 'IV'];
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+
+// Розбір формули з урахуванням регістру: Ca3(PO4)2 → {Ca:3, P:2, O:8}
+const LAT = { 'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X','а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','у':'y','х':'x' };
+function parseF(raw) {
+  const s = String(raw).replace(/[АВСЕНІКМОРТХаеіорсух]/g, c => LAT[c]).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/[\s↓↑]/g, '');
+  if (!s || !/^[A-Za-z0-9()]+$/.test(s)) return null;
+  let i = 0;
+  const grp = () => {
+    const c = {};
+    while (i < s.length && s[i] !== ')') {
+      let part;
+      if (s[i] === '(') { i++; part = grp(); if (s[i] !== ')') throw 0; i++; }
+      else { const m = /^[A-Z][a-z]?/.exec(s.slice(i)); if (!m) throw 0; i += m[0].length; part = { [m[0]]: 1 }; }
+      const d = /^\d+/.exec(s.slice(i)); const k = d ? +d[0] : 1; if (d) i += d[0].length;
+      for (const e in part) c[e] = (c[e] || 0) + part[e] * k;
+    }
+    return c;
+  };
+  try { const c = grp(); return i === s.length ? c : null; } catch (e) { return null; }
+}
+const sameF = (a, f) => { const x = parseF(a), y = parseF(f); if (!x || !y) return false; const k = new Set([...Object.keys(x), ...Object.keys(y)]); return [...k].every(e => x[e] === y[e]); };
+
+// Підбір коефіцієнтів перебором (до 12)
+function balance(L, R) {
+  const sp = [...L, ...R].map(parseF), n = sp.length, els = [...new Set(sp.flatMap(Object.keys))];
+  const k = Array(n).fill(1);
+  const ok = () => els.every(e => { let s = 0; sp.forEach((c, j) => s += (j < L.length ? 1 : -1) * (c[e] || 0) * k[j]); return s === 0; });
+  const rec = j => { if (j === n) return ok(); for (let v = 1; v <= 12; v++) { k[j] = v; if (rec(j + 1)) return true; } return false; };
+  return rec(0) ? k.slice() : null;
+}
+const side = (arr, k, mark = {}) => arr.map((f, j) => `${k[j] > 1 ? k[j] : ''}${f}${mark[f] || ''}`).join(' + ');
+
+/* ---------- речовини ---------- */
+const MET = {
+  Na:{ v:1, n:'натрій', alk:1 }, K:{ v:1, n:'калій', alk:1 }, Ca:{ v:2, n:'кальцій', alk:1 }, Ba:{ v:2, n:'барій', alk:1 },
+  Mg:{ v:2, n:'магній' }, Zn:{ v:2, n:'цинк' }, Cu:{ v:2, n:'купрум(ІІ)' }, Al:{ v:3, n:'алюміній' }, Fe:{ v:3, n:'ферум(ІІІ)' }
+};
+const ACID = {
+  HCl:{ a:'Cl', q:1, n:'хлорид' }, HNO3:{ a:'NO3', q:1, n:'нітрат' }, H2SO4:{ a:'SO4', q:2, n:'сульфат' }, H3PO4:{ a:'PO4', q:3, n:'ортофосфат' }
+};
+const AOX = {
+  CO2:{ a:'CO3', q:2, n:'карбонат' }, SO2:{ a:'SO3', q:2, n:'сульфіт' }, SO3:{ a:'SO4', q:2, n:'сульфат' }, P2O5:{ a:'PO4', q:3, n:'ортофосфат' }, N2O5:{ a:'NO3', q:1, n:'нітрат' }
+};
+const oxide = m => { const v = MET[m].v; return v === 1 ? `${m}2O` : v === 2 ? `${m}O` : `${m}2O3`; };
+const hydr  = m => MET[m].v === 1 ? `${m}OH` : `${m}(OH)${MET[m].v}`;
+function salt(m, an) {
+  const v = MET[m].v, q = an.q, g = gcd(v, q), p = q / g, r = v / g, poly = an.a.length > 2;
+  return `${m}${p > 1 ? p : ''}${r > 1 ? (poly ? `(${an.a})${r}` : an.a + r) : an.a}`;
+}
+function saltSteps(m, an) {
+  const v = MET[m].v, q = an.q, l = v * q / gcd(v, q), f = salt(m, an);
+  return [`Валентність ${m} — ${ROM[v]}, кислотного залишку ${F(an.a)} — ${ROM[q]}`, `НСК(${v}, ${q}) = ${l} → індекси ${m}: ${l}/${v} = ${l / v}, ${F(an.a)}: ${l}/${q} = ${l / q}`, `Сіль: ${F(f)} — ${MET[m].n} ${an.n}`];
+}
+
+// Реакція з утворенням солі: { L, R, salt, steps }
+function makeRx() {
+  const kind = pick(['base', 'base', 'box', 'box', 'alkAox', 'oxOx', 'metal']);
+  let m, an, L, R;
+  if (kind === 'base' || kind === 'box') {
+    m = pick(Object.keys(MET)); const ac = pick(Object.keys(ACID)); an = ACID[ac];
+    L = [kind === 'base' ? hydr(m) : oxide(m), ac]; R = [salt(m, an), 'H2O'];
+  } else if (kind === 'alkAox') {
+    m = pick(['Na', 'K', 'Ca', 'Ba']); const ao = pick(Object.keys(AOX)); an = AOX[ao];
+    L = [hydr(m), ao]; R = [salt(m, an), 'H2O'];
+  } else if (kind === 'oxOx') {
+    m = pick(['Na', 'K', 'Ca', 'Ba', 'Mg']); const ao = pick(['CO2', 'SO3', 'P2O5', 'SO2']); an = AOX[ao];
+    L = [oxide(m), ao]; R = [salt(m, an)];
+  } else {
+    m = pick(['Mg', 'Zn', 'Al']); const ac = pick(['HCl', 'H2SO4']); an = ACID[ac];
+    L = [m, ac]; R = [salt(m, an), 'H2'];
+  }
+  const k = balance(L, R);
+  return { L, R, k, salt: R[0], steps: saltSteps(m, an), full: `${side(L, k)} → ${side(R, k.slice(L.length), { H2:'↑' })}` };
+}
+
+/* ---------- розділи ---------- */
+const CAT = {
+  ox:   { l:'Оксиди',       c:'var(--c-stru)' },
+  ac:   { l:'Кислоти',      c:'var(--c-react)' },
+  bs:   { l:'Основи',       c:'var(--c-nom)' },
+  sl:   { l:'Солі',         c:'var(--c-prod)' },
+  eq:   { l:'Рівняння',     c:'var(--c-calc)' },
+  gen:  { l:'Ланцюжки',     c:'var(--c-prop)' },
+  type: { l:'Типи реакцій', c:'var(--c-prop)' }
+};
+
+/* ---------- банк питань (перший варіант — правильний) ---------- */
+const BANK = [
+  // оксиди
+  { g:'ox', q:'Який оксид реагує з водою з утворенням лугу?', o:[F('CaO'), F('CuO'), F('Fe2O3'), F('SiO2')], e:'З водою реагують лише оксиди лужних і лужноземельних металів: CaO + H₂O → Ca(OH)₂.' },
+  { g:'ox', q:'Яка речовина — кислотний оксид?', o:[F('SO3'), F('Na2O'), F('MgO'), F('CuO')], e:'Кислотні оксиди — оксиди неметалів. SO₃ відповідає сульфатна кислота H₂SO₄.' },
+  { g:'ox', q:`Що утворюється при взаємодії ${F('SO3')} з водою?`, o:[F('H2SO4'), F('H2SO3'), F('H2S'), `${F('SO2')} і ${F('H2')}`], e:'SO₃ + H₂O → H₂SO₄. Ступінь окиснення Сульфуру +6 зберігається.' },
+  { g:'ox', q:'Який оксид НЕ реагує з водою?', o:[F('SiO2'), F('CO2'), F('P2O5'), F('Na2O')], e:'Силіцій(IV) оксид (пісок) у воді не розчиняється і з нею не реагує.' },
+  { g:'ox', q:`З якою речовиною реагує ${F('CO2')}?`, o:[F('NaOH'), F('HCl'), F('SO3'), F('H2SO4')], e:'Кислотний оксид реагує з лугом: CO₂ + 2NaOH → Na₂CO₃ + H₂O.' },
+  { g:'ox', q:`З якою речовиною реагує ${F('CaO')}?`, o:[F('CO2'), F('NaOH'), F('MgO'), F('KOH')], e:'Основний оксид реагує з кислотним: CaO + CO₂ → CaCO₃.' },
+  { g:'ox', q:'Який оксид амфотерний?', o:[F('ZnO'), F('CaO'), F('SO2'), F('Na2O')], e:'ZnO реагує і з кислотами, і з лугами.' },
+  { g:'ox', q:`Продукти реакції ${F('CuO + H2SO4')}:`, o:[`${F('CuSO4')} і ${F('H2O')}`, `${F('CuSO4')} і ${F('H2')}`, `${F('Cu(OH)2')} і ${F('SO3')}`, 'реакція не відбувається'], e:'Основний оксид + кислота → сіль + вода. Розчин стає блакитним.' },
+  { g:'ox', q:`Що утворюється при взаємодії ${F('P2O5')} з водою?`, o:[F('H3PO4'), F('PH3'), F('H2PO4'), F('P2O3')], e:'P₂O₅ + 3H₂O → 2H₃PO₄ — ортофосфатна кислота.' },
+  { g:'ox', q:`Оксиду ${F('N2O5')} відповідає кислота`, o:[F('HNO3'), F('HNO2'), F('NH3'), F('H2NO3')], e:'Ступінь окиснення Нітрогену +5 і в N₂O₅, і в HNO₃.' },
+  { g:'ox', q:'Основний оксид НЕ реагує з', o:['лугом', 'кислотою', 'кислотним оксидом', 'водою (якщо це оксид лужного металу)'], e:'Речовини одного (основного) характеру між собою не реагують.' },
+  // кислоти
+  { g:'ac', q:'Хлоридна кислота реагує з металом', o:[F('Zn'), F('Cu'), F('Ag'), F('Au')], e:'Водень з кислот витісняють лише метали, що стоять у ряду активності до водню.' },
+  { g:'ac', q:'Реакція нейтралізації — це взаємодія', o:['кислоти з основою', 'кислоти з металом', 'двох солей', 'оксиду з водою'], e:'Кислота + основа → сіль + вода: NaOH + HCl → NaCl + H₂O.' },
+  { g:'ac', q:`Продукти реакції ${F('Zn + 2HCl')}:`, o:[`${F('ZnCl2')} і ${F('H2')}`, `${F('ZnCl2')} і ${F('H2O')}`, `${F('Zn(OH)2')} і ${F('Cl2')}`, 'реакція не відбувається'], e:'Метал до водню + кислота → сіль + водень.' },
+  { g:'ac', q:'Яка кислота нестійка і розкладається на воду й газ?', o:[F('H2CO3'), F('H2SO4'), F('HCl'), F('H3PO4')], e:'H₂CO₃ → H₂O + CO₂↑. Тому в продуктах пишемо воду і вуглекислий газ.' },
+  { g:'ac', q:'Як забарвлюється лакмус у розчині кислоти?', o:['червоний', 'синій', 'фіолетовий', 'малиновий'], e:'Кислоти: лакмус червоний, метилоранж рожевий, фенолфталеїн безбарвний.' },
+  { g:'ac', q:`Яка ознака реакції ${F('H2SO4')} з ${F('BaCl2')}?`, o:[`білий осад ${F('BaSO4')}`, 'виділення водню', 'голубий осад', 'реакція не відбувається'], e:'BaCl₂ + H₂SO₄ → BaSO₄↓ + 2HCl — якісна реакція на сульфати.' },
+  { g:'ac', q:`Яка ознака реакції ${F('Na2CO3')} з хлоридною кислотою?`, o:['виділення газу', 'утворення осаду', 'поява синього забарвлення', 'видимих змін немає'], e:'Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂↑ — розчин «шипить».' },
+  { g:'ac', q:`Який осад утворюється при взаємодії ${F('HCl')} з ${F('AgNO3')}?`, o:[`білий сирнистий ${F('AgCl')}`, `голубий ${F('Cu(OH)2')}`, `бурий ${F('Fe(OH)3')}`, 'осаду немає'], e:'HCl + AgNO₃ → AgCl↓ + HNO₃ — якісна реакція на хлорид-іони.' },
+  { g:'ac', q:'Сульфатна кислота НЕ реагує з', o:[F('CO2'), F('NaOH'), F('MgO'), F('Zn')], e:'Кислота не реагує з кислотним оксидом.' },
+  { g:'ac', q:`Скільки моль ${F('HCl')} потрібно для нейтралізації 1 моль ${F('Ca(OH)2')}?`, o:['2', '1', '3', '0,5'], e:'Ca(OH)₂ + 2HCl → CaCl₂ + 2H₂O.' },
+  // основи
+  { g:'bs', q:'Яке забарвлення має фенолфталеїн у розчині лугу?', o:['малинове', 'безбарвне', 'червоне', 'жовте'], e:'У лузі фенолфталеїн малиновий, лакмус синій, метилоранж жовтий.' },
+  { g:'bs', q:'Яка основа є лугом?', o:[F('NaOH'), F('Cu(OH)2'), F('Fe(OH)3'), F('Mg(OH)2')], e:'Луги — розчинні основи: NaOH, KOH, Ba(OH)₂, Ca(OH)₂.' },
+  { g:'bs', q:`Що утворюється при нагріванні ${F('Cu(OH)2')}?`, o:[`${F('CuO')} і ${F('H2O')}`, `${F('Cu')} і ${F('H2O')}`, `${F('CuO')} і ${F('H2')}`, 'речовина не розкладається'], e:'Нерозчинні основи розкладаються на оксид і воду: Cu(OH)₂ → CuO + H₂O.' },
+  { g:'bs', q:`Що спостерігають, доливаючи ${F('NaOH')} до розчину ${F('CuSO4')}?`, o:['голубий осад', 'білий осад', 'виділення газу', 'бурий осад'], e:'2NaOH + CuSO₄ → Cu(OH)₂↓ + Na₂SO₄.' },
+  { g:'bs', q:'Як виявити вуглекислий газ?', o:['пропустити через вапняну воду — вона каламутніє', 'додати фенолфталеїн', 'піднести тліючу скіпку — вона спалахне', 'пропустити через розчин NaCl'], e:'Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O.' },
+  { g:'bs', q:`З якою речовиною реагує ${F('Fe(OH)3')}?`, o:[F('HCl'), F('NaCl'), F('CO2'), F('H2O')], e:'Нерозчинні основи реагують з кислотами (і розкладаються при нагріванні), але не з кислотними оксидами й солями.' },
+  { g:'bs', q:`Який осад утворюється при взаємодії ${F('FeCl3')} з лугом?`, o:[`бурий ${F('Fe(OH)3')}`, `голубий ${F('Cu(OH)2')}`, `білий ${F('AgCl')}`, `білий ${F('BaSO4')}`], e:'FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl.' },
+  { g:'bs', q:'Який гідроксид реагує і з кислотами, і з лугами?', o:[F('Zn(OH)2'), F('NaOH'), F('Cu(OH)2'), F('Mg(OH)2')], e:'Zn(OH)₂ — амфотерний гідроксид.' },
+  { g:'bs', q:'Луг НЕ реагує з', o:[F('Na2O'), F('CO2'), F('HCl'), F('CuSO4')], e:'Луг і основний оксид — речовини одного характеру.' },
+  { g:'bs', q:`Чому ${F('Cu(OH)2')} не можна добути з ${F('CuO')} і води?`, o:['CuO не реагує з водою', 'Cu(OH)₂ — газ', 'утвориться кислота', 'реакція вибухонебезпечна'], e:'Нерозчинні основи добувають реакцією солі з лугом: CuSO₄ + 2NaOH.' },
+  // солі
+  { g:'sl', q:`Що спостерігають, коли залізний цвях занурюють у розчин ${F('CuSO4')}?`, o:['червоний наліт міді на цвяху', 'виділення водню', 'білий осад', 'жодних змін'], e:'Fe + CuSO₄ → FeSO₄ + Cu: залізо активніше за мідь.' },
+  { g:'sl', q:`Продукти розкладу ${F('CaCO3')} при нагріванні:`, o:[`${F('CaO')} і ${F('CO2')}`, `${F('Ca')} і ${F('CO2')}`, `${F('CaO')} і ${F('CO')}`, `${F('Ca(OH)2')} і ${F('CO2')}`], e:'CaCO₃ → CaO + CO₂↑ — так добувають негашене вапно.' },
+  { g:'sl', q:'Між якими речовинами реакція відбувається?', o:[`${F('BaCl2')} і ${F('Na2SO4')}`, `${F('NaCl')} і ${F('KNO3')}`, `${F('KCl')} і ${F('NaNO3')}`, `${F('Na2SO4')} і ${F('KCl')}`], e:'Утворюється осад BaSO₄. В інших парах усі продукти розчинні.' },
+  { g:'sl', q:'Яка сіль нерозчинна у воді?', o:[F('BaSO4'), F('Na2SO4'), F('KNO3'), F('CuCl2')], e:'BaSO₄ — білий нерозчинний осад.' },
+  { g:'sl', q:'Реакція обміну між двома солями відбувається, якщо', o:['одна з нових солей випадає в осад', 'обидві нові солі розчинні', 'одна з солей — нітрат', 'солі мають однаковий метал'], e:'Реакції обміну йдуть, якщо утворюється осад, газ або вода.' },
+  { g:'sl', q:`Що утворюється при взаємодії крейди ${F('CaCO3')} з хлоридною кислотою?`, o:[`${F('CaCl2')}, ${F('H2O')} і ${F('CO2')}`, `${F('CaCl2')} і ${F('H2CO3')} (стійка)`, `${F('CaO')} і ${F('HCl')}`, 'реакція не відбувається'], e:'CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂↑' },
+  { g:'sl', q:`Який реактив допоможе розпізнати розчин ${F('NaCl')}?`, o:[F('AgNO3'), F('BaCl2'), F('NaOH'), 'фенолфталеїн'], e:'AgNO₃ + NaCl → AgCl↓ (білий сирнистий осад).' },
+  { g:'sl', q:'Яка сіль реагує і з кислотою (виділяючи газ), і з розчином BaCl₂ (утворюючи осад)?', o:[F('Na2CO3'), F('NaCl'), F('KNO3'), F('CuCl2')], e:'Na₂CO₃ + 2HCl → … + CO₂↑; Na₂CO₃ + BaCl₂ → BaCO₃↓ + 2NaCl.' },
+  // типи реакцій
+  { g:'type', q:`До якого типу належить реакція ${F('CaO + H2O → Ca(OH)2')}?`, o:['сполучення', 'розкладу', 'заміщення', 'обміну'], e:'Із двох речовин утворюється одна.' },
+  { g:'type', q:`До якого типу належить реакція ${F('CaCO3 → CaO + CO2')}?`, o:['розкладу', 'сполучення', 'заміщення', 'обміну'], e:'З однієї речовини утворюються дві.' },
+  { g:'type', q:`До якого типу належить реакція ${F('Zn + 2HCl → ZnCl2 + H2')}?`, o:['заміщення', 'обміну', 'сполучення', 'розкладу'], e:'Проста речовина (Zn) заміщує атоми Гідрогену в складній.' },
+  { g:'type', q:`До якого типу належить реакція ${F('NaOH + HCl → NaCl + H2O')}?`, o:['обміну', 'заміщення', 'сполучення', 'розкладу'], e:'Дві складні речовини обмінюються складовими частинами.' },
+  { g:'type', q:`До якого типу належить реакція ${F('Fe + CuSO4 → FeSO4 + Cu')}?`, o:['заміщення', 'обміну', 'розкладу', 'сполучення'], e:'Залізо заміщує мідь у солі.' },
+  { g:'type', q:`До якого типу належить реакція ${F('2Fe(OH)3 → Fe2O3 + 3H2O')}?`, o:['розкладу', 'обміну', 'сполучення', 'заміщення'], e:'Нерозчинна основа розкладається на оксид і воду.' },
+  { g:'type', q:`До якого типу належить реакція ${F('BaCl2 + Na2SO4 → BaSO4 + 2NaCl')}?`, o:['обміну', 'заміщення', 'сполучення', 'розкладу'], e:'Дві солі обмінюються йонами.' },
+  { g:'type', q:`До якого типу належить реакція ${F('SO3 + Na2O → Na2SO4')}?`, o:['сполучення', 'обміну', 'заміщення', 'розкладу'], e:'Два оксиди утворюють одну сіль.' },
+  // ланцюжки
+  { g:'gen', q:`Ланцюжок ${F('Ca → CaO → Ca(OH)2 → CaCO3')}. Чим подіяти на ${F('CaO')}, щоб одержати ${F('Ca(OH)2')}?`, o:[F('H2O'), F('H2'), F('NaOH'), F('O2')], e:'CaO + H₂O → Ca(OH)₂' },
+  { g:'gen', q:`Ланцюжок ${F('Ca → CaO → Ca(OH)2 → CaCO3')}. Який реагент потрібен для останньої стадії?`, o:[F('CO2'), F('CO'), F('CaO'), F('H2')], e:'Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O' },
+  { g:'gen', q:`Ланцюжок ${F('S → SO2 → SO3 → H2SO4')}. Що потрібно для переходу ${F('SO3 → H2SO4')}?`, o:[F('H2O'), F('O2'), F('H2'), F('NaOH')], e:'SO₃ + H₂O → H₂SO₄' },
+  { g:'gen', q:`Ланцюжок ${F('Cu → CuO → CuSO4 → Cu(OH)2')}. Реагент для переходу ${F('CuSO4 → Cu(OH)2')}:`, o:[F('NaOH'), F('H2O'), F('Cu'), F('HCl')], e:'CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄' },
+  { g:'gen', q:`Як здійснити перехід ${F('Cu(OH)2 → CuO')}?`, o:['нагріти', `додати ${F('H2O')}`, `додати ${F('NaOH')}`, `додати ${F('O2')}`], e:'Cu(OH)₂ → CuO + H₂O (при нагріванні).' },
+  { g:'gen', q:`Ланцюжок ${F('P → P2O5 → H3PO4 → Na3PO4')}. Реагент для останньої стадії:`, o:[F('NaOH'), F('NaCl'), F('NaNO3'), F('Na2SO4')], e:'H₃PO₄ + 3NaOH → Na₃PO₄ + 3H₂O' },
+  { g:'gen', q:`Ланцюжок ${F('Mg → MgO → MgCl2 → Mg(OH)2')}. Реагент для переходу ${F('MgO → MgCl2')}:`, o:[F('HCl'), F('Cl2'), F('NaCl'), F('KCl')], e:'MgO + 2HCl → MgCl₂ + H₂O' },
+  { g:'gen', q:`Яка речовина X у схемі ${F('Zn → X → Zn(OH)2')}?`, o:[F('ZnCl2'), F('ZnO'), F('ZnS'), F('H2')], e:'Zn + 2HCl → ZnCl₂ + H₂↑; ZnCl₂ + 2NaOH → Zn(OH)₂↓ + 2NaCl. З ZnO основу напряму не одержати.' },
+  { g:'gen', q:`Ланцюжок ${F('C → CO2 → Na2CO3 → CaCO3')}. Реагент для переходу ${F('Na2CO3 → CaCO3')}:`, o:[F('CaCl2'), F('CaO'), F('Ca'), F('CaCO3')], e:'Na₂CO₃ + CaCl₂ → CaCO₃↓ + 2NaCl — реакція обміну з утворенням осаду.' }
+];
+const BY = {}; BANK.forEach(b => (BY[b.g] ??= []).push(b));
+const G2PTS = { ox:1, ac:1, bs:1, sl:1, type:1, gen:2 };
+
+/* ---------- конструктор завдань ---------- */
+const DECK = {};
+function draw(key, arr) { if (!DECK[key] || !DECK[key].length) DECK[key] = shuffle(arr.map((_, i) => i)); return arr[DECK[key].pop()]; }
+function choice({ cat, label, pts = 1, q, o, e }) {
+  const opts = shuffle(o.map((html, i) => ({ html, right: i === 0 })));
+  return { cat, label: label || CAT[cat].l, pts, q, input:'choice', opts, e, right: plain(o[0]), sol: e ? [e] : [],
+    check: a => a !== null && a !== undefined && !!opts[a] && opts[a].right };
+}
+const fromBank = g => choice({ ...draw(g, BY[g]), cat: g, pts: G2PTS[g] });
+
+// Формула солі
+function tSalt() {
+  const r = makeRx(), rest = r.R.slice(1);
+  return { cat:'eq', label:'Формула солі', pts:2, input:'formula',
+    q:`Допишіть рівняння і введіть формулу солі: ${F(r.L.join(' + '))} → <b>?</b>${rest.length ? ' + ' + F(rest.join(' + ')) : ''}`,
+    right:`${plain(F(r.salt))}`, sol:[...r.steps, `Рівняння: ${F(r.full)}`], check: a => sameF(a, r.salt) };
+}
+// Сума коефіцієнтів
+function tCoef() {
+  const r = makeRx(), s = r.k.reduce((a, b) => a + b, 0);
+  return { cat:'eq', label:'Коефіцієнти', pts:2, input:'num',
+    q:`Розставте коефіцієнти і вкажіть їх суму: ${F(r.L.join(' + '))} → ${F(r.R.join(' + '))}`,
+    right:String(s), sol:[`Рівняння: ${F(r.full)}`, `Сума: ${r.k.join(' + ')} = ${s}`],
+    check: a => +String(a).trim() === s };
+}
+// Метал + розчин солі
+const SER = ['Mg', 'Al', 'Zn', 'Fe', 'Pb', 'Cu', 'Hg', 'Ag', 'Au'];
+const SALTS = { Zn:'ZnSO4', Fe:'FeSO4', Pb:'Pb(NO3)2', Cu:'CuSO4', Hg:'Hg(NO3)2', Ag:'AgNO3' };
+function tMetalSalt() {
+  const sm = pick(['Fe', 'Cu', 'Cu', 'Pb', 'Zn']), si = SER.indexOf(sm);
+  const good = pick(SER.slice(0, si).filter(x => x !== 'Al')), bad = shuffle(SER.slice(si + 1)).slice(0, 3);
+  return choice({ cat:'sl', label:'Ряд активності', pts:1, q:`Який метал витіснить ${sm === 'Hg' ? 'ртуть' : sm === 'Ag' ? 'срібло' : sm === 'Cu' ? 'мідь' : sm === 'Pb' ? 'свинець' : sm === 'Fe' ? 'залізо' : 'цинк'} з розчину ${F(SALTS[sm])}?`,
+    o:[F(good), ...bad.map(F)], e:`${good} стоїть у ряду активності лівіше за ${sm}, тому витісняє його із солі.` });
+}
+function tMetalAcid() {
+  const no = pick(['Cu', 'Ag', 'Au', 'Hg']), yes = shuffle(['Mg', 'Zn', 'Fe', 'Al', 'Ca']).slice(0, 3), ac = pick(['хлоридною кислотою', 'розбавленою сульфатною кислотою']);
+  return choice({ cat:'ac', label:'Метал + кислота', pts:1, q:`Який метал НЕ реагує з ${ac}?`, o:[F(no), ...yes.map(F)], e:`${no} стоїть у ряду активності після водню і не витісняє його з кислот.` });
+}
+
+const GEN = {
+  ox: () => fromBank('ox'), ac: () => fromBank('ac'), bs: () => fromBank('bs'), sl: () => fromBank('sl'), type: () => fromBank('type'), gen: () => fromBank('gen'),
+  salt: tSalt, coef: tCoef, mSalt: tMetalSalt, mAcid: tMetalAcid
+};
+const KINDS = [
+  ['all', 'Усі', ['ox', 'ac', 'bs', 'sl', 'type', 'gen', 'salt', 'coef', 'mSalt', 'mAcid']],
+  ['ox', 'Оксиди', ['ox']],
+  ['ac', 'Кислоти', ['ac', 'ac', 'mAcid']],
+  ['bs', 'Основи', ['bs']],
+  ['sl', 'Солі', ['sl', 'sl', 'mSalt']],
+  ['salt', 'Формула солі', ['salt']],
+  ['coef', 'Коефіцієнти', ['coef']],
+  ['type', 'Типи реакцій', ['type']],
+  ['gen', 'Ланцюжки', ['gen']]
+];
+
+/* ---------- поле відповіді ---------- */
+const LETTERS = 'АБВГД';
+function area(t, ans, pre, reveal) {
+  if (t.input === 'choice') return `<div class="opts">${t.opts.map((o, i) => {
+    let c = '';
+    if (reveal) { if (o.right) c = 'ok'; else if (i === ans) c = 'bad'; } else if (i === ans) c = 'sel';
+    return `<button class="opt ${c}" data-i="${i}" ${reveal ? 'disabled' : ''}><span class="k">${LETTERS[i]}</span><span>${o.html}</span></button>`;
+  }).join('')}</div>`;
+  const isF = t.input === 'formula';
+  return `<div class="inrow"><input id="${pre}-in" type="text" inputmode="${isF ? 'text' : 'numeric'}" autocomplete="off" spellcheck="false" autocapitalize="off"
+      aria-label="Відповідь" placeholder="${isF ? 'напр. Ca3(PO4)2' : 'сума'}" value="${esc(ans ?? '')}"></div>
+    <div class="hint">${isF ? 'Пиши латиницею, з великої літери: Ca, Al, SO4. Індекси — звичайними цифрами: Al2(SO4)3.' : 'Введи ціле число. Коефіцієнт 1 теж рахується.'}</div>`;
+}
+
+/* ================= ПРАКТИКА ================= */
+const P = { kind:'all', t:null, ans:null, checked:false, ok:false, sol:false, counted:false, tried:0, solved:0 };
+function newPractice() {
+  const keys = KINDS.find(k => k[0] === P.kind)[2];
+  P.t = GEN[pick(keys)]();
+  Object.assign(P, { ans: P.t.input === 'choice' ? null : '', checked:false, ok:false, sol:false, counted:false });
+  renderPractice(true);
+}
+function renderPractice(focus) {
+  const t = P.t, v = $('v-praktyka'), isC = t.input === 'choice';
+  let fb = '';
+  if (P.checked) fb = P.ok
+    ? `<div class="fb ok"><b>Правильно.</b> ${isC ? (t.e || '') : `Відповідь: ${esc(t.right)}`}</div>`
+    : isC ? `<div class="fb bad"><b>Неправильно.</b> ${t.e || ''}</div>`
+          : `<div class="fb bad"><b>Неправильно.</b> Спробуй ще раз або подивись розв'язок.</div>`;
+  const sol = P.sol && !isC ? `<div class="solbox"><div class="lbl">Розв'язок</div><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol><div>Відповідь: <b>${esc(t.right)}</b></div></div>` : '';
+  const acts = isC
+    ? (P.checked ? `<button class="btn" id="p-next">Наступне завдання</button>` : `<span class="hint">Обери одну відповідь</span>`)
+    : `<button class="btn" id="p-check">Перевірити</button><button class="btn ghost" id="p-sol">${P.sol ? 'Сховати розв\'язок' : 'Розв\'язок'}</button><button class="btn ghost" id="p-next">Наступне</button>`;
+  v.innerHTML = `
+    <div class="seg" role="group" aria-label="Тип завдань">${KINDS.map(([k, l]) => `<button class="segb" data-k="${k}" aria-pressed="${P.kind === k}">${l}</button>`).join('')}</div>
+    <div class="card task" style="--c:${CAT[t.cat].c}">
+      <div class="tline"><span class="tag">${esc(t.label)}</span>${P.tried ? `<span class="count">правильно ${P.solved} з ${P.tried}</span>` : ''}</div>
+      <div class="q">${t.q}</div>
+      ${area(t, P.ans, 'p', isC && P.checked)}
+      ${fb}${sol}
+      <div class="actions">${acts}</div>
+    </div>
+    <p class="hint">Тренуйся скільки завгодно: рівняння щоразу нові, результати нікуди не надсилаються.</p>`;
+  v.querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; newPractice(); });
+  v.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (P.checked) return;
+    P.ans = +b.dataset.i; P.checked = true; P.ok = t.check(P.ans); P.tried++; if (P.ok) P.solved++;
+    renderPractice(); $('p-next')?.focus({ preventScroll:true });
+  });
+  const inp = $('p-in');
+  const check = () => {
+    P.ans = inp.value; if (!P.ans.trim()) { inp.focus(); return; }
+    P.checked = true; P.ok = t.check(P.ans);
+    if (!P.counted) { P.counted = true; P.tried++; if (P.ok) P.solved++; }
+    renderPractice(); if (!P.ok) $('p-in')?.focus({ preventScroll:true });
+  };
+  if (inp) {
+    inp.oninput = () => { P.ans = inp.value; };
+    inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); check(); } };
+    if (focus && matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+  }
+  if ($('p-check')) $('p-check').onclick = check;
+  if ($('p-sol')) $('p-sol').onclick = () => { if (inp) P.ans = inp.value; P.sol = !P.sol; renderPractice(); };
+  if ($('p-next')) $('p-next').onclick = newPractice;
+}
+
+/* ================= ТЕОРІЯ: формули й рівняння ================= */
+document.querySelectorAll('#v-teoriya .f').forEach(el => { if (!el.children.length) el.innerHTML = fHTML(el.textContent); });
+document.querySelectorAll('[data-eq]').forEach(el => { const [l, c, r] = el.dataset.eq.split('|'); el.innerHTML = EQ(l, c, r); });
+document.querySelectorAll('#toc button').forEach(b => b.onclick = () => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $(b.dataset.to).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' });
+});
+
+/* ================= перемикання розділів ================= */
+const VIEWS = ['teoriya', 'praktyka'];
+function show(v) {
+  if (!VIEWS.includes(v)) v = 'teoriya';
+  VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'praktyka' && !P.t) newPractice();
+}
+function go2(v) { show(v); try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo({ top:0 }); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go2(b.dataset.v));
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+show(location.hash.slice(1));
+</script>
+
+
+<button class="draft-fab" id="draft-open" aria-expanded="false" aria-controls="draft">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14 7l3 3"/></svg>
+  Чернетка
+</button>
+<aside class="draft" id="draft" hidden aria-label="Чернетка">
+  <div class="draft-bar">
+    <span class="ttl">Чернетка</span>
+    <div class="draft-tools" role="group" aria-label="Інструменти">
+      <button class="dt" data-tool="ink" aria-pressed="true" aria-label="Ручка, основний колір" title="Ручка"><i style="background:var(--ink)"></i></button>
+      <button class="dt" data-tool="oh" aria-pressed="false" aria-label="Ручка, бірюзова" title="Бірюзова ручка"><i style="background:var(--oh)"></i></button>
+      <button class="dt" data-tool="bad" aria-pressed="false" aria-label="Ручка, червона" title="Червона ручка"><i style="background:var(--bad)"></i></button>
+      <button class="dt" data-tool="erase" aria-pressed="false" aria-label="Гумка" title="Гумка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4l4 4-9.5 9.5H6L3.5 15 13 5.5"/><path d="M9 20h11"/><path d="M8.5 10l5.5 5.5"/></svg></button>
+      <button class="dt" data-tool="hand" aria-pressed="false" aria-label="Рука: пересувати аркуш" title="Рука: пересувати аркуш (або затисни пробіл)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v8"/><path d="M14 12V6a1.5 1.5 0 0 1 3 0v8"/><path d="M8 13v-1.5a1.5 1.5 0 0 0-3 0V14a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-3"/></svg></button>
+    </div>
+    <span class="sp"></span>
+    <button class="dt" id="draft-undo" aria-label="Скасувати останню лінію" title="Скасувати (Ctrl+Z)">↶</button>
+    <button class="dt" id="draft-clear" aria-label="Очистити чернетку" title="Очистити"></button>
+    <button class="dt" id="draft-close" aria-label="Закрити чернетку" title="Закрити (Esc)">✕</button>
+  </div>
+  <div class="draft-area" id="draft-area">
+    <canvas id="draft-canvas"></canvas>
+    <span class="draft-hint" id="draft-hint">Пиши пальцем, стилусом або мишкою. Масштаб — двома пальцями або Ctrl + колесо.</span>
+    <div class="zoombar" role="group" aria-label="Масштаб">
+      <button class="dt" id="zoom-out" aria-label="Віддалити" title="Віддалити">−</button>
+      <button class="dt zl" id="zoom-reset" aria-label="Скинути масштаб до 100 %" title="Скинути масштаб">100%</button>
+      <button class="dt" id="zoom-in" aria-label="Наблизити" title="Наблизити">+</button>
+    </div>
+    <div class="draft-msg" id="draft-msg" hidden>Чернетка не завантажилась: для неї потрібен інтернет. Онови сторінку, коли з'явиться зв'язок.</div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@5.1.3/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ================= ЧЕРНЕТКА (signature_pad + масштаб) ================= */
+(() => {
+  const KEY = 'draft_spyrty';
+  const MIN_S = 0.25, MAX_S = 6;
+  const box = document.getElementById('draft'), openBtn = document.getElementById('draft-open');
+  const canvas = document.getElementById('draft-canvas'), area = document.getElementById('draft-area');
+  const msg = document.getElementById('draft-msg'), hint = document.getElementById('draft-hint');
+  const clearBtn = document.getElementById('draft-clear'), zl = document.getElementById('zoom-reset');
+  const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+  clearBtn.innerHTML = TRASH;
+  let pad = null, tool = 'ink', clearArm = null, dpr = 1, spaceHand = false;
+  const V = { s: 1, x: 0, y: 0 };          // екран = світ · s + (x, y)
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || '#000';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(pad.toData())); } catch (e) {} };
+  const syncHint = () => { hint.hidden = !!pad && !pad.isEmpty(); };
+  const panMode = () => tool === 'hand' || spaceHand;
+  // signature_pad.off() вмикає прокрутку сторінки на холсті — повертаємо touch-action: none
+  const padOff = () => { pad.off(); canvas.style.touchAction = 'none'; };
+
+  // ---- вигляд ----
+  function applyCtx() { canvas.getContext('2d').setTransform(dpr * V.s, 0, 0, dpr * V.s, dpr * V.x, dpr * V.y); }
+  function penWidths() {
+    if (!pad) return;
+    const k = 1 / V.s;   // однакова товщина лінії на екрані за будь-якого масштабу
+    if (tool === 'erase') Object.assign(pad, { minWidth: 9 * k, maxWidth: 16 * k });
+    else Object.assign(pad, { minWidth: 0.8 * k, maxWidth: 2.6 * k });
+    pad.minDistance = 5 * k;
+  }
+  let raf = 0;
+  function redraw() {
+    area.style.backgroundSize = `${20 * V.s}px ${20 * V.s}px`;
+    area.style.backgroundPosition = `${V.x}px ${V.y}px`;
+    zl.textContent = Math.round(V.s * 100) + '%';
+    if (!pad) return;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { applyCtx(); pad.redraw(); });
+  }
+  function zoomAt(cx, cy, s2) {
+    s2 = Math.min(MAX_S, Math.max(MIN_S, s2));
+    const wx = (cx - V.x) / V.s, wy = (cy - V.y) / V.s;
+    V.s = s2; V.x = cx - wx * s2; V.y = cy - wy * s2;
+    penWidths(); redraw();
+  }
+  const center = () => { const r = area.getBoundingClientRect(); return [r.width / 2, r.height / 2]; };
+
+  function setTool(t) {
+    tool = t;
+    box.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+    area.classList.toggle('hand', panMode());
+    if (!pad) return;
+    if (t === 'erase') Object.assign(pad, { compositeOperation:'destination-out', penColor:'#000' });
+    else if (t !== 'hand') Object.assign(pad, { compositeOperation:'source-over', penColor: cssVar(t) });
+    penWidths();
+    panMode() ? padOff() : pad.on();
+  }
+  function fit() {
+    if (!pad) return;
+    const r = area.getBoundingClientRect();
+    dpr = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    applyCtx(); pad.redraw();
+  }
+  function init() {
+    if (pad) return true;
+    if (!window.SignaturePad) { msg.hidden = false; hint.hidden = true; return false; }
+    pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', throttle:8 });
+    // точки — у координатах «світу», а не екрана
+    const mk = pad._createPoint.bind(pad);
+    pad._createPoint = (x, y, p) => { const pt = mk(x, y, p); pt.x = (pt.x - V.x) / V.s; pt.y = (pt.y - V.y) / V.s; return pt; };
+    // очищати завжди весь холст, незалежно від масштабу
+    const clr = pad.clear.bind(pad);
+    pad.clear = () => { const c = canvas.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); clr(); applyCtx(); };
+    setTool(tool);
+    try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (Array.isArray(d)) pad.fromData(d); } catch (e) {}
+    pad.addEventListener('endStroke', () => { save(); syncHint(); });
+    new ResizeObserver(() => { if (!box.hidden) fit(); }).observe(area);
+    return true;
+  }
+
+  // ---- жести: два пальці — масштаб і зсув; «Рука» — зсув одним пальцем/мишкою ----
+  const ptrs = new Map();
+  let gesture = null, busy = false, beforeLen = 0;   // busy — жест триває, поки не піднято всі пальці
+  const local = e => { const r = area.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function startGesture() {
+    busy = true;
+    const pts = [...ptrs.values()];
+    if (pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      gesture = { kind:'pinch', d0: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s0: V.s, wx: (cx - V.x) / V.s, wy: (cy - V.y) / V.s };
+    } else gesture = { kind:'pan', px: pts[0][0], py: pts[0][1] };
+  }
+  area.addEventListener('pointerdown', e => {
+    if (!pad || e.target.closest('.zoombar')) return;
+    if (ptrs.size === 0) beforeLen = pad.toData().length;
+    ptrs.set(e.pointerId, local(e));
+    if (ptrs.size >= 2) {
+      // другий палець: скасовуємо лінію, яку встиг почати перший
+      padOff();
+      if (pad.toData().length > beforeLen) pad.fromData(pad.toData().slice(0, beforeLen));
+      e.stopPropagation(); startGesture();
+    } else if (panMode() || e.button === 1) {
+      e.preventDefault(); e.stopPropagation(); padOff(); area.classList.add('panning'); startGesture();
+    }
+    try { area.setPointerCapture(e.pointerId); } catch (_) {}
+  }, true);
+  area.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, local(e));
+    if (!gesture) return;
+    e.preventDefault();
+    const pts = [...ptrs.values()];
+    if (gesture.kind === 'pinch' && pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      V.s = Math.min(MAX_S, Math.max(MIN_S, gesture.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gesture.d0));
+      V.x = cx - gesture.wx * V.s; V.y = cy - gesture.wy * V.s;
+      redraw();
+    } else if (gesture.kind === 'pan') {
+      const [x, y] = pts[0];
+      V.x += x - gesture.px; V.y += y - gesture.py; gesture.px = x; gesture.py = y;
+      redraw();
+    }
+  });
+  const up = e => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (ptrs.size === 0) {
+      if (busy) { busy = false; gesture = null; area.classList.remove('panning'); penWidths(); if (!panMode()) pad.on(); }
+    } else if (gesture && gesture.kind === 'pinch') gesture = null;   // лишився один палець — не малюємо, поки не підніметься
+  };
+  area.addEventListener('pointerup', up);
+  area.addEventListener('pointercancel', up);
+  area.addEventListener('wheel', e => {
+    if (!pad) return;
+    e.preventDefault();
+    const [cx, cy] = local(e);
+    if (e.ctrlKey || e.metaKey) zoomAt(cx, cy, V.s * Math.exp(-e.deltaY * 0.01));   // щипок на тачпаді або Ctrl + колесо
+    else { V.x -= e.deltaX; V.y -= e.deltaY; redraw(); }
+  }, { passive:false });
+
+  document.getElementById('zoom-in').onclick = () => zoomAt(...center(), V.s * 1.25);
+  document.getElementById('zoom-out').onclick = () => zoomAt(...center(), V.s / 1.25);
+  zl.onclick = () => { V.s = 1; V.x = 0; V.y = 0; penWidths(); redraw(); };
+
+  // ---- відкрити / закрити ----
+  function open() {
+    box.hidden = false; openBtn.hidden = true; openBtn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('draft-on');
+    if (init()) { fit(); redraw(); syncHint(); }
+  }
+  function close() {
+    box.hidden = true; openBtn.hidden = false; openBtn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('draft-on'); openBtn.focus({ preventScroll:true });
+  }
+  function undo() { if (!pad) return; const d = pad.toData(); d.pop(); pad.fromData(d); save(); syncHint(); }
+
+  openBtn.onclick = open;
+  document.getElementById('draft-close').onclick = close;
+  document.getElementById('draft-undo').onclick = undo;
+  box.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  clearBtn.onclick = () => {
+    if (!pad) return;
+    if (!clearArm) {   // друге натискання протягом 3 с — очищення
+      clearBtn.textContent = 'Точно?'; clearBtn.classList.add('warn');
+      clearArm = setTimeout(() => { clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn'); }, 3000);
+      return;
+    }
+    clearTimeout(clearArm); clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn');
+    pad.clear(); save(); syncHint();
+  };
+  document.addEventListener('keydown', e => {
+    if (box.hidden || e.target.closest('input')) return;
+    if (e.key === 'Escape') close();
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) { e.preventDefault(); zoomAt(...center(), V.s * 1.25); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); zoomAt(...center(), V.s / 1.25); }
+    else if (e.code === 'Space' && !spaceHand && !e.repeat && !e.target.closest('button')) { e.preventDefault(); spaceHand = true; setTool(tool); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space' && spaceHand) { spaceHand = false; setTool(tool); } });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => setTool(tool));
+})();
+</script>
+</html>
