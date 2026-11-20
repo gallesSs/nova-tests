@@ -1,0 +1,751 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Діагностика з хімії</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<style>
+.blocks{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.blk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 14px;border:2px solid var(--line);border-radius:10px;background:var(--card)}
+.blk .bn{font-weight:700}
+.blk .bs{font:700 15px var(--mono);font-variant-numeric:tabular-nums}
+.blk .bt{grid-column:1/-1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.blk .bt i{display:block;height:100%;background:var(--ok)}
+.blk.mid .bt i{background:var(--warn)}
+.blk.low .bt i{background:var(--bad)}
+.blk .yr{font-weight:500;color:var(--muted);font-size:13px}
+.classes{display:flex;flex-wrap:wrap;gap:8px}
+.idk{font-style:italic;color:var(--muted)}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · вступна діагностика · 7–11 клас</div>
+    <div class="brand"><h1>Діагностика з хімії</h1><span class="ohbadge" aria-hidden="true">✓ ?</span></div>
+  </header>
+
+  <section id="v-test" class="stack"></section>
+
+  <footer>Хімія · Діагностика рівня знань</footer>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+
+/* ---------- утиліти ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',').replace('-', '−');
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const F = s => `<span class="f">${fHTML(s)}</span>`;
+const plain = h => String(h).replace(/<sub>(\d+)<\/sub>/g, (m, d) => [...d].map(c => SUBD[c]).join('')).replace(/<sup>([^<]*)<\/sup>/g, '^$1')
+  .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/(г\/моль|моль|г|л|%)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+
+/* ---------- блоки знань ---------- */
+const BL = {
+  '7a': { l:'Речовини та явища', y:7 },
+  '7b': { l:'Символи й формули', y:7 },
+  '7c': { l:'Mr і масова частка', y:7 },
+  '7d': { l:'Хімічні рівняння', y:7 },
+  '8a': { l:'Будова атома', y:8 },
+  '8b': { l:'Кількість речовини', y:8 },
+  '8c': { l:'Гази, молярний об\'єм', y:8 },
+  '8d': { l:'Хімічний зв\'язок', y:8 },
+  '8e': { l:'Класи неорганічних сполук', y:8 },
+  '9a': { l:'Розчини', y:9 },
+  '9b': { l:'Дисоціація, йонні реакції', y:9 },
+  '9c': { l:'Органічні речовини (9 кл.)', y:9 },
+  '10a': { l:'Будова, ізомерія, назви', y:10 },
+  '10b': { l:'Вуглеводні', y:10 },
+  '10c': { l:'Оксигеновмісні сполуки', y:10 },
+  '11a': { l:'ОВР, рівновага, гідроліз', y:11 },
+  '11b': { l:'Неметали й метали', y:11 }
+};
+// Склад діагностики: блоки минулих років — по 2 завдання, поточного року — по 3
+const PLAN = {
+  7:  ['7a', '7b', '7c', '7d'],
+  8:  ['7a', '7b', '7c', '7d', '8a', '8b', '8c'],
+  9:  ['7b', '7c', '7d', '8a', '8b', '8c', '8d', '8e', '9a', '9b'],
+  10: ['7c', '8b', '8c', '8d', '8e', '9a', '9b', '9c', '10a', '10b'],
+  11: ['8b', '8d', '8e', '9b', '9c', '10a', '10b', '10c', '11a', '11b']
+};
+
+/* ---------- банк (перший варіант — правильний) ---------- */
+const Q = [
+  // 7a
+  ['7a', 'Яке явище хімічне?', ['горіння свічки', 'танення льоду', 'випаровування води', 'подрібнення крейди'], 'Під час горіння утворюються нові речовини.'],
+  ['7a', 'Яка речовина проста?', [F('O2'), F('H2O'), F('CO2'), F('NaCl')], 'Проста речовина утворена атомами одного елемента.'],
+  ['7a', 'Що з переліченого — суміш?', ['повітря', 'дистильована вода', 'кисень', 'чиста кухонна сіль'], 'Повітря — суміш азоту, кисню, аргону, вуглекислого газу.'],
+  ['7a', 'Як відокремити пісок від води?', ['фільтруванням', 'магнітом', 'нагріванням до плавлення піску', 'додаванням цукру'], 'Нерозчинна тверда речовина залишається на фільтрі.'],
+  ['7a', 'Що є ознакою хімічної реакції?', ['виділення газу, утворення осаду, зміна кольору', 'зміна форми тіла', 'перехід з рідкого стану в твердий', 'подрібнення речовини'], 'Ознаки реакції свідчать про утворення нових речовин.'],
+  // 7b
+  ['7b', 'Символ хімічного елемента Натрію:', [F('Na'), F('N'), F('S'), F('Ne')], 'N — Нітроген, S — Сульфур, Ne — Неон.'],
+  ['7b', `Скільки атомів Оксигену в записі ${F('2H2SO4')}?`, ['8', '4', '2', '6'], 'У молекулі 4 атоми O, молекул дві: 2 · 4 = 8.'],
+  ['7b', `Що означає запис ${F('3O2')}?`, ['три молекули кисню', 'три атоми Оксигену', 'шість молекул кисню', 'одну молекулу з трьох атомів'], 'Коефіцієнт 3 — кількість молекул, індекс 2 — атомів у молекулі.'],
+  ['7b', `Скільки всього атомів у молекулі ${F('C2H6O')}?`, ['9', '3', '8', '6'], '2 + 6 + 1 = 9.'],
+  ['7b', 'Формула сполуки, молекула якої містить 2 атоми Феруму і 3 атоми Оксигену:', [F('Fe2O3'), F('Fe3O2'), F('FeO3'), F('2Fe3O')], 'Індекси пишемо праворуч унизу від символу.'],
+  // 7d
+  ['7d', `Який коефіцієнт перед водою: ${F('2H2 + O2 → ?H2O')}?`, ['2', '1', '3', '4'], '2H₂ + O₂ → 2H₂O: 4 атоми H і 2 атоми O з обох боків.'],
+  ['7d', 'Закон збереження маси: маса речовин, що вступили в реакцію,', ['дорівнює масі речовин, що утворилися', 'більша за масу продуктів', 'менша за масу продуктів', 'залежить від температури'], 'Атоми під час реакції не зникають і не з\'являються.'],
+  ['7d', `До якого типу належить реакція ${F('CaCO3 → CaO + CO2')}?`, ['розкладу', 'сполучення', 'заміщення', 'обміну'], 'З однієї речовини утворюються дві.'],
+  ['7d', `Сума коефіцієнтів у рівнянні ${F('Al + O2 → Al2O3')}:`, ['9', '7', '5', '6'], '4Al + 3O₂ → 2Al₂O₃: 4 + 3 + 2 = 9.'],
+  ['7d', `До якого типу належить реакція ${F('Fe + S → FeS')}?`, ['сполучення', 'розкладу', 'обміну', 'заміщення'], 'Із двох речовин утворюється одна.'],
+  // 8a
+  ['8a', 'Скільки електронів на зовнішньому енергетичному рівні атома Сульфуру?', ['6', '2', '8', '16'], 'S — VI група, 3 період: 2, 8, 6.'],
+  ['8a', `Електронна формула 1s<sup>2</sup>2s<sup>2</sup>2p<sup>6</sup>3s<sup>1</sup> відповідає атому`, [F('Na'), F('Mg'), F('Ne'), F('K')], '2 + 2 + 6 + 1 = 11 електронів — Натрій.'],
+  ['8a', `Ступінь окиснення Сульфуру в ${F('H2SO4')}:`, ['+6', '+4', '−2', '+2'], '2·(+1) + x + 4·(−2) = 0 → x = +6.'],
+  ['8a', 'Ізотопи одного елемента відрізняються кількістю', ['нейтронів', 'протонів', 'електронів', 'енергетичних рівнів'], 'Z однакове, A різне.'],
+  ['8a', 'Що визначає порядковий номер елемента?', ['кількість протонів у ядрі', 'кількість нейтронів', 'масу атома', 'кількість енергетичних рівнів'], 'Z — заряд ядра = кількість протонів.'],
+  // 8b
+  ['8b', 'Одиниця кількості речовини:', ['моль', 'грам', 'літр', 'г/моль'], 'Кількість речовини n вимірюють у молях.'],
+  ['8b', 'Стала Авогадро — це кількість частинок в', ['1 моль речовини', '1 г речовини', '1 л газу', '22,4 г речовини'], 'Nₐ = 6,02·10²³ моль⁻¹.'],
+  ['8b', 'Скільки молекул у 2 моль води?', ['12,04·10<sup>23</sup>', '6,02·10<sup>23</sup>', '3,01·10<sup>23</sup>', '2·10<sup>23</sup>'], 'N = n · Nₐ = 2 · 6,02·10²³.'],
+  // 8c
+  ['8c', 'Молярний об\'єм будь-якого газу за нормальних умов:', ['22,4 л/моль', '1 л/моль', '6,02·10²³ л/моль', '32 л/моль'], 'Наслідок закону Авогадро.'],
+  ['8c', 'Скільки кисню в повітрі за об\'ємом?', ['близько 21 %', 'близько 78 %', 'близько 1 %', 'близько 50 %'], '78 % — азот, 21 % — кисень.'],
+  ['8c', 'Як у лабораторії переконатися, що в посудині кисень?', ['тліюча скіпка спалахує', 'вапняна вода каламутніє', 'газ горить з хлопком', 'лакмус червоніє'], 'Кисень підтримує горіння.'],
+  // 8d
+  ['8d', 'У якій речовині йонний зв\'язок?', [F('NaCl'), F('HCl'), F('H2O'), F('O2')], 'Йонний зв\'язок — між атомами типового металу й неметалу.'],
+  ['8d', 'У якій речовині ковалентний неполярний зв\'язок?', [F('O2'), F('H2O'), F('NaCl'), F('HCl')], 'Між однаковими атомами неметалу.'],
+  ['8d', 'У якій речовині ковалентний полярний зв\'язок?', [F('HCl'), F('Cl2'), F('NaCl'), F('Na')], 'Між різними атомами неметалів.'],
+  ['8d', 'Яка речовина має атомні кристалічні ґратки?', ['алмаз', 'кухонна сіль', 'лід', 'йод'], 'Алмаз — атоми Карбону, сполучені міцними ковалентними зв\'язками.'],
+  // 8e
+  ['8e', 'Яка речовина — кислота?', [F('H2SO4'), F('NaOH'), F('CaO'), F('NaCl')], 'Кислоти: атоми H + кислотний залишок.'],
+  ['8e', 'Яка речовина — основа?', [F('KOH'), F('HNO3'), F('SO2'), F('K2SO4')], 'Основи: метал + групи OH.'],
+  ['8e', 'Яка речовина — сіль?', [F('CaCO3'), F('Ca(OH)2'), F('CaO'), F('H2CO3')], 'Сіль: метал + кислотний залишок.'],
+  ['8e', `Назва сполуки ${F('Na2SO4')}:`, ['натрій сульфат', 'натрій сульфід', 'натрій сульфіт', 'натрій оксид'], 'SO₄ — сульфат, SO₃ — сульфіт, S — сульфід.'],
+  ['8e', `Продукти реакції ${F('NaOH + HCl')}:`, [`${F('NaCl')} і ${F('H2O')}`, `${F('NaCl')} і ${F('H2')}`, `${F('Na')} і ${F('HClO')}`, 'реакція не відбувається'], 'Нейтралізація: кислота + основа → сіль + вода.'],
+  // 9a
+  ['9a', 'Як змінюється розчинність більшості твердих речовин з підвищенням температури?', ['зростає', 'зменшується', 'не змінюється', 'спочатку зростає, потім падає'], 'Тому гарячий чай розчиняє більше цукру.'],
+  ['9a', 'Що є розчинником у розчині цукру у воді?', ['вода', 'цукор', 'обидві речовини', 'жодна'], 'Розчинник — речовина, якої більше і в якій розчиняють.'],
+  ['9a', 'Як зміниться масова частка солі, якщо до розчину долити воду?', ['зменшиться', 'збільшиться', 'не зміниться', 'стане 100 %'], 'Маса солі та сама, а маса розчину більша.'],
+  // 9b
+  ['9b', 'Яка речовина є електролітом?', ['розчин натрій хлориду', 'розчин цукру', 'етиловий спирт', 'кисень'], 'Солі, кислоти, луги у розчинах дисоціюють на йони.'],
+  ['9b', `Які йони утворюються при дисоціації ${F('H2SO4')}?`, ['2H<sup>+</sup> і SO<sub>4</sub><sup>2−</sup>', 'H<sub>2</sub><sup>+</sup> і SO<sub>4</sub><sup>−</sup>', 'H<sup>+</sup> і S<sup>2−</sup>', 'кислота не дисоціює'], 'H₂SO₄ → 2H⁺ + SO₄²⁻'],
+  ['9b', 'Скорочене йонне рівняння H<sup>+</sup> + OH<sup>−</sup> → H<sub>2</sub>O відповідає реакції', [`${F('NaOH')} + ${F('HCl')}`, `${F('Cu(OH)2')} + ${F('HCl')}`, `${F('BaCl2')} + ${F('H2SO4')}`, `${F('Zn')} + ${F('HCl')}`], 'Сильна кислота + луг. Cu(OH)₂ нерозчинна — її записують молекулою.'],
+  ['9b', 'Яке середовище розчину, якщо pH = 3?', ['кисле', 'лужне', 'нейтральне', 'pH такого не буває'], 'pH < 7 — кисле, 7 — нейтральне, > 7 — лужне.'],
+  ['9b', 'Реакція йонного обміну відбувається до кінця, якщо утворюється', ['осад, газ або вода', 'будь-яка сіль', 'лише кислота', 'розчинна основа'], 'Інакше йони просто залишаються в розчині.'],
+  // 9c
+  ['9c', 'Формула метану:', [F('CH4'), F('C2H6'), F('C2H4'), F('CH3OH')], 'Метан — найпростіший вуглеводень, основа природного газу.'],
+  ['9c', 'Який зв\'язок між атомами Карбону в молекулі етену?', ['подвійний', 'потрійний', 'одинарний', 'йонний'], 'Етен CH₂=CH₂.'],
+  ['9c', 'Функціональна група оцтової (етанової) кислоти:', [F('–COOH'), F('–OH'), F('–CHO'), F('–NH2')], 'Карбоксильна група.'],
+  ['9c', 'Як виявити крохмаль?', ['розчином йоду — синє забарвлення', 'фенолфталеїном — малинове', 'вапняною водою — каламутніє', 'лакмусом — червоніє'], 'Якісна реакція на крохмаль.'],
+  ['9c', 'Етанол належить до', ['спиртів', 'кислот', 'вуглеводнів', 'жирів'], 'C₂H₅OH містить групу –OH.'],
+  // 10a
+  ['10a', 'Ізомери — це речовини з', ['однаковим складом, але різною будовою', 'однаковою будовою, але різним складом', 'однаковими властивостями', 'різною кількістю атомів Карбону'], 'Наприклад, бутан і 2-метилпропан (C₄H₁₀).'],
+  ['10a', `Назва ${F('CH3–CH(CH3)–CH3')}:`, ['2-метилпропан', 'бутан', '1-метилпропан', '2-метилбутан'], 'Головний ланцюг — 3 атоми C, метил біля C2.'],
+  ['10a', 'Гомолог метану:', ['етан', 'етен', 'етин', 'бензен'], 'Гомологи — один клас, різниця на CH₂.'],
+  ['10a', 'Загальна формула алканів:', [F('CnH2n+2'), F('CnH2n'), F('CnH2n-2'), F('CnH2n-6')], 'Насичені вуглеводні.'],
+  // 10b
+  ['10b', 'Які реакції характерні для алканів?', ['заміщення', 'приєднання', 'полімеризації', 'гідратації'], 'Алкани насичені: приєднувати нікуди.'],
+  ['10b', 'Яка речовина знебарвлює бромну воду?', ['етен', 'метан', 'етан', 'пропан'], 'Приєднання брому за подвійним зв\'язком.'],
+  ['10b', 'Що утворюється при гідратації етену?', ['етанол', 'етан', 'етаналь', 'етин'], 'CH₂=CH₂ + H₂O → C₂H₅OH'],
+  ['10b', 'Тривіальна назва етину:', ['ацетилен', 'етилен', 'метан', 'бензол'], 'HC≡CH'],
+  // 10c
+  ['10c', 'Що утворюється при взаємодії карбонової кислоти зі спиртом?', ['естер і вода', 'сіль і водень', 'альдегід', 'жир і кисень'], 'Реакція естерифікації.'],
+  ['10c', 'Якісна реакція на гліцерол:', [`з ${F('Cu(OH)2')} — яскраво-синій розчин`, 'з йодом — синє забарвлення', 'з бромною водою — знебарвлення', 'з лакмусом — червоне'], 'Реакція на багатоатомні спирти.'],
+  ['10c', 'Функціональна група альдегідів:', [F('–CHO'), F('–COOH'), F('–OH'), F('–NH2')], 'Альдегідна група.'],
+  ['10c', 'Формула глюкози:', [F('C6H12O6'), F('C12H22O11'), F('C2H5OH'), F('C6H6')], 'Моносахарид.'],
+  ['10c', 'Жири — це естери', ['гліцеролу і вищих карбонових кислот', 'етанолу і оцтової кислоти', 'глюкози', 'метанолу і мурашиної кислоти'], 'Тригліцериди.'],
+  // 11a
+  ['11a', `Окисник у реакції ${F('Zn + CuSO4 → ZnSO4 + Cu')}:`, [`${F('CuSO4')} (Cu<sup>+2</sup>)`, F('Zn'), F('ZnSO4'), F('Cu')], 'Cu⁺² приймає електрони і відновлюється до Cu⁰.'],
+  ['11a', `Куди зміститься рівновага ${F('N2 + 3H2 ⇄ 2NH3')} при підвищенні тиску?`, ['вправо', 'вліво', 'не зміститься', 'реакція зупиниться'], 'У бік меншої кількості молекул газу: 4 → 2.'],
+  ['11a', `Яке середовище розчину ${F('Na2CO3')}?`, ['лужне', 'кисле', 'нейтральне', 'залежить від температури'], 'Сіль сильної основи і слабкої кислоти: гідроліз за аніоном.'],
+  ['11a', 'Каталізатор', ['прискорює реакцію і не витрачається', 'витрачається в реакції', 'зміщує рівновагу', 'завжди сповільнює реакцію'], 'Рівновагу каталізатор не зміщує, лише швидше її встановлює.'],
+  // 11b
+  ['11b', 'Найактивніший неметал:', ['Флуор', 'Оксиген', 'Хлор', 'Нітроген'], 'Найбільша електронегативність.'],
+  ['11b', 'Алотропні модифікації Карбону:', ['алмаз і графіт', 'кисень і озон', 'білий і червоний фосфор', 'ромбічна і моноклінна сірка'], 'Інші пари — алотропи Оксигену, Фосфору, Сульфуру.'],
+  ['11b', 'Який метал не реагує з хлоридною кислотою?', ['мідь', 'цинк', 'магній', 'залізо'], 'Мідь стоїть у ряду активності після водню.'],
+  ['11b', 'Тимчасову жорсткість води зумовлюють', ['гідрогенкарбонати Кальцію й Магнію', 'солі Натрію', 'розчинений кисень', 'вуглекислий газ'], 'Усувається кип\'ятінням.'],
+  ['11b', 'Які метали пасивуються концентрованою нітратною кислотою на холоді?', ['Fe і Al', 'Cu і Ag', 'Na і K', 'Zn і Mg'], 'На поверхні утворюється захисна оксидна плівка.']
+];
+
+/* ---------- числові генератори ---------- */
+const MR = [['H2O', 18], ['CO2', 44], ['H2SO4', 98], ['NaCl', 58.5], ['CaCO3', 100], ['NaOH', 40], ['HNO3', 63], ['Al2O3', 102], ['CuSO4', 160], ['Ca(OH)2', 74], ['SO2', 64], ['NH3', 17]];
+const WEL = [['H2O', 'O', 'Оксигену', 16 / 18], ['CO2', 'O', 'Оксигену', 32 / 44], ['NaOH', 'Na', 'Натрію', 23 / 40], ['CaCO3', 'Ca', 'Кальцію', 0.4], ['SO2', 'S', 'Сульфуру', 0.5], ['Fe2O3', 'Fe', 'Феруму', 112 / 160], ['SO3', 'S', 'Сульфуру', 0.4], ['MgO', 'Mg', 'Магнію', 0.6]];
+const GAS = [['кисню', 'O2', 32], ['вуглекислого газу', 'CO2', 44], ['водню', 'H2', 2], ['азоту', 'N2', 28], ['метану', 'CH4', 16], ['сірчистого газу', 'SO2', 64]];
+const num = o => ({ input:'num', unit:'', ...o, right: `${fmt(o.x, o.d ?? 2)}${o.unit ? ' ' + o.unit : ''}`, check: a => { const v = parseNum(a); return isFinite(v) && Math.abs(v - o.x) <= (o.tol ?? 0.05); } });
+const GENS = {
+  '7c': [
+    () => { const [f, m] = pick(MR); return num({ q:`Обчисліть відносну молекулярну масу ${F(f)}.`, x:m, d:1, tol:0.1, e:`Mr(${plain(F(f))}) = ${fmt(m, 1)}` }); },
+    () => { const [f, el, nm, w] = pick(WEL); return num({ q:`Обчисліть масову частку ${nm} в ${F(f)}. Відповідь — у відсотках.`, x:w * 100, d:1, unit:'%', tol:0.6, e:`w(${el}) ≈ ${fmt(w * 100, 1)} %` }); },
+    () => { const ms = pick([5, 10, 15, 20, 25, 30, 40, 50]), mv = pick([45, 95, 135, 150, 170, 200, 230]); const w = ms / (ms + mv) * 100;
+      return num({ q:`У ${mv} г води розчинили ${ms} г солі. Яка масова частка солі в розчині (%)?`, x:w, d:1, unit:'%', tol:0.3, e:`w = ${ms} / (${ms} + ${mv}) · 100 % ≈ ${fmt(w, 1)} %` }); }
+  ],
+  '8b': [
+    () => { const [f, M] = pick(MR.filter(x => Number.isInteger(x[1]))), n = pick([0.1, 0.2, 0.25, 0.5, 2, 3]); return num({ q:`Яка кількість речовини в ${fmt(n * M, 2)} г ${F(f)}?`, x:n, unit:'моль', tol:0.01, e:`n = m / M = ${fmt(n * M, 2)} / ${M} = ${fmt(n)} моль` }); },
+    () => { const [f, M] = pick(MR.filter(x => Number.isInteger(x[1]))), n = pick([0.1, 0.2, 0.5, 1.5, 2, 3]); return num({ q:`Обчисліть масу ${fmt(n)} моль ${F(f)}.`, x:n * M, unit:'г', tol:0.05, e:`m = n · M = ${fmt(n)} · ${M} = ${fmt(n * M)} г` }); }
+  ],
+  '8c': [
+    () => { const [nm, f] = pick(GAS), n = pick([0.1, 0.25, 0.5, 1.5, 2, 3]); return num({ q:`Який об'єм (н.у.) займають ${fmt(n)} моль ${nm}?`, x:n * 22.4, unit:'л', tol:0.05, e:`V = n · 22,4 = ${fmt(n * 22.4)} л` }); },
+    () => { const [nm, f, M] = pick(GAS); return num({ q:`Обчисліть відносну густину ${nm} ${F(f)} за воднем.`, x:M / 2, d:1, tol:0.05, e:`D(H₂) = M / 2 = ${M} / 2 = ${fmt(M / 2, 1)}` }); }
+  ],
+  '9a': [
+    () => { const m = pick([50, 80, 100, 150, 200, 250, 300, 400]), w = pick([5, 10, 15, 20, 25]); return num({ q:`Яка маса солі в ${m} г розчину з масовою часткою ${w} %?`, x:m * w / 100, unit:'г', tol:0.05, e:`m(солі) = ${m} · ${w / 100} = ${fmt(m * w / 100)} г` }); },
+    () => { const m = pick([100, 200]), w = pick([10, 20, 30]), add = pick([50, 100, 200]); const w2 = m * w / (m + add); return num({ q:`До ${m} г розчину з масовою часткою солі ${w} % долили ${add} г води. Обчисліть нову масову частку (%).`, x:w2, d:1, unit:'%', tol:0.2, e:`m(солі) = ${fmt(m * w / 100)} г; w = ${fmt(m * w / 100)} / ${m + add} · 100 % ≈ ${fmt(w2, 1)} %` }); }
+  ]
+};
+
+/* ---------- збирання діагностики ---------- */
+function makeTask(b) {
+  const pool = Q.filter(x => x[0] === b).map(x => ({ k:'q', x })).concat((GENS[b] || []).map(g => ({ k:'g', g })));
+  return pool;
+}
+function buildTest(cls) {
+  const list = [];
+  PLAN[cls].forEach(b => {
+    const n = BL[b].y === +cls ? 3 : 2;
+    shuffle(makeTask(b)).slice(0, n).forEach(it => {
+      let t;
+      if (it.k === 'g') t = it.g();
+      else { const [, q, o, e] = it.x; const opts = shuffle(o.map((html, i) => ({ html, right: i === 0 }))); opts.push({ html:'<span class="idk">Не знаю / ще не вчили</span>', right:false, idk:true });
+        t = { input:'choice', q, opts, e, right: plain(o[0]), check: a => a !== null && !!opts[a] && opts[a].right }; }
+      list.push({ ...t, b, ans: t.input === 'choice' ? null : '' });
+    });
+  });
+  return list;
+}
+
+/* ---------- поле відповіді ---------- */
+const LETTERS = 'АБВГДЕ';
+function area(t) {
+  if (t.input === 'choice') return `<div class="opts">${t.opts.map((o, i) => `<button class="opt ${i === t.ans ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o.html}</span></button>`).join('')}</div>`;
+  return `<div class="inrow"><input id="t-in" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Відповідь" placeholder="відповідь" value="${esc(t.ans ?? '')}">${t.unit ? `<span class="unit">${t.unit}</span>` : ''}</div>
+    <div class="hint">Введи число (десятковий дріб — з комою). Не знаєш — залиш порожнім і натисни «Далі».</div>`;
+}
+const answered = t => t.input === 'choice' ? t.ans !== null : String(t.ans ?? '').trim() !== '';
+
+/* ================= ДІАГНОСТИКА ================= */
+const T = { phase:'start', name:'', cls:'', grade:'', tasks:[], i:0, results:[], sent:'' };
+try { T.name = localStorage.getItem('chem_name') || ''; T.cls = localStorage.getItem('chem_group') || ''; } catch (e) {}
+{ const h = location.hash.slice(1); if (PLAN[h]) T.grade = h; }
+const topicName = () => `Діагностика — ${T.grade} клас`;
+
+function blockStats() {
+  const st = {};
+  T.results.forEach(r => { const s = st[r.b] ??= { ok:0, n:0 }; s.n++; if (r.ok) s.ok++; });
+  return PLAN[T.grade].map(b => ({ b, ...st[b], l: BL[b].l, y: BL[b].y }));
+}
+function render() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `
+      <div class="card stack">
+        <div><div class="eyebrow">Вступна діагностика</div><h2 style="margin-top:4px">Що ти вже знаєш з хімії</h2></div>
+        <p>Це не контрольна і не на оцінку. Тест показує, які теми ти добре розумієш, а які варто повторити, — щоб на заняттях не витрачати час на зайве.</p>
+        <div class="row">
+          <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" placeholder="Напр., Олеся Коваленко" value="${esc(T.name)}"></label>
+        </div>
+        <div><div class="lbl" style="margin-bottom:8px">Твій клас</div>
+          <div class="classes" role="group" aria-label="Клас">${Object.keys(PLAN).map(c => `<button class="segb" data-c="${c}" aria-pressed="${T.grade === c}">${c} клас</button>`).join('')}</div></div>
+        <ul class="rules">
+          <li>Завдання — від простих тем минулих років до тем цього року.</li>
+          <li>Якщо не знаєш відповіді, обери «Не знаю / ще не вчили». Не вгадуй, так результат буде чеснішим.</li>
+          <li>Можна користуватися періодичною системою. Займе 20–30 хвилин.</li>
+        </ul>
+        <div class="actions"><button class="btn" id="t-go">Почати</button></div>
+        <div class="err" id="t-err" hidden></div>
+      </div>`;
+    $('t-name').oninput = e => T.name = e.target.value;
+    v.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { T.grade = b.dataset.c; v.querySelectorAll('[data-c]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    $('t-go').onclick = () => {
+      const err = m => { $('t-err').textContent = m; $('t-err').hidden = false; };
+      if (!T.name.trim()) { err('Впиши ім\'я та прізвище так, як тебе записав вчитель.'); $('t-name').focus(); return; }
+      if (!T.grade) { err('Обери свій клас.'); return; }
+      try { localStorage.setItem('chem_name', T.name.trim()); } catch (e) {}
+      T.cls = T.grade; T.tasks = buildTest(T.grade); T.i = 0; T.phase = 'run'; render(); window.scrollTo({ top:0 });
+    };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1;
+    v.innerHTML = `
+      <div class="dots" role="group" aria-label="Завдання">${T.tasks.map((x, j) => `<button class="dot ${answered(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}" aria-label="Завдання ${j + 1}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:var(--c-stru)">
+        <div class="tline"><span class="tag">${esc(BL[t.b].l)}</span><span class="count">${T.i + 1} / ${N}</span></div>
+        <div class="q">${t.q}</div>
+        ${area(t)}
+        <div class="actions">
+          <button class="btn ghost" id="t-prev" ${T.i === 0 ? 'disabled' : ''}>Назад</button>
+          ${last ? `<button class="btn" id="t-fin">Завершити</button>` : `<button class="btn" id="t-next">Далі</button>`}
+        </div>
+      </div>`;
+    const go = j => { T.i = j; render(); };
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => go(+b.dataset.j));
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.ans = +b.dataset.i; if (!last) go(T.i + 1); else render(); });
+    const inp = $('t-in');
+    if (inp) {
+      inp.oninput = () => { t.ans = inp.value; v.querySelectorAll('.dot')[T.i].classList.toggle('done', answered(t)); };
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); last ? finish() : go(T.i + 1); } };
+      if (matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+    }
+    $('t-prev').onclick = () => go(T.i - 1);
+    if ($('t-next')) $('t-next').onclick = () => go(T.i + 1);
+    if ($('t-fin')) $('t-fin').onclick = finish;
+    return;
+  }
+  const got = T.results.filter(r => r.ok).length, max = T.results.length, bs = blockStats();
+  v.innerHTML = `
+    <div class="card stack">
+      <div class="eyebrow">${esc(T.name)} · ${T.grade} клас</div>
+      <div class="score"><span class="big">${got}</span><span class="of">з ${max}</span></div>
+      <div class="send" id="t-send"></div>
+    </div>
+    <div class="card stack">
+      <h2>По темах</h2>
+      <ul class="blocks">${bs.map(s => { const p = s.n ? s.ok / s.n : 0; return `<li class="blk ${p >= 0.67 ? '' : p > 0 ? 'mid' : 'low'}"><span class="bn">${esc(s.l)} <span class="yr">· ${s.y} кл.</span></span><span class="bs">${s.ok}/${s.n}</span><span class="bt"><i style="width:${Math.max(4, p * 100)}%"></i></span></li>`; }).join('')}</ul>
+      <p class="hint">Зелене — тема зрозуміла, жовте — є прогалини, червоне — варто повторити з вчителем.</p>
+    </div>
+    <div class="card stack">
+      <h2>Розбір</h2>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="m">${r.ok ? '✓' : '✗'}</span><div class="rb">
+          <b>${i + 1}. ${esc(BL[r.b].l)}</b>
+          ${r.ok ? '' : `<div class="yours">Твоя відповідь: ${esc(r.given)}</div><div class="right">Правильно: <b>${esc(r.right)}</b></div>${r.e ? `<div class="why">${r.e}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+    </div>`;
+  drawSend();
+}
+function finish() {
+  T.results = T.tasks.map(t => ({ b:t.b, ok: answered(t) && t.check(t.ans), right:t.right, e:t.e,
+    given: !answered(t) ? '—' : t.input === 'choice' ? (t.opts[t.ans].idk ? 'не знаю' : plain(t.opts[t.ans].html)) : t.ans.trim() }));
+  T.phase = 'done'; render(); window.scrollTo({ top:0 }); send();
+}
+function drawSend() {
+  const box = $('t-send'); if (!box) return;
+  box.className = 'send ' + (T.sent || 'wait');
+  box.innerHTML = T.sent === 'ok' ? 'Результат надіслано вчителю.'
+    : T.sent === 'fail' ? `Не вдалося надіслати результат. <button class="btn ghost" id="t-resend">Надіслати ще раз</button>`
+    : 'Надсилаю результат вчителю…';
+  if ($('t-resend')) $('t-resend').onclick = send;
+}
+function send() {
+  const got = T.results.filter(r => r.ok).length, max = T.results.length, bs = blockStats();
+  const weak = bs.find(s => s.ok / s.n < 0.67);
+  const details = [`${topicName()}`,
+    `Теми: ${bs.map(s => `${s.l} ${s.ok}/${s.n}${s.ok / s.n >= 0.67 ? ' ✓' : s.ok ? ' ⚠' : ' ✗'}`).join('; ')}`,
+    `Почати з: ${weak ? weak.l + ` (${weak.y} кл.)` : 'усе базове засвоєно'}`,
+    ...T.results.map((r, i) => `${i + 1}. ${BL[r.b].l}: ${r.ok ? '✓' : `✗ «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  T.sent = 'wait'; drawSend();
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.grade, topic: topicName(), score: `${got}/${max}`, mark: Math.max(1, Math.round(got / max * 12)), details })
+  }).then(() => { T.sent = 'ok'; drawSend(); }).catch(() => { T.sent = 'fail'; drawSend(); });
+}
+render();
+</script>
+
+
+<button class="draft-fab" id="draft-open" aria-expanded="false" aria-controls="draft">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14 7l3 3"/></svg>
+  Чернетка
+</button>
+<aside class="draft" id="draft" hidden aria-label="Чернетка">
+  <div class="draft-bar">
+    <span class="ttl">Чернетка</span>
+    <div class="draft-tools" role="group" aria-label="Інструменти">
+      <button class="dt" data-tool="ink" aria-pressed="true" aria-label="Ручка, основний колір" title="Ручка"><i style="background:var(--ink)"></i></button>
+      <button class="dt" data-tool="oh" aria-pressed="false" aria-label="Ручка, бірюзова" title="Бірюзова ручка"><i style="background:var(--oh)"></i></button>
+      <button class="dt" data-tool="bad" aria-pressed="false" aria-label="Ручка, червона" title="Червона ручка"><i style="background:var(--bad)"></i></button>
+      <button class="dt" data-tool="erase" aria-pressed="false" aria-label="Гумка" title="Гумка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4l4 4-9.5 9.5H6L3.5 15 13 5.5"/><path d="M9 20h11"/><path d="M8.5 10l5.5 5.5"/></svg></button>
+      <button class="dt" data-tool="hand" aria-pressed="false" aria-label="Рука: пересувати аркуш" title="Рука: пересувати аркуш (або затисни пробіл)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v8"/><path d="M14 12V6a1.5 1.5 0 0 1 3 0v8"/><path d="M8 13v-1.5a1.5 1.5 0 0 0-3 0V14a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-3"/></svg></button>
+    </div>
+    <span class="sp"></span>
+    <button class="dt" id="draft-undo" aria-label="Скасувати останню лінію" title="Скасувати (Ctrl+Z)">↶</button>
+    <button class="dt" id="draft-clear" aria-label="Очистити чернетку" title="Очистити"></button>
+    <button class="dt" id="draft-close" aria-label="Закрити чернетку" title="Закрити (Esc)">✕</button>
+  </div>
+  <div class="draft-area" id="draft-area">
+    <canvas id="draft-canvas"></canvas>
+    <span class="draft-hint" id="draft-hint">Пиши пальцем, стилусом або мишкою. Масштаб — двома пальцями або Ctrl + колесо.</span>
+    <div class="zoombar" role="group" aria-label="Масштаб">
+      <button class="dt" id="zoom-out" aria-label="Віддалити" title="Віддалити">−</button>
+      <button class="dt zl" id="zoom-reset" aria-label="Скинути масштаб до 100 %" title="Скинути масштаб">100%</button>
+      <button class="dt" id="zoom-in" aria-label="Наблизити" title="Наблизити">+</button>
+    </div>
+    <div class="draft-msg" id="draft-msg" hidden>Чернетка не завантажилась: для неї потрібен інтернет. Онови сторінку, коли з'явиться зв'язок.</div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@5.1.3/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ================= ЧЕРНЕТКА (signature_pad + масштаб) ================= */
+(() => {
+  const KEY = 'draft_spyrty';
+  const MIN_S = 0.25, MAX_S = 6;
+  const box = document.getElementById('draft'), openBtn = document.getElementById('draft-open');
+  const canvas = document.getElementById('draft-canvas'), area = document.getElementById('draft-area');
+  const msg = document.getElementById('draft-msg'), hint = document.getElementById('draft-hint');
+  const clearBtn = document.getElementById('draft-clear'), zl = document.getElementById('zoom-reset');
+  const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+  clearBtn.innerHTML = TRASH;
+  let pad = null, tool = 'ink', clearArm = null, dpr = 1, spaceHand = false;
+  const V = { s: 1, x: 0, y: 0 };          // екран = світ · s + (x, y)
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || '#000';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(pad.toData())); } catch (e) {} };
+  const syncHint = () => { hint.hidden = !!pad && !pad.isEmpty(); };
+  const panMode = () => tool === 'hand' || spaceHand;
+  // signature_pad.off() вмикає прокрутку сторінки на холсті — повертаємо touch-action: none
+  const padOff = () => { pad.off(); canvas.style.touchAction = 'none'; };
+
+  // ---- вигляд ----
+  function applyCtx() { canvas.getContext('2d').setTransform(dpr * V.s, 0, 0, dpr * V.s, dpr * V.x, dpr * V.y); }
+  function penWidths() {
+    if (!pad) return;
+    const k = 1 / V.s;   // однакова товщина лінії на екрані за будь-якого масштабу
+    if (tool === 'erase') Object.assign(pad, { minWidth: 9 * k, maxWidth: 16 * k });
+    else Object.assign(pad, { minWidth: 0.8 * k, maxWidth: 2.6 * k });
+    pad.minDistance = 5 * k;
+  }
+  let raf = 0;
+  function redraw() {
+    area.style.backgroundSize = `${20 * V.s}px ${20 * V.s}px`;
+    area.style.backgroundPosition = `${V.x}px ${V.y}px`;
+    zl.textContent = Math.round(V.s * 100) + '%';
+    if (!pad) return;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { applyCtx(); pad.redraw(); });
+  }
+  function zoomAt(cx, cy, s2) {
+    s2 = Math.min(MAX_S, Math.max(MIN_S, s2));
+    const wx = (cx - V.x) / V.s, wy = (cy - V.y) / V.s;
+    V.s = s2; V.x = cx - wx * s2; V.y = cy - wy * s2;
+    penWidths(); redraw();
+  }
+  const center = () => { const r = area.getBoundingClientRect(); return [r.width / 2, r.height / 2]; };
+
+  function setTool(t) {
+    tool = t;
+    box.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+    area.classList.toggle('hand', panMode());
+    if (!pad) return;
+    if (t === 'erase') Object.assign(pad, { compositeOperation:'destination-out', penColor:'#000' });
+    else if (t !== 'hand') Object.assign(pad, { compositeOperation:'source-over', penColor: cssVar(t) });
+    penWidths();
+    panMode() ? padOff() : pad.on();
+  }
+  function fit() {
+    if (!pad) return;
+    const r = area.getBoundingClientRect();
+    dpr = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    applyCtx(); pad.redraw();
+  }
+  function init() {
+    if (pad) return true;
+    if (!window.SignaturePad) { msg.hidden = false; hint.hidden = true; return false; }
+    pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', throttle:8 });
+    // точки — у координатах «світу», а не екрана
+    const mk = pad._createPoint.bind(pad);
+    pad._createPoint = (x, y, p) => { const pt = mk(x, y, p); pt.x = (pt.x - V.x) / V.s; pt.y = (pt.y - V.y) / V.s; return pt; };
+    // очищати завжди весь холст, незалежно від масштабу
+    const clr = pad.clear.bind(pad);
+    pad.clear = () => { const c = canvas.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); clr(); applyCtx(); };
+    setTool(tool);
+    try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (Array.isArray(d)) pad.fromData(d); } catch (e) {}
+    pad.addEventListener('endStroke', () => { save(); syncHint(); });
+    new ResizeObserver(() => { if (!box.hidden) fit(); }).observe(area);
+    return true;
+  }
+
+  // ---- жести: два пальці — масштаб і зсув; «Рука» — зсув одним пальцем/мишкою ----
+  const ptrs = new Map();
+  let gesture = null, busy = false, beforeLen = 0;   // busy — жест триває, поки не піднято всі пальці
+  const local = e => { const r = area.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function startGesture() {
+    busy = true;
+    const pts = [...ptrs.values()];
+    if (pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      gesture = { kind:'pinch', d0: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s0: V.s, wx: (cx - V.x) / V.s, wy: (cy - V.y) / V.s };
+    } else gesture = { kind:'pan', px: pts[0][0], py: pts[0][1] };
+  }
+  area.addEventListener('pointerdown', e => {
+    if (!pad || e.target.closest('.zoombar')) return;
+    if (ptrs.size === 0) beforeLen = pad.toData().length;
+    ptrs.set(e.pointerId, local(e));
+    if (ptrs.size >= 2) {
+      // другий палець: скасовуємо лінію, яку встиг почати перший
+      padOff();
+      if (pad.toData().length > beforeLen) pad.fromData(pad.toData().slice(0, beforeLen));
+      e.stopPropagation(); startGesture();
+    } else if (panMode() || e.button === 1) {
+      e.preventDefault(); e.stopPropagation(); padOff(); area.classList.add('panning'); startGesture();
+    }
+    try { area.setPointerCapture(e.pointerId); } catch (_) {}
+  }, true);
+  area.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, local(e));
+    if (!gesture) return;
+    e.preventDefault();
+    const pts = [...ptrs.values()];
+    if (gesture.kind === 'pinch' && pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      V.s = Math.min(MAX_S, Math.max(MIN_S, gesture.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gesture.d0));
+      V.x = cx - gesture.wx * V.s; V.y = cy - gesture.wy * V.s;
+      redraw();
+    } else if (gesture.kind === 'pan') {
+      const [x, y] = pts[0];
+      V.x += x - gesture.px; V.y += y - gesture.py; gesture.px = x; gesture.py = y;
+      redraw();
+    }
+  });
+  const up = e => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (ptrs.size === 0) {
+      if (busy) { busy = false; gesture = null; area.classList.remove('panning'); penWidths(); if (!panMode()) pad.on(); }
+    } else if (gesture && gesture.kind === 'pinch') gesture = null;   // лишився один палець — не малюємо, поки не підніметься
+  };
+  area.addEventListener('pointerup', up);
+  area.addEventListener('pointercancel', up);
+  area.addEventListener('wheel', e => {
+    if (!pad) return;
+    e.preventDefault();
+    const [cx, cy] = local(e);
+    if (e.ctrlKey || e.metaKey) zoomAt(cx, cy, V.s * Math.exp(-e.deltaY * 0.01));   // щипок на тачпаді або Ctrl + колесо
+    else { V.x -= e.deltaX; V.y -= e.deltaY; redraw(); }
+  }, { passive:false });
+
+  document.getElementById('zoom-in').onclick = () => zoomAt(...center(), V.s * 1.25);
+  document.getElementById('zoom-out').onclick = () => zoomAt(...center(), V.s / 1.25);
+  zl.onclick = () => { V.s = 1; V.x = 0; V.y = 0; penWidths(); redraw(); };
+
+  // ---- відкрити / закрити ----
+  function open() {
+    box.hidden = false; openBtn.hidden = true; openBtn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('draft-on');
+    if (init()) { fit(); redraw(); syncHint(); }
+  }
+  function close() {
+    box.hidden = true; openBtn.hidden = false; openBtn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('draft-on'); openBtn.focus({ preventScroll:true });
+  }
+  function undo() { if (!pad) return; const d = pad.toData(); d.pop(); pad.fromData(d); save(); syncHint(); }
+
+  openBtn.onclick = open;
+  document.getElementById('draft-close').onclick = close;
+  document.getElementById('draft-undo').onclick = undo;
+  box.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  clearBtn.onclick = () => {
+    if (!pad) return;
+    if (!clearArm) {   // друге натискання протягом 3 с — очищення
+      clearBtn.textContent = 'Точно?'; clearBtn.classList.add('warn');
+      clearArm = setTimeout(() => { clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn'); }, 3000);
+      return;
+    }
+    clearTimeout(clearArm); clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn');
+    pad.clear(); save(); syncHint();
+  };
+  document.addEventListener('keydown', e => {
+    if (box.hidden || e.target.closest('input')) return;
+    if (e.key === 'Escape') close();
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) { e.preventDefault(); zoomAt(...center(), V.s * 1.25); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); zoomAt(...center(), V.s / 1.25); }
+    else if (e.code === 'Space' && !spaceHand && !e.repeat && !e.target.closest('button')) { e.preventDefault(); spaceHand = true; setTool(tool); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space' && spaceHand) { spaceHand = false; setTool(tool); } });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => setTool(tool));
+})();
+</script>
+</html>
