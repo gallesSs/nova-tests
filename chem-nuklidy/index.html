@@ -1,0 +1,988 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Нукліди й радіоактивність</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<style>
+.nu{display:inline-flex;align-items:center;font-family:var(--mono);font-weight:700;white-space:nowrap}
+.nu .ms{display:inline-flex;flex-direction:column;align-items:flex-end;font-size:.6em;line-height:1.02;margin-right:2px;font-weight:600}
+.nu .ms i{font-style:normal}
+.nq{display:inline-flex;align-items:center;gap:.45em;flex-wrap:wrap;font-family:var(--mono);font-size:1.08em}
+.nq .x{color:var(--oh);font-weight:700}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · Будова атома · Нукліди</div>
+    <div class="brand"><h1>Нукліди й радіоактивність</h1><span class="ohbadge" aria-hidden="true">α β γ</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="praktyka" aria-selected="false">Практика</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+    </nav>
+  </header>
+
+  <!-- ================= ТЕОРІЯ ================= -->
+  <section id="v-teoriya" class="stack">
+    <div class="toc" id="toc">
+      <button data-to="s-yad">Ядро атома</button><button data-to="s-nuk">Нукліди та ізотопи</button><button data-to="s-ar">Середня Ar</button><button data-to="s-rad">Радіоактивність</button><button data-to="s-zm">Закони зміщення</button><button data-to="s-r">Ядерні реакції</button><button data-to="s-t">Напіврозпад</button><button data-to="s-use">Застосування й безпека</button>
+    </div>
+
+    <article class="card sec" id="s-yad">
+      <h2>Будова ядра</h2>
+      <p>Атом складається з позитивно зарядженого <b>ядра</b> та електронів навколо нього. Ядро утворене <b>протонами</b> і <b>нейтронами</b> — їх разом називають <b>нуклонами</b>.</p>
+      <div class="two">
+        <div class="def">
+          <div class="lbl">Запис нукліда</div>
+          <div class="big"><span class="nu"><span class="ms"><i>A</i><i>Z</i></span>X</span></div>
+          <div class="hint">A — масове (нуклонне) число, Z — протонне число (порядковий номер), X — символ елемента.</div>
+        </div>
+        <div class="def">
+          <div class="lbl">Як порахувати частинки</div>
+          <div class="big" style="font-size:19px">p = Z · N = A − Z · e = Z</div>
+          <div class="hint">Кількість електронів дорівнює Z лише в нейтральному атомі.</div>
+        </div>
+      </div>
+      <div class="tblw"><table>
+        <thead><tr><th>Частинка</th><th>Позначення</th><th>Заряд</th><th>Маса, а.о.м.</th></tr></thead>
+        <tbody>
+          <tr><td>протон</td><td><span class="nu"><span class="ms"><i>1</i><i>1</i></span>p</span></td><td class="n">+1</td><td class="n">≈ 1</td></tr>
+          <tr><td>нейтрон</td><td><span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span></td><td class="n">0</td><td class="n">≈ 1</td></tr>
+          <tr><td>електрон</td><td><span class="nu"><span class="ms"><i>0</i><i>−1</i></span>e</span></td><td class="n">−1</td><td class="n">≈ 1/1840</td></tr>
+        </tbody>
+      </table></div>
+      <div class="example">Атом <span class="nu"><span class="ms"><i>23</i><i>11</i></span>Na</span>: 11 протонів, 23 − 11 = 12 нейтронів, 11 електронів.</div>
+    </article>
+
+    <article class="card sec" id="s-nuk">
+      <h2>Нукліди та ізотопи</h2>
+      <p><b>Нуклід</b> — вид атомів з певним протонним числом Z і масовим числом A. <b>Хімічний елемент</b> — вид атомів з однаковим Z.</p>
+      <p><b>Ізотопи</b> — нукліди одного елемента: Z однакове, A різне (різна кількість нейтронів). Їхні хімічні властивості практично однакові.</p>
+      <div class="tblw"><table>
+        <thead><tr><th>Ізотоп Гідрогену</th><th>Запис</th><th>p</th><th>n</th></tr></thead>
+        <tbody>
+          <tr><td>протій</td><td><span class="nu"><span class="ms"><i>1</i><i>1</i></span>H</span></td><td class="n">1</td><td class="n">0</td></tr>
+          <tr><td>дейтерій D</td><td><span class="nu"><span class="ms"><i>2</i><i>1</i></span>H</span></td><td class="n">1</td><td class="n">1</td></tr>
+          <tr><td>тритій T (радіоактивний)</td><td><span class="nu"><span class="ms"><i>3</i><i>1</i></span>H</span></td><td class="n">1</td><td class="n">2</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note"><b>Ізобари</b> — нукліди різних елементів з однаковим A: <span class="nu"><span class="ms"><i>40</i><i>18</i></span>Ar</span>, <span class="nu"><span class="ms"><i>40</i><i>19</i></span>K</span>, <span class="nu"><span class="ms"><i>40</i><i>20</i></span>Ca</span>. Це різні елементи, бо в них різне Z.</p>
+    </article>
+
+    <article class="card sec" id="s-ar">
+      <h2>Чому Ar дробова</h2>
+      <p>Природний елемент — суміш ізотопів. Відносна атомна маса в періодичній системі — це <b>середнє</b> значення з урахуванням вмісту кожного ізотопу.</p>
+      <div class="eq" style="font-size:16px">Ar = (A₁·φ₁ + A₂·φ₂) / 100 %</div>
+      <div class="example">Хлор: 75 % <span class="nu"><span class="ms"><i>35</i><i>17</i></span>Cl</span> і 25 % <span class="nu"><span class="ms"><i>37</i><i>17</i></span>Cl</span> → Ar = (35·75 + 37·25) / 100 = <b>35,5</b></div>
+      <p class="hint">Обернена задача: якщо Ar = 35,5, то 35x + 37(100 − x) = 3550 → x = 75 % ізотопу Cl-35.</p>
+    </article>
+
+    <article class="card sec" id="s-rad">
+      <h2>Радіоактивність</h2>
+      <p><b>Радіоактивність</b> — самочинне перетворення нестійких ядер на інші з випромінюванням. Відкрив <b>Анрі Беккерель</b> (1896) на солях Урану. <b>Марія Склодовська-Кюрі</b> і П'єр Кюрі відкрили Полоній і Радій та запровадили сам термін.</p>
+      <div class="tblw"><table>
+        <thead><tr><th>Вид</th><th>Що це</th><th>Заряд</th><th>Проникність</th><th>Що затримує</th></tr></thead>
+        <tbody>
+          <tr><td><b>α</b></td><td>ядра гелію <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span></td><td class="n">+2</td><td>найменша</td><td>аркуш паперу, шкіра</td></tr>
+          <tr><td><b>β</b></td><td>електрони <span class="nu"><span class="ms"><i>0</i><i>−1</i></span>e</span></td><td class="n">−1</td><td>середня</td><td>кілька мм алюмінію</td></tr>
+          <tr><td><b>γ</b></td><td>електромагнітне випромінювання</td><td class="n">0</td><td>найбільша</td><td>товстий шар свинцю, бетону</td></tr>
+        </tbody>
+      </table></div>
+      <p>В електричному полі α-промені відхиляються до негативної пластини, β — до позитивної, γ не відхиляються.</p>
+    </article>
+
+    <article class="card sec" id="s-zm">
+      <h2>Закони зміщення</h2>
+      <p>У ядерних перетвореннях зберігаються <b>сума масових чисел</b> і <b>сума зарядів</b> (верхні й нижні числа зліва і справа однакові).</p>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">α-розпад: A − 4, Z − 2</div><div class="nq"><span class="nu"><span class="ms"><i>226</i><i>88</i></span>Ra</span> → <span class="nu"><span class="ms"><i>222</i><i>86</i></span>Rn</span> + <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span></div><div class="hint">Елемент зміщується на 2 клітинки ліворуч у періодичній системі.</div></div>
+        <div class="rxi"><div class="rxn">β-розпад: A не змінюється, Z + 1</div><div class="nq"><span class="nu"><span class="ms"><i>14</i><i>6</i></span>C</span> → <span class="nu"><span class="ms"><i>14</i><i>7</i></span>N</span> + <span class="nu"><span class="ms"><i>0</i><i>−1</i></span>e</span></div><div class="hint">У ядрі нейтрон перетворюється на протон і електрон. Елемент зміщується на 1 клітинку праворуч.</div></div>
+        <div class="rxi"><div class="rxn">γ-випромінювання: A і Z не змінюються</div><div class="hint" style="font-size:15px;color:var(--ink)">Ядро лише втрачає надлишок енергії. Зазвичай супроводжує α- і β-розпад.</div></div>
+      </div>
+      <h3>Скільки α і β в ланцюжку</h3>
+      <ol>
+        <li>Кількість α = (A<sub>поч</sub> − A<sub>кін</sub>) / 4 — масове число змінюють лише α-розпади.</li>
+        <li>Після них Z зменшилося б на 2·α. Кількість β = 2·α − (Z<sub>поч</sub> − Z<sub>кін</sub>).</li>
+      </ol>
+      <div class="example"><span class="nu"><span class="ms"><i>238</i><i>92</i></span>U</span> → <span class="nu"><span class="ms"><i>206</i><i>82</i></span>Pb</span>: α = (238 − 206) / 4 = 8; β = 2·8 − (92 − 82) = 6.</div>
+    </article>
+
+    <article class="card sec" id="s-r">
+      <h2>Ядерні реакції</h2>
+      <p>Ядро бомбардують частинкою (α, p, n, d) — утворюється нове ядро і вилітає інша частинка. Невідоме знаходимо за збереженням A і Z.</p>
+      <div class="rx">
+        <div class="rxi"><div class="rxn">Перша штучна реакція — Резерфорд, 1919</div><div class="nq"><span class="nu"><span class="ms"><i>14</i><i>7</i></span>N</span> + <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span> → <span class="nu"><span class="ms"><i>17</i><i>8</i></span>O</span> + <span class="nu"><span class="ms"><i>1</i><i>1</i></span>p</span></div></div>
+        <div class="rxi"><div class="rxn">Відкриття нейтрона — Чедвік, 1932</div><div class="nq"><span class="nu"><span class="ms"><i>9</i><i>4</i></span>Be</span> + <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span> → <span class="nu"><span class="ms"><i>12</i><i>6</i></span>C</span> + <span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span></div></div>
+        <div class="rxi"><div class="rxn">Поділ Урану-235 (АЕС)</div><div class="nq"><span class="nu"><span class="ms"><i>235</i><i>92</i></span>U</span> + <span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span> → <span class="nu"><span class="ms"><i>141</i><i>56</i></span>Ba</span> + <span class="nu"><span class="ms"><i>92</i><i>36</i></span>Kr</span> + 3<span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span></div><div class="hint">Нейтрони, що вилітають, ділять нові ядра — це ланцюгова реакція. Виділяється величезна енергія.</div></div>
+        <div class="rxi"><div class="rxn">Термоядерний синтез (на Сонці)</div><div class="nq"><span class="nu"><span class="ms"><i>2</i><i>1</i></span>H</span> + <span class="nu"><span class="ms"><i>3</i><i>1</i></span>H</span> → <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span> + <span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span></div></div>
+      </div>
+      <div class="example">Знайти X: <span class="nu"><span class="ms"><i>27</i><i>13</i></span>Al</span> + <span class="nu"><span class="ms"><i>4</i><i>2</i></span>He</span> → X + <span class="nu"><span class="ms"><i>1</i><i>0</i></span>n</span>. A = 27 + 4 − 1 = 30, Z = 13 + 2 − 0 = 15 → <span class="nu"><span class="ms"><i>30</i><i>15</i></span>P</span>.</div>
+    </article>
+
+    <article class="card sec" id="s-t">
+      <h2>Період напіврозпаду</h2>
+      <p><b>Період напіврозпаду T<sub>½</sub></b> — час, за який розпадається половина наявних радіоактивних ядер.</p>
+      <div class="eq" style="font-size:16px">m = m₀ / 2ⁿ, де n = t / T<sub>½</sub></div>
+      <div class="example">Було 80 г <span class="nu"><span class="ms"><i>131</i><i>53</i></span>I</span>, T<sub>½</sub> = 8 діб. Через 24 доби: n = 3, m = 80 / 2³ = 10 г; розпалося 70 г.</div>
+      <div class="tblw"><table>
+        <thead><tr><th>Нуклід</th><th>T<sub>½</sub></th><th>Розпад</th></tr></thead>
+        <tbody>
+          <tr><td>Радон-222</td><td>3,8 доби</td><td>α</td></tr>
+          <tr><td>Йод-131</td><td>8 діб</td><td>β</td></tr>
+          <tr><td>Полоній-210</td><td>138 діб</td><td>α</td></tr>
+          <tr><td>Кобальт-60</td><td>5,3 року</td><td>β, γ</td></tr>
+          <tr><td>Стронцій-90</td><td>29 років</td><td>β</td></tr>
+          <tr><td>Цезій-137</td><td>30 років</td><td>β, γ</td></tr>
+          <tr><td>Карбон-14</td><td>5730 років</td><td>β</td></tr>
+          <tr><td>Уран-238</td><td>4,5 млрд років</td><td>α</td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <article class="card sec" id="s-use">
+      <h2>Застосування й безпека</h2>
+      <div class="uses">
+        <div class="use"><b>Медицина</b>I-131 — діагностика й лікування щитоподібної залози; Co-60 — променева терапія пухлин.</div>
+        <div class="use"><b>Датування</b>C-14 — вік решток організмів (до ~50 тис. років); U-238 — вік гірських порід.</div>
+        <div class="use"><b>Енергетика</b>Уран-235 — паливо атомних електростанцій.</div>
+        <div class="use"><b>Техніка</b>γ-дефектоскопія металу, стерилізація інструментів, мічені атоми в дослідах.</div>
+      </div>
+      <h3>Вимірювання</h3>
+      <ul>
+        <li><b>Бекерель (Бк)</b> — одиниця активності: 1 розпад за секунду.</li>
+        <li><b>Зіверт (Зв)</b> — одиниця дози, що враховує вплив на організм.</li>
+      </ul>
+      <div class="warn"><b>Чорнобиль, 26 квітня 1986 р.</b> — найбільша аварія на АЕС. Головні довгоживучі забруднювачі — Цезій-137 і Стронцій-90 (T<sub>½</sub> ≈ 30 років), у перші тижні — Йод-131.</div>
+      <p class="hint">Захист від випромінювання: <b>час</b> (менше перебувати поруч), <b>відстань</b> (далі від джерела), <b>екран</b> (папір, алюміній, свинець — залежно від виду).</p>
+    </article>
+  </section>
+
+  <!-- ================= ПРАКТИКА ================= -->
+  <section id="v-praktyka" class="stack" hidden></section>
+
+  <!-- ================= ТЕСТ ================= -->
+  <section id="v-test" class="stack" hidden></section>
+
+  <footer>Хімія · Нукліди й радіоактивність</footer>
+</div>
+
+<script>
+// Посилання на веб-застосунок Google Apps Script (закінчується на /exec)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const TOPIC = 'Хімія — Нукліди й радіоактивність';
+
+/* ---------- утиліти ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const rint = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 2) => String(round(x, d)).replace('.', ',').replace('-', '−');
+const fHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const plain = h => String(h).replace(/<span class="ms"><i>([^<]*)<\/i><i>([^<]*)<\/i><\/span>([^<]*)/g, '$3-$1')
+  .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+function parseNum(raw) {
+  const s = String(raw).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/(мг|г|кг|років|роки|рік|доби|діб|%)$/, '');
+  return /^-?\d+(?:\.\d+)?$/.test(s) ? +s : NaN;
+}
+
+/* ---------- ядра й частинки ---------- */
+const EL = ['', 'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+  'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm',
+  'Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th','Pa','U',
+  'Np','Pu','Am','Cm'];
+const NU = (A, Z, s = EL[Z]) => `<span class="nu"><span class="ms"><i>${A}</i><i>${Z < 0 ? '−' + (-Z) : Z}</i></span>${s}</span>`;
+const NT = (A, Z) => `${EL[Z]}-${A}`;
+const PART = {
+  a:{ A:4, Z:2, s:'He', n:'α-частинка' }, p:{ A:1, Z:1, s:'p', n:'протон' }, n:{ A:1, Z:0, s:'n', n:'нейтрон' },
+  d:{ A:2, Z:1, s:'H', n:'дейтрон' }, e:{ A:0, Z:-1, s:'e', n:'електрон' }, g:{ A:0, Z:0, s:'γ', n:'γ-квант' }
+};
+const PH = k => k === 'g' ? '<span class="nu">γ</span>' : NU(PART[k].A, PART[k].Z, PART[k].s);
+const NQ = parts => `<span class="nq">${parts.join(' ')}</span>`;
+
+/* ---------- розділи ---------- */
+const CAT = {
+  atom:  { l:'Будова ядра',     c:'var(--c-stru)' },
+  iso:   { l:'Ізотопи',         c:'var(--c-nom)' },
+  rad:   { l:'Радіоактивність', c:'var(--c-react)' },
+  react: { l:'Ядерні реакції',  c:'var(--c-prop)' },
+  calc:  { l:'Розрахунки',      c:'var(--c-calc)' },
+  use:   { l:'Застосування',    c:'var(--c-prod)' }
+};
+
+/* ---------- банк питань (перший варіант — правильний) ---------- */
+const BANK = [
+  // будова ядра й ізотопи
+  { g:'th', q:'Масове число A дорівнює', o:['сумі протонів і нейтронів', 'кількості протонів', 'кількості нейтронів', 'кількості електронів'], e:'A = Z + N: протони й нейтрони разом — нуклони.' },
+  { g:'th', q:'Що визначає, до якого хімічного елемента належить атом?', o:['протонне число Z', 'масове число A', 'кількість нейтронів', 'маса атома'], e:'Хімічний елемент — вид атомів з однаковим зарядом ядра Z.' },
+  { g:'th', q:'Ізотопи — це атоми одного елемента з різною кількістю', o:['нейтронів', 'протонів', 'електронів', 'енергетичних рівнів'], e:'Z однакове, A різне — отже, різне число нейтронів.' },
+  { g:'th', q:'Нуклід — це', o:['вид атомів з певними Z і A', 'будь-яка елементарна частинка', 'ядро атома Гелію', 'атом без нейтронів'], e:'Нуклід задається двома числами: протонним Z і масовим A.' },
+  { g:'th', q:'Скільки нейтронів у ядрі дейтерію?', o:['1', '0', '2', '3'], e:'Дейтерій ²₁H: 1 протон, 2 − 1 = 1 нейтрон.' },
+  { g:'th', q:'Скільки нейтронів у ядрі тритію?', o:['2', '1', '3', '0'], e:'Тритій ³₁H: 1 протон, 3 − 1 = 2 нейтрони.' },
+  { g:'th', q:'Хімічні властивості ізотопів одного елемента', o:['практично однакові', 'зовсім різні', 'протилежні', 'залежать лише від маси'], e:'Хімічні властивості визначає будова електронної оболонки, а вона в ізотопів однакова.' },
+  { g:'th', q:'Чому відносна атомна маса Хлору дробова (35,5)?', o:['природний Хлор — суміш ізотопів Cl-35 і Cl-37', 'протон має дробову масу', 'у ядрі 35,5 нуклона', 'атом Хлору має половину нейтрона'], e:'Ar — середнє значення для суміші ізотопів: 35·0,75 + 37·0,25 = 35,5.' },
+  { g:'th', q:'Ядро атома складається з', o:['протонів і нейтронів', 'протонів і електронів', 'нейтронів і електронів', 'лише протонів'], e:'Електрони рухаються навколо ядра.' },
+  { g:'th', q:`Які нукліди — ізобари?`, o:[`${NU(40, 18)} і ${NU(40, 20)}`, `${NU(35, 17)} і ${NU(37, 17)}`, `${NU(12, 6)} і ${NU(14, 6)}`, `${NU(1, 1)} і ${NU(2, 1)}`], e:'Ізобари мають однакове масове число A, але різне Z.' },
+  // радіоактивність
+  { g:'rad', q:'Хто відкрив радіоактивність у 1896 році?', o:['Анрі Беккерель', 'Ернест Резерфорд', 'Дмитро Менделєєв', 'Нільс Бор'], e:'Беккерель помітив, що солі Урану засвічують фотопластинку в темряві.' },
+  { g:'rad', q:'Хто відкрив Полоній і Радій?', o:['Марія Склодовська-Кюрі та П\'єр Кюрі', 'Анрі Беккерель', 'Ернест Резерфорд', 'Джеймс Чедвік'], e:'Полоній названо на честь Польщі — батьківщини Марії Склодовської-Кюрі.' },
+  { g:'rad', q:'α-частинка — це', o:[`ядро атома Гелію ${NU(4, 2)}`, 'електрон', 'фотон', 'нейтрон'], e:'Два протони й два нейтрони: заряд +2, масове число 4.' },
+  { g:'rad', q:'β-частинка — це', o:[`електрон ${NU(0, -1, 'e')}`, 'ядро Гелію', 'протон', 'нейтрон'], e:'Під час β-розпаду нейтрон ядра перетворюється на протон, а електрон вилітає.' },
+  { g:'rad', q:'γ-випромінювання — це', o:['електромагнітне випромінювання дуже високої енергії', 'потік протонів', 'потік ядер Гелію', 'потік нейтронів'], e:'γ-кванти не мають ні маси спокою, ні заряду.' },
+  { g:'rad', q:'Яке випромінювання має найбільшу проникну здатність?', o:['γ', 'α', 'β', 'у всіх однакова'], e:'γ-промені затримує лише товстий шар свинцю чи бетону.' },
+  { g:'rad', q:'Що повністю затримує α-випромінювання?', o:['аркуш паперу', 'лише шар свинцю завтовшки 10 см', 'лише бетонна стіна', 'ніщо його не затримує'], e:'α-частинки важкі й повільні, тому мають найменшу проникність.' },
+  { g:'rad', q:'Як змінюється масове число під час α-розпаду?', o:['зменшується на 4', 'зменшується на 2', 'не змінюється', 'збільшується на 1'], e:'Ядро втрачає ⁴₂He: A − 4, Z − 2.' },
+  { g:'rad', q:'Як змінюється протонне число під час β-розпаду?', o:['збільшується на 1', 'зменшується на 1', 'зменшується на 2', 'не змінюється'], e:'Нейтрон перетворюється на протон: Z + 1, A не змінюється.' },
+  { g:'rad', q:'Як змінюються A і Z під час γ-випромінювання?', o:['не змінюються', 'A − 4, Z − 2', 'Z + 1', 'A − 1'], e:'Ядро лише позбувається надлишкової енергії.' },
+  { g:'rad', q:'Період напіврозпаду — це час, за який розпадається', o:['половина наявних радіоактивних ядер', 'усі радіоактивні ядра', 'чверть ядер', 'одне ядро'], e:'За кожен T½ кількість ядер зменшується вдвічі.' },
+  { g:'rad', q:'До якої пластини в електричному полі відхиляються α-промені?', o:['до негативної', 'до позитивної', 'не відхиляються', 'то до однієї, то до іншої'], e:'α-частинки заряджені позитивно (+2), тому притягуються до «мінуса».' },
+  { g:'rad', q:'Хто відкрив нейтрон у 1932 році?', o:['Джеймс Чедвік', 'Ернест Резерфорд', 'Марія Склодовська-Кюрі', 'Анрі Беккерель'], e:'⁹₄Be + ⁴₂He → ¹²₆C + ¹₀n' },
+  { g:'rad', q:'Хто в 1919 році здійснив першу штучну ядерну реакцію?', o:['Ернест Резерфорд', 'Джеймс Чедвік', 'Анрі Беккерель', 'Нільс Бор'], e:'¹⁴₇N + ⁴₂He → ¹⁷₈O + ¹₁p' },
+  // застосування
+  { g:'use', q:'Який радіонуклід використовують, щоб визначити вік решток організмів?', o:['Карбон-14', 'Уран-238', 'Йод-131', 'Кобальт-60'], e:'Живі організми постійно поглинають C-14; після смерті його вміст зменшується вдвічі кожні 5730 років.' },
+  { g:'use', q:'Який радіонуклід застосовують для діагностики й лікування щитоподібної залози?', o:['Йод-131', 'Карбон-14', 'Цезій-137', 'Уран-238'], e:'Щитоподібна залоза накопичує Йод.' },
+  { g:'use', q:'Коли сталася аварія на Чорнобильській АЕС?', o:['26 квітня 1986 року', '26 квітня 1991 року', '11 березня 2011 року', '28 березня 1979 року'], e:'Це найбільша аварія в історії атомної енергетики.' },
+  { g:'use', q:'Які довгоживучі радіонукліди найбільше забруднили територію після аварії на ЧАЕС?', o:['Цезій-137 і Стронцій-90', 'Карбон-14 і Гідроген-1', 'Оксиген-16 і Нітроген-14', 'Уран-238 і Торій-232'], e:'Їхній період напіврозпаду близько 30 років.' },
+  { g:'use', q:'Що є паливом атомних електростанцій?', o:['Уран-235', 'Карбон-12', 'Ферум-56', 'Гідроген-1'], e:'Ядра U-235 діляться під дією нейтронів з виділенням великої енергії.' },
+  { g:'use', q:'Яка частинка спричиняє поділ ядра Урану-235?', o:['нейтрон', 'протон', 'електрон', 'γ-квант'], e:'Нейтрон не має заряду, тому ядро його не відштовхує.' },
+  { g:'use', q:'Чому поділ U-235 може стати ланцюговою реакцією?', o:['під час поділу вилітають 2–3 нові нейтрони', 'під час поділу вилітають електрони', 'утворюється кисень', 'ядро Урану стає більшим'], e:'Нові нейтрони ділять сусідні ядра.' },
+  { g:'use', q:'Джерело γ-випромінювання для променевої терапії пухлин:', o:['Кобальт-60', 'Карбон-14', 'Калій-39', 'Гідроген-1'], e:'Co-60 випромінює γ-кванти високої енергії.' },
+  { g:'use', q:'Одиниця активності радіоактивного джерела (1 розпад за секунду):', o:['бекерель', 'зіверт', 'джоуль', 'паскаль'], e:'1 Бк = 1 розпад/с. Зіверт — одиниця дози опромінення.' },
+  { g:'use', q:'Що НЕ захищає від зовнішнього опромінення?', o:['ковток води', 'відстань від джерела', 'скорочення часу перебування поруч', 'екран зі свинцю чи бетону'], e:'Захист — час, відстань і екран.' }
+];
+const BY = {}; BANK.forEach(b => (BY[b.g] ??= []).push(b));
+const G2CAT = { th:'atom', rad:'rad', use:'use' };
+
+/* ---------- конструктор завдань ---------- */
+const DECK = {};
+function draw(key, arr) { if (!DECK[key] || !DECK[key].length) DECK[key] = shuffle(arr.map((_, i) => i)); return arr[DECK[key].pop()]; }
+function choice({ cat, label, pts = 1, q, o, e, rt, sol }) {
+  const opts = shuffle(o.map((html, i) => ({ html, right: i === 0 })));
+  return { cat, label: label || CAT[cat].l, pts, q, input:'choice', opts, e, right: rt || plain(o[0]), sol: sol || (e ? [e] : []),
+    check: a => a !== null && a !== undefined && !!opts[a] && opts[a].right };
+}
+const fromBank = g => choice({ ...draw(g, BY[g]), cat: G2CAT[g], pts: 1 });
+function num(o) {
+  return { cat:'calc', pts:2, input:'num', unit:'', ...o, right: `${fmt(o.x, o.d ?? 2)}${o.unit ? ' ' + o.unit : ''}`,
+    check: a => { const v = parseNum(a); return isFinite(v) && Math.abs(v - o.x) <= (o.tol ?? 0.02); } };
+}
+
+// Склад атома
+const ISO = [[1,1],[2,1],[3,1],[4,2],[7,3],[9,4],[11,5],[12,6],[14,6],[14,7],[16,8],[18,8],[19,9],[23,11],[24,12],[27,13],[31,15],[32,15],[32,16],[35,17],[37,17],
+  [39,19],[40,19],[40,20],[56,26],[60,27],[63,29],[65,30],[79,35],[90,38],[131,53],[137,55],[210,84],[222,86],[226,88],[232,90],[235,92],[238,92],[239,94]];
+function tComp() {
+  const [A, Z] = draw('iso', ISO), what = pick(['p', 'n', 'n', 'e', 'A']);
+  const W = { p:['протонів', Z, `p = Z = ${Z}`], n:['нейтронів', A - Z, `N = A − Z = ${A} − ${Z} = ${A - Z}`], e:['електронів', Z, `У нейтральному атомі e = p = Z = ${Z}`], A:['нуклонів', A, `Нуклони = протони + нейтрони = A = ${A}`] }[what];
+  return num({ cat:'atom', label:'Склад атома', pts:1, q:`Скільки ${W[0]} в атомі ${NU(A, Z)}?`, x:W[1], d:0, tol:0, sol:[W[2]] });
+}
+// Ізотопи
+function tIso() {
+  const z = pick([1, 6, 8, 17, 19, 26, 92]), m = { 1:[1, 2, 3], 6:[12, 13, 14], 8:[16, 17, 18], 17:[35, 37], 19:[39, 40, 41], 26:[54, 56, 57], 92:[234, 235, 238] }[z];
+  const [a1, a2] = shuffle(m), b = pick([[40, 18, 40, 20], [14, 6, 14, 7], [40, 19, 40, 20], [3, 1, 3, 2], [54, 26, 54, 24]]);
+  return choice({ cat:'iso', label:'Ізотопи', pts:1, q:'Яка пара нуклідів — ізотопи?',
+    o:[`${NU(a1, z)} і ${NU(a2, z)}`, `${NU(b[0], b[1])} і ${NU(b[2], b[3])}`, `${NU(a1, z)} і ${NU(a1 + 1, z + 1)}`, `${NU(12, 6)} і ${NU(16, 8)}`],
+    e:'Ізотопи мають однакове Z (це один елемент) і різне масове число A.' });
+}
+// α- і β-розпад
+const ALPHA = [[238,92],[235,92],[232,90],[226,88],[222,86],[218,84],[210,84],[239,94],[241,95],[234,92],[230,90]];
+const BETA  = [[14,6],[90,38],[137,55],[131,53],[60,27],[210,83],[210,82],[234,90],[32,15],[3,1],[40,19],[228,88]];
+function tDecay(kind) {
+  const isA = kind === 'a', [A, Z] = draw(kind, isA ? ALPHA : BETA);
+  const r = isA ? [A - 4, Z - 2] : [A, Z + 1];
+  const wrong = isA ? [[A - 4, Z + 2], [A - 2, Z - 2], [A, Z - 2]] : [[A, Z - 1], [A - 1, Z + 1], [A - 4, Z - 2]];
+  const eq = NQ([NU(A, Z), '→', NU(r[0], r[1]), '+', isA ? PH('a') : PH('e')]);
+  return choice({ cat:'rad', label: isA ? 'α-розпад' : 'β-розпад', pts:2, q:`Який нуклід утворюється внаслідок ${isA ? 'α' : 'β'}-розпаду ${NU(A, Z)}?`,
+    o:[r, ...wrong].map(([a, z]) => NU(a, z)), rt: NT(r[0], r[1]),
+    e: `${isA ? 'α-розпад: A − 4, Z − 2' : 'β-розпад: A не змінюється, Z + 1'}. ${eq}` });
+}
+// Ланцюжки
+function tChain() {
+  const [A0, Z0] = pick([[238, 92], [235, 92], [232, 90], [237, 93]]), na = rint(2, 8), nb = rint(1, Math.min(6, na + 1));
+  const A = A0 - 4 * na, Z = Z0 - 2 * na + nb, ask = pick(['a', 'b']);
+  return num({ cat:'rad', label:'Ланцюжок розпадів', pts:3, q:`Внаслідок кількох α- і β-розпадів ${NU(A0, Z0)} перетворився на ${NU(A, Z)}. Скільки відбулося <b>${ask === 'a' ? 'α' : 'β'}-розпадів</b>?`,
+    x: ask === 'a' ? na : nb, d:0, tol:0,
+    sol:[`Масове число змінюють лише α-розпади: α = (${A0} − ${A}) / 4 = ${na}`, `Після ${na} α-розпадів Z було б ${Z0} − ${2 * na} = ${Z0 - 2 * na}`, `β = ${Z} − ${Z0 - 2 * na} = ${nb}`] });
+}
+// Ядерні реакції
+const TGT = [[6,3],[7,3],[9,4],[10,5],[11,5],[14,7],[16,8],[19,9],[23,11],[24,12],[27,13],[31,15],[32,16],[35,17],[40,20],[55,25],[59,27]];
+function tReact() {
+  let t, pr, em, A, Z;
+  do { t = pick(TGT); pr = pick(['a', 'a', 'p', 'n', 'd']); em = pick(['n', 'p', 'a', 'g']);
+       A = t[0] + PART[pr].A - PART[em].A; Z = t[1] + PART[pr].Z - PART[em].Z; } while (pr === em || Z < 1 || A < Z || (em === 'g' && pr !== 'n' && pr !== 'p'));
+  const X = '<span class="x">X</span>';
+  if (pick([0, 1, 1])) {
+    const wrong = shuffle([[A + 1, Z], [A - 1, Z], [A, Z + 1], [A, Z - 1], [A + 1, Z + 1]].filter(([a, z]) => z >= 1 && a >= z)).slice(0, 3);
+    return choice({ cat:'react', label:'Ядерна реакція', pts:2, q:`Визначте нуклід X: ${NQ([NU(...t), '+', PH(pr), '→', X, '+', PH(em)])}`,
+      o:[[A, Z], ...wrong].map(([a, z]) => NU(a, z)), rt: NT(A, Z),
+      e:`A = ${t[0]} + ${PART[pr].A} − ${PART[em].A} = ${A}; Z = ${t[1]} + ${PART[pr].Z} − ${PART[em].Z} = ${Z} → ${EL[Z]}.` });
+  }
+  const names = ['n', 'p', 'a', 'e', 'g'].filter(k => k !== em);
+  return choice({ cat:'react', label:'Ядерна реакція', pts:2, q:`Яка частинка X вилітає: ${NQ([NU(...t), '+', PH(pr), '→', NU(A, Z), '+', X])}`,
+    o:[em, ...shuffle(names).slice(0, 3)].map(k => `${PH(k)} ${PART[k].n}`), rt: PART[em].n,
+    e:`Ліворуч A = ${t[0] + PART[pr].A}, Z = ${t[1] + PART[pr].Z}; праворуч у нукліда A = ${A}, Z = ${Z}. Частинка: A = ${PART[em].A}, Z = ${PART[em].Z} — ${PART[em].n}.` });
+}
+// Період напіврозпаду
+const HL = [['Йоду-131', 8, 'd'], ['Радону-222', 3.8, 'd'], ['Фосфору-32', 14, 'd'], ['Полонію-210', 138, 'd'],
+  ['Кобальту-60', 5.3, 'y'], ['Стронцію-90', 29, 'y'], ['Цезію-137', 30, 'y'], ['Карбону-14', 5730, 'y']];
+// 1 добу, 2 доби, 5 діб, 3,8 доби; 1 рік, 2 роки, 5 років, 5,3 року
+function tu(x, k) {
+  const f = k === 'd' ? ['добу', 'доби', 'діб', 'доби'] : ['рік', 'роки', 'років', 'року'];
+  if (!Number.isInteger(x)) return `${fmt(x, 1)} ${f[3]}`;
+  const n10 = x % 10, n100 = x % 100;
+  return `${x} ${n10 === 1 && n100 !== 11 ? f[0] : n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14) ? f[1] : f[2]}`;
+}
+function tHalf() {
+  const [nm, T, kd] = pick(HL), u2 = kd === 'd' ? 'діб' : 'років', k = rint(1, 4), m0 = pick([16, 20, 32, 40, 48, 64, 80, 96, 100, 128, 160, 200, 256, 400]), m = m0 / 2 ** k, t = round(T * k, 1);
+  const unit = pick(['г', 'мг']), what = pick(['m', 'm', 'dec', 'pct', 't', 'n']);
+  const base = [`n = t / T½ = ${fmt(t, 1)} / ${fmt(T, 1)} = ${k}`, `m = m₀ / 2ⁿ = ${m0} / ${2 ** k} = ${fmt(m)} ${unit}`];
+  const head = `Період напіврозпаду ${nm} — ${tu(T, kd)}.`;
+  if (what === 'm') return num({ label:'Напіврозпад', q:`${head} Яка маса нукліда залишиться з ${m0} ${unit} через ${tu(t, kd)}?`, x:m, unit, sol:base });
+  if (what === 'dec') return num({ label:'Напіврозпад', q:`${head} Яка маса нукліда розпадеться з ${m0} ${unit} за ${tu(t, kd)}?`, x:m0 - m, unit, sol:[...base, `Розпалося: ${m0} − ${fmt(m)} = ${fmt(m0 - m)} ${unit}`] });
+  if (what === 'pct') return num({ label:'Напіврозпад', q:`${head} Скільки відсотків ядер розпадеться за ${tu(t, kd)}?`, x:100 - 100 / 2 ** k, unit:'%', d:2, tol:0.1,
+    sol:[`n = ${fmt(t, 1)} / ${fmt(T, 1)} = ${k}`, `Залишиться 1/2ⁿ = 1/${2 ** k} = ${fmt(100 / 2 ** k)} %`, `Розпадеться 100 − ${fmt(100 / 2 ** k)} = ${fmt(100 - 100 / 2 ** k)} %`] });
+  if (what === 'n') return num({ label:'Напіврозпад', q:`Маса радіоактивного нукліда зменшилася з ${m0} ${unit} до ${fmt(m)} ${unit}. Скільки періодів напіврозпаду минуло?`, x:k, d:0, tol:0,
+    sol:[`m₀ / m = ${m0} / ${fmt(m)} = ${2 ** k} = 2<sup>${k}</sup>`, `Минуло ${k} T½`] });
+  return num({ label:'Напіврозпад', q:`${head} За який час маса нукліда зменшиться з ${m0} ${unit} до ${fmt(m)} ${unit}?`, x:t, unit:u2, d:1, tol:0.05,
+    sol:[`m₀ / m = ${m0} / ${fmt(m)} = ${2 ** k} = 2<sup>${k}</sup> → n = ${k}`, `t = n · T½ = ${k} · ${fmt(T, 1)} = ${fmt(t, 1)} ${u2}`] });
+}
+// Середня Ar
+const PAIRS = [['Хлору', 'Хлор', 'Cl', 17, 35, 37], ['Купруму', 'Купрум', 'Cu', 29, 63, 65], ['Бору', 'Бор', 'B', 5, 10, 11], ['Літію', 'Літій', 'Li', 3, 6, 7], ['Брому', 'Бром', 'Br', 35, 79, 81], ['Галію', 'Галій', 'Ga', 31, 69, 71]];
+function tAr() {
+  const [nm, nom, s, Z, a1, a2] = pick(PAIRS), p = pick([10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90]), Ar = round((a1 * p + a2 * (100 - p)) / 100, 2);
+  if (pick([0, 1])) return num({ label:'Середня Ar', pts:3, q:`Природний ${nom} складається з ${p} % ізотопу ${NU(a1, Z)} і ${100 - p} % ізотопу ${NU(a2, Z)}. Обчисліть відносну атомну масу елемента.`, x:Ar, tol:0.02,
+    sol:[`Ar = (${a1} · ${p} + ${a2} · ${100 - p}) / 100 = ${fmt(Ar)}`] });
+  return num({ label:'Середня Ar', pts:3, q:`Відносна атомна маса ${nm} — ${fmt(Ar)}. Він складається з ізотопів ${NU(a1, Z)} і ${NU(a2, Z)}. Обчисліть вміст (у %) ізотопу ${s}-${a1}.`, x:p, unit:'%', d:1, tol:0.5,
+    sol:[`Нехай вміст ${s}-${a1} — x %: ${a1}x + ${a2}(100 − x) = ${fmt(Ar * 100)}`, `${a2 * 100} − ${a2 - a1 > 1 ? a2 - a1 : ''}x = ${fmt(Ar * 100)} → x = ${p} %`] });
+}
+
+const GEN = {
+  th: () => fromBank('th'), rad: () => fromBank('rad'), use: () => fromBank('use'),
+  comp: tComp, iso: tIso, alpha: () => tDecay('a'), beta: () => tDecay('b'), chain: tChain, react: tReact, half: tHalf, ar: tAr
+};
+const KINDS = [
+  ['all', 'Усі', ['th', 'rad', 'use', 'comp', 'iso', 'alpha', 'beta', 'chain', 'react', 'half', 'ar']],
+  ['atom', 'Будова атома', ['comp', 'comp', 'iso', 'th']],
+  ['decay', 'α- і β-розпад', ['alpha', 'beta', 'rad']],
+  ['chain', 'Ланцюжки', ['chain']],
+  ['react', 'Ядерні реакції', ['react']],
+  ['half', 'Напіврозпад', ['half']],
+  ['ar', 'Середня Ar', ['ar']],
+  ['use', 'Застосування', ['use']]
+];
+/* ---------- поле відповіді ---------- */
+const LETTERS = 'АБВГД';
+function area(t, ans, pre, reveal) {
+  if (t.input === 'choice') return `<div class="opts">${t.opts.map((o, i) => {
+    let c = '';
+    if (reveal) { if (o.right) c = 'ok'; else if (i === ans) c = 'bad'; } else if (i === ans) c = 'sel';
+    return `<button class="opt ${c}" data-i="${i}" ${reveal ? 'disabled' : ''}><span class="k">${LETTERS[i]}</span><span>${o.html}</span></button>`;
+  }).join('')}</div>`;
+  const isF = t.input === 'formula';
+  return `<div class="inrow"><input id="${pre}-in" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" autocapitalize="off"
+      aria-label="Відповідь" placeholder="відповідь" value="${esc(ans ?? '')}">${t.unit ? `<span class="unit">${t.unit}</span>` : ''}</div>
+    <div class="hint">Введи число. Десятковий дріб можна писати з комою.</div>`;
+}
+
+/* ================= ПРАКТИКА ================= */
+const P = { kind:'all', t:null, ans:null, checked:false, ok:false, sol:false, counted:false, tried:0, solved:0 };
+function newPractice() {
+  const keys = KINDS.find(k => k[0] === P.kind)[2];
+  P.t = GEN[pick(keys)]();
+  Object.assign(P, { ans: P.t.input === 'choice' ? null : '', checked:false, ok:false, sol:false, counted:false });
+  renderPractice(true);
+}
+function renderPractice(focus) {
+  const t = P.t, v = $('v-praktyka'), isC = t.input === 'choice';
+  let fb = '';
+  if (P.checked) fb = P.ok
+    ? `<div class="fb ok"><b>Правильно.</b> ${isC ? (t.e || '') : `Відповідь: ${esc(t.right)}`}</div>`
+    : isC ? `<div class="fb bad"><b>Неправильно.</b> ${t.e || ''}</div>`
+          : `<div class="fb bad"><b>Неправильно.</b> Спробуй ще раз або подивись розв'язок.</div>`;
+  const sol = P.sol && !isC ? `<div class="solbox"><div class="lbl">Розв'язок</div><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol><div>Відповідь: <b>${esc(t.right)}</b></div></div>` : '';
+  const acts = isC
+    ? (P.checked ? `<button class="btn" id="p-next">Наступне завдання</button>` : `<span class="hint">Обери одну відповідь</span>`)
+    : `<button class="btn" id="p-check">Перевірити</button><button class="btn ghost" id="p-sol">${P.sol ? 'Сховати розв\'язок' : 'Розв\'язок'}</button><button class="btn ghost" id="p-next">Наступне</button>`;
+  v.innerHTML = `
+    <div class="seg" role="group" aria-label="Тип завдань">${KINDS.map(([k, l]) => `<button class="segb" data-k="${k}" aria-pressed="${P.kind === k}">${l}</button>`).join('')}</div>
+    <div class="card task" style="--c:${CAT[t.cat].c}">
+      <div class="tline"><span class="tag">${esc(t.label)}</span>${P.tried ? `<span class="count">правильно ${P.solved} з ${P.tried}</span>` : ''}</div>
+      <div class="q">${t.q}</div>
+      ${area(t, P.ans, 'p', isC && P.checked)}
+      ${fb}${sol}
+      <div class="actions">${acts}</div>
+    </div>
+    <p class="hint">Тренуйся скільки завгодно: задачі щоразу нові, результати нікуди не надсилаються.</p>`;
+  v.querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; newPractice(); });
+  v.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (P.checked) return;
+    P.ans = +b.dataset.i; P.checked = true; P.ok = t.check(P.ans); P.tried++; if (P.ok) P.solved++;
+    renderPractice(); $('p-next')?.focus({ preventScroll:true });
+  });
+  const inp = $('p-in');
+  const check = () => {
+    P.ans = inp.value; if (!P.ans.trim()) { inp.focus(); return; }
+    P.checked = true; P.ok = t.check(P.ans);
+    if (!P.counted) { P.counted = true; P.tried++; if (P.ok) P.solved++; }
+    renderPractice(); if (!P.ok) $('p-in')?.focus({ preventScroll:true });
+  };
+  if (inp) {
+    inp.oninput = () => { P.ans = inp.value; };
+    inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); check(); } };
+    if (focus && matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+  }
+  if ($('p-check')) $('p-check').onclick = check;
+  if ($('p-sol')) $('p-sol').onclick = () => { if (inp) P.ans = inp.value; P.sol = !P.sol; renderPractice(); };
+  if ($('p-next')) $('p-next').onclick = newPractice;
+}
+
+/* ================= ТЕСТ ================= */
+const answered = t => t.input === 'choice' ? t.ans !== null : String(t.ans ?? '').trim() !== '';
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, results:[], sent:'', warn:false };
+try { T.name = localStorage.getItem('chem_name') || ''; T.cls = localStorage.getItem('chem_group') || ''; } catch (e) {}
+
+// Від простого до складного: 15 завдань
+function makeTest() {
+  const list = [GEN.th(), GEN.th(), tComp(), tIso(), GEN.rad(), GEN.rad(), GEN.use(), tDecay('a'), tDecay('b'), tReact(), tReact(), tHalf(), tChain(), tHalf(), tAr()];
+  return list.map(t => ({ ...t, ans: t.input === 'choice' ? null : '' }));
+}
+function total() {
+  const max = T.results.reduce((a, r) => a + r.pts, 0), got = T.results.reduce((a, r) => a + (r.ok ? r.pts : 0), 0);
+  return { got, max, mark: Math.max(1, Math.round(got / max * 12)) };
+}
+const givenText = t => !answered(t) ? '—' : t.input === 'choice' ? plain(t.opts[t.ans].html) : t.ans.trim();
+
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `
+      <div class="card stack">
+        <div><div class="eyebrow">Тест · 15 завдань</div><h2 style="margin-top:4px">Нукліди й радіоактивність</h2></div>
+        <div class="row">
+          <label class="field">Ім'я та прізвище<input id="t-name" autocomplete="name" placeholder="Напр., Марія Коваленко" value="${esc(T.name)}"></label>
+          <label class="field">Клас<input id="t-cls" placeholder="9-А" value="${esc(T.cls)}"></label>
+        </div>
+        <ul class="rules">
+          <li>Будова ядра, ізотопи, радіоактивність, α- і β-розпад, ядерні реакції, період напіврозпаду та середня Ar — від простого до складного.</li>
+          <li>Кожне завдання — від 1 до 3 балів. Оцінка — за 12-бальною шкалою.</li>
+          <li>Правильні відповіді побачиш у кінці. До будь-якого завдання можна повернутися.</li>
+          <li>У числових відповідях одиниці можна не писати. Десятковий дріб — з комою або крапкою.</li>
+        </ul>
+        <div class="actions"><button class="btn" id="t-go">Почати тест</button></div>
+        <div class="err" id="t-err" hidden></div>
+      </div>`;
+    $('t-name').oninput = e => T.name = e.target.value;
+    $('t-cls').oninput = e => T.cls = e.target.value;
+    $('t-go').onclick = () => {
+      if (!T.name.trim()) { $('t-err').textContent = 'Впиши ім\'я та прізвище так, як тебе записав вчитель, щоб результат потрапив у твою вкладку.'; $('t-err').hidden = false; $('t-name').focus(); return; }
+      try { localStorage.setItem('chem_name', T.name.trim()); localStorage.setItem('chem_group', T.cls.trim()); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.warn = false; T.phase = 'run'; renderTest(); window.scrollTo({ top:0 });
+    };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1, left = T.tasks.filter(x => !answered(x)).length;
+    v.innerHTML = `
+      <div class="dots" role="group" aria-label="Завдання">${T.tasks.map((x, j) => `<button class="dot ${answered(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}" aria-label="Завдання ${j + 1}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${CAT[t.cat].c}">
+        <div class="tline"><span class="tag">${esc(t.label)}</span><span class="count">${T.i + 1} / ${N} · ${t.pts} б.</span></div>
+        <div class="q">${t.q}</div>
+        ${area(t, t.ans, 't', false)}
+        <div class="actions">
+          <button class="btn ghost" id="t-prev" ${T.i === 0 ? 'disabled' : ''}>Назад</button>
+          ${last ? `<button class="btn" id="t-fin">Завершити тест</button>` : `<button class="btn" id="t-next">Далі</button>`}
+        </div>
+        ${T.warn && left ? `<div class="err">Без відповіді: ${left}. Натисни «Завершити тест» ще раз, щоб здати роботу.</div>` : ''}
+      </div>`;
+    const go = j => { T.i = j; T.warn = false; renderTest(); };
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => go(+b.dataset.j));
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.ans = +b.dataset.i; renderTest(); });
+    const inp = $('t-in');
+    if (inp) {
+      inp.oninput = () => { t.ans = inp.value; v.querySelectorAll('.dot')[T.i].classList.toggle('done', answered(t)); };
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); last ? $('t-fin').click() : go(T.i + 1); } };
+      if (matchMedia('(hover:hover)').matches) inp.focus({ preventScroll:true });
+    }
+    $('t-prev').onclick = () => go(T.i - 1);
+    if ($('t-next')) $('t-next').onclick = () => go(T.i + 1);
+    if ($('t-fin')) $('t-fin').onclick = () => {
+      if (left && !T.warn) { T.warn = true; renderTest(); return; }
+      finishTest();
+    };
+    return;
+  }
+  const { got, max, mark } = total(), okc = T.results.filter(r => r.ok).length;
+  v.innerHTML = `
+    <div class="card stack">
+      <div class="eyebrow">${esc(T.name)}${T.cls.trim() ? ' · ' + esc(T.cls) : ''}</div>
+      <div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+      <div class="hint">${got} з ${max} балів · правильно ${okc} з ${T.results.length} завдань</div>
+      <div class="send" id="t-send"></div>
+    </div>
+    <div class="card stack">
+      <h2>Розбір</h2>
+      <ol class="review">${T.results.map((r, i) => `
+        <li class="${r.ok ? 'ok' : 'bad'}"><span class="m">${r.ok ? '✓' : '✗'}</span><div class="rb">
+          <b>${i + 1}. ${esc(r.label)} <span class="hint">· ${r.pts} б.</span></b>
+          ${r.ok ? '' : `<div class="yours">Твоя відповідь: ${esc(r.given)}</div><div class="right">Правильно: <b>${esc(r.right)}</b></div>
+            ${r.sol.length ? `<div class="why">${r.sol.map(s => `<div>${s}</div>`).join('')}</div>` : ''}`}
+        </div></li>`).join('')}</ol>
+    </div>
+    <div class="actions"><button class="btn" id="t-again">Пройти ще раз</button><button class="btn ghost" id="t-train">Потренуватися</button></div>`;
+  drawSend();
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); window.scrollTo({ top:0 }); };
+  $('t-train').onclick = () => go2('praktyka');
+}
+function finishTest() {
+  T.results = T.tasks.map(t => ({ label: t.label, pts: t.pts, ok: answered(t) && t.check(t.ans), given: givenText(t), right: t.right, sol: t.sol || [] }));
+  T.phase = 'done'; renderTest(); window.scrollTo({ top:0 });
+  sendResults();
+}
+function drawSend() {
+  const box = $('t-send'); if (!box) return;
+  box.className = 'send ' + (T.sent || 'wait');
+  box.innerHTML = T.sent === 'ok' ? 'Результат надіслано вчителю.'
+    : T.sent === 'fail' ? `Не вдалося надіслати результат. <button class="btn ghost" id="t-resend">Надіслати ще раз</button>`
+    : 'Надсилаю результат вчителю…';
+  if ($('t-resend')) $('t-resend').onclick = sendResults;
+}
+function sendResults() {
+  const { got, max, mark } = total();
+  T.sent = 'wait'; drawSend();
+  const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
+    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
+  }).then(() => { T.sent = 'ok'; drawSend(); }).catch(() => { T.sent = 'fail'; drawSend(); });
+}
+
+/* ================= ТЕОРІЯ: формули й рівняння ================= */
+document.querySelectorAll('#v-teoriya .f').forEach(el => { if (!el.children.length) el.innerHTML = fHTML(el.textContent); });
+document.querySelectorAll('[data-eq]').forEach(el => { const [l, c, r] = el.dataset.eq.split('|'); el.innerHTML = EQ(l, c, r); });
+document.querySelectorAll('#toc button').forEach(b => b.onclick = () => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $(b.dataset.to).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' });
+});
+
+/* ================= перемикання розділів ================= */
+const VIEWS = ['teoriya', 'praktyka', 'test'];
+function show(v) {
+  if (!VIEWS.includes(v)) v = 'teoriya';
+  VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'praktyka' && !P.t) newPractice();
+  if (v === 'test') renderTest();
+}
+function go2(v) { show(v); try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo({ top:0 }); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go2(b.dataset.v));
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+show(location.hash.slice(1));
+</script>
+
+
+<button class="draft-fab" id="draft-open" aria-expanded="false" aria-controls="draft">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14 7l3 3"/></svg>
+  Чернетка
+</button>
+<aside class="draft" id="draft" hidden aria-label="Чернетка">
+  <div class="draft-bar">
+    <span class="ttl">Чернетка</span>
+    <div class="draft-tools" role="group" aria-label="Інструменти">
+      <button class="dt" data-tool="ink" aria-pressed="true" aria-label="Ручка, основний колір" title="Ручка"><i style="background:var(--ink)"></i></button>
+      <button class="dt" data-tool="oh" aria-pressed="false" aria-label="Ручка, бірюзова" title="Бірюзова ручка"><i style="background:var(--oh)"></i></button>
+      <button class="dt" data-tool="bad" aria-pressed="false" aria-label="Ручка, червона" title="Червона ручка"><i style="background:var(--bad)"></i></button>
+      <button class="dt" data-tool="erase" aria-pressed="false" aria-label="Гумка" title="Гумка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4l4 4-9.5 9.5H6L3.5 15 13 5.5"/><path d="M9 20h11"/><path d="M8.5 10l5.5 5.5"/></svg></button>
+      <button class="dt" data-tool="hand" aria-pressed="false" aria-label="Рука: пересувати аркуш" title="Рука: пересувати аркуш (або затисни пробіл)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v8"/><path d="M14 12V6a1.5 1.5 0 0 1 3 0v8"/><path d="M8 13v-1.5a1.5 1.5 0 0 0-3 0V14a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-3"/></svg></button>
+    </div>
+    <span class="sp"></span>
+    <button class="dt" id="draft-undo" aria-label="Скасувати останню лінію" title="Скасувати (Ctrl+Z)">↶</button>
+    <button class="dt" id="draft-clear" aria-label="Очистити чернетку" title="Очистити"></button>
+    <button class="dt" id="draft-close" aria-label="Закрити чернетку" title="Закрити (Esc)">✕</button>
+  </div>
+  <div class="draft-area" id="draft-area">
+    <canvas id="draft-canvas"></canvas>
+    <span class="draft-hint" id="draft-hint">Пиши пальцем, стилусом або мишкою. Масштаб — двома пальцями або Ctrl + колесо.</span>
+    <div class="zoombar" role="group" aria-label="Масштаб">
+      <button class="dt" id="zoom-out" aria-label="Віддалити" title="Віддалити">−</button>
+      <button class="dt zl" id="zoom-reset" aria-label="Скинути масштаб до 100 %" title="Скинути масштаб">100%</button>
+      <button class="dt" id="zoom-in" aria-label="Наблизити" title="Наблизити">+</button>
+    </div>
+    <div class="draft-msg" id="draft-msg" hidden>Чернетка не завантажилась: для неї потрібен інтернет. Онови сторінку, коли з'явиться зв'язок.</div>
+  </div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@5.1.3/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ================= ЧЕРНЕТКА (signature_pad + масштаб) ================= */
+(() => {
+  const KEY = 'draft_spyrty';
+  const MIN_S = 0.25, MAX_S = 6;
+  const box = document.getElementById('draft'), openBtn = document.getElementById('draft-open');
+  const canvas = document.getElementById('draft-canvas'), area = document.getElementById('draft-area');
+  const msg = document.getElementById('draft-msg'), hint = document.getElementById('draft-hint');
+  const clearBtn = document.getElementById('draft-clear'), zl = document.getElementById('zoom-reset');
+  const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+  clearBtn.innerHTML = TRASH;
+  let pad = null, tool = 'ink', clearArm = null, dpr = 1, spaceHand = false;
+  const V = { s: 1, x: 0, y: 0 };          // екран = світ · s + (x, y)
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || '#000';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(pad.toData())); } catch (e) {} };
+  const syncHint = () => { hint.hidden = !!pad && !pad.isEmpty(); };
+  const panMode = () => tool === 'hand' || spaceHand;
+  // signature_pad.off() вмикає прокрутку сторінки на холсті — повертаємо touch-action: none
+  const padOff = () => { pad.off(); canvas.style.touchAction = 'none'; };
+
+  // ---- вигляд ----
+  function applyCtx() { canvas.getContext('2d').setTransform(dpr * V.s, 0, 0, dpr * V.s, dpr * V.x, dpr * V.y); }
+  function penWidths() {
+    if (!pad) return;
+    const k = 1 / V.s;   // однакова товщина лінії на екрані за будь-якого масштабу
+    if (tool === 'erase') Object.assign(pad, { minWidth: 9 * k, maxWidth: 16 * k });
+    else Object.assign(pad, { minWidth: 0.8 * k, maxWidth: 2.6 * k });
+    pad.minDistance = 5 * k;
+  }
+  let raf = 0;
+  function redraw() {
+    area.style.backgroundSize = `${20 * V.s}px ${20 * V.s}px`;
+    area.style.backgroundPosition = `${V.x}px ${V.y}px`;
+    zl.textContent = Math.round(V.s * 100) + '%';
+    if (!pad) return;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { applyCtx(); pad.redraw(); });
+  }
+  function zoomAt(cx, cy, s2) {
+    s2 = Math.min(MAX_S, Math.max(MIN_S, s2));
+    const wx = (cx - V.x) / V.s, wy = (cy - V.y) / V.s;
+    V.s = s2; V.x = cx - wx * s2; V.y = cy - wy * s2;
+    penWidths(); redraw();
+  }
+  const center = () => { const r = area.getBoundingClientRect(); return [r.width / 2, r.height / 2]; };
+
+  function setTool(t) {
+    tool = t;
+    box.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+    area.classList.toggle('hand', panMode());
+    if (!pad) return;
+    if (t === 'erase') Object.assign(pad, { compositeOperation:'destination-out', penColor:'#000' });
+    else if (t !== 'hand') Object.assign(pad, { compositeOperation:'source-over', penColor: cssVar(t) });
+    penWidths();
+    panMode() ? padOff() : pad.on();
+  }
+  function fit() {
+    if (!pad) return;
+    const r = area.getBoundingClientRect();
+    dpr = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    applyCtx(); pad.redraw();
+  }
+  function init() {
+    if (pad) return true;
+    if (!window.SignaturePad) { msg.hidden = false; hint.hidden = true; return false; }
+    pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', throttle:8 });
+    // точки — у координатах «світу», а не екрана
+    const mk = pad._createPoint.bind(pad);
+    pad._createPoint = (x, y, p) => { const pt = mk(x, y, p); pt.x = (pt.x - V.x) / V.s; pt.y = (pt.y - V.y) / V.s; return pt; };
+    // очищати завжди весь холст, незалежно від масштабу
+    const clr = pad.clear.bind(pad);
+    pad.clear = () => { const c = canvas.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); clr(); applyCtx(); };
+    setTool(tool);
+    try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (Array.isArray(d)) pad.fromData(d); } catch (e) {}
+    pad.addEventListener('endStroke', () => { save(); syncHint(); });
+    new ResizeObserver(() => { if (!box.hidden) fit(); }).observe(area);
+    return true;
+  }
+
+  // ---- жести: два пальці — масштаб і зсув; «Рука» — зсув одним пальцем/мишкою ----
+  const ptrs = new Map();
+  let gesture = null, busy = false, beforeLen = 0;   // busy — жест триває, поки не піднято всі пальці
+  const local = e => { const r = area.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function startGesture() {
+    busy = true;
+    const pts = [...ptrs.values()];
+    if (pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      gesture = { kind:'pinch', d0: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s0: V.s, wx: (cx - V.x) / V.s, wy: (cy - V.y) / V.s };
+    } else gesture = { kind:'pan', px: pts[0][0], py: pts[0][1] };
+  }
+  area.addEventListener('pointerdown', e => {
+    if (!pad || e.target.closest('.zoombar')) return;
+    if (ptrs.size === 0) beforeLen = pad.toData().length;
+    ptrs.set(e.pointerId, local(e));
+    if (ptrs.size >= 2) {
+      // другий палець: скасовуємо лінію, яку встиг почати перший
+      padOff();
+      if (pad.toData().length > beforeLen) pad.fromData(pad.toData().slice(0, beforeLen));
+      e.stopPropagation(); startGesture();
+    } else if (panMode() || e.button === 1) {
+      e.preventDefault(); e.stopPropagation(); padOff(); area.classList.add('panning'); startGesture();
+    }
+    try { area.setPointerCapture(e.pointerId); } catch (_) {}
+  }, true);
+  area.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, local(e));
+    if (!gesture) return;
+    e.preventDefault();
+    const pts = [...ptrs.values()];
+    if (gesture.kind === 'pinch' && pts.length >= 2) {
+      const [a, b] = pts, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+      V.s = Math.min(MAX_S, Math.max(MIN_S, gesture.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gesture.d0));
+      V.x = cx - gesture.wx * V.s; V.y = cy - gesture.wy * V.s;
+      redraw();
+    } else if (gesture.kind === 'pan') {
+      const [x, y] = pts[0];
+      V.x += x - gesture.px; V.y += y - gesture.py; gesture.px = x; gesture.py = y;
+      redraw();
+    }
+  });
+  const up = e => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (ptrs.size === 0) {
+      if (busy) { busy = false; gesture = null; area.classList.remove('panning'); penWidths(); if (!panMode()) pad.on(); }
+    } else if (gesture && gesture.kind === 'pinch') gesture = null;   // лишився один палець — не малюємо, поки не підніметься
+  };
+  area.addEventListener('pointerup', up);
+  area.addEventListener('pointercancel', up);
+  area.addEventListener('wheel', e => {
+    if (!pad) return;
+    e.preventDefault();
+    const [cx, cy] = local(e);
+    if (e.ctrlKey || e.metaKey) zoomAt(cx, cy, V.s * Math.exp(-e.deltaY * 0.01));   // щипок на тачпаді або Ctrl + колесо
+    else { V.x -= e.deltaX; V.y -= e.deltaY; redraw(); }
+  }, { passive:false });
+
+  document.getElementById('zoom-in').onclick = () => zoomAt(...center(), V.s * 1.25);
+  document.getElementById('zoom-out').onclick = () => zoomAt(...center(), V.s / 1.25);
+  zl.onclick = () => { V.s = 1; V.x = 0; V.y = 0; penWidths(); redraw(); };
+
+  // ---- відкрити / закрити ----
+  function open() {
+    box.hidden = false; openBtn.hidden = true; openBtn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('draft-on');
+    if (init()) { fit(); redraw(); syncHint(); }
+  }
+  function close() {
+    box.hidden = true; openBtn.hidden = false; openBtn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('draft-on'); openBtn.focus({ preventScroll:true });
+  }
+  function undo() { if (!pad) return; const d = pad.toData(); d.pop(); pad.fromData(d); save(); syncHint(); }
+
+  openBtn.onclick = open;
+  document.getElementById('draft-close').onclick = close;
+  document.getElementById('draft-undo').onclick = undo;
+  box.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  clearBtn.onclick = () => {
+    if (!pad) return;
+    if (!clearArm) {   // друге натискання протягом 3 с — очищення
+      clearBtn.textContent = 'Точно?'; clearBtn.classList.add('warn');
+      clearArm = setTimeout(() => { clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn'); }, 3000);
+      return;
+    }
+    clearTimeout(clearArm); clearArm = null; clearBtn.innerHTML = TRASH; clearBtn.classList.remove('warn');
+    pad.clear(); save(); syncHint();
+  };
+  document.addEventListener('keydown', e => {
+    if (box.hidden || e.target.closest('input')) return;
+    if (e.key === 'Escape') close();
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) { e.preventDefault(); zoomAt(...center(), V.s * 1.25); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); zoomAt(...center(), V.s / 1.25); }
+    else if (e.code === 'Space' && !spaceHand && !e.repeat && !e.target.closest('button')) { e.preventDefault(); spaceHand = true; setTool(tool); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space' && spaceHand) { spaceHand = false; setTool(tool); } });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => setTool(tool));
+})();
+</script>
+</html>
