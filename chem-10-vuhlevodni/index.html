@@ -440,11 +440,12 @@ async function sendResult(r){
   const el = $("rsend"); el.hidden = false; el.className = "send wait"; el.textContent = "Надсилаю результат вчителю…";
   // Формат під Apps Script вчителя: name, cls, topic, score («14/20»), mark (12-бальна), details
   const byTopic = Object.entries(r.per).map(([t,v])=>`${TOPICS[t].label} ${v.r}/${v.n}`).join(", ");
-  const wrongQs = run.map((q,i)=>answers[i].ok?null:q.q.replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()).filter(Boolean);
+  const tx = h => String(h).replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+  const wrongQs = run.map((q,i)=>answers[i].ok?null:`✗ ${i+1}. ${tx(q.q)}\n     відповів: «${tx(answers[i].chosen)}» → правильно: «${tx(q.o[0])}»`).filter(Boolean);
   const payload = {
     name: r.name, cls: r.group, topic: TEST_NAME,
     score: `${r.right}/${r.total}`, mark: r.grade,
-    details: `${r.pct}% · ${byTopic}` + (wrongQs.length ? ` · Помилки: ${wrongQs.join(" | ")}` : "")
+    details: `${r.pct}% · ${byTopic}` + (wrongQs.length ? `\nПомилки (${wrongQs.length}):\n${wrongQs.join("\n")}` : "\nБез помилок")
   };
   try {
     await fetch(SHEET_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload)});

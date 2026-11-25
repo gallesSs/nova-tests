@@ -668,7 +668,7 @@ function sendResults() {
   const { got, max, mark } = total();
   T.sent = 'wait'; drawSend();
   const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
-    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+    `${i + 1}. ${r.label} (${r.pts} б.): ${T.tasks[i] && typeof T.tasks[i].q === 'string' ? plain(T.tasks[i].q) + ' — ' : ''}${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
   fetch(SHEET_URL, {
     method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
     body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
@@ -719,8 +719,10 @@ function renderGame() {
     const rec = LB.score > LB.best; if (rec) { LB.best = LB.score; try { localStorage.setItem('rr_best', LB.best); } catch (e) {} }
     v.innerHTML = `<div class="card stack"><div class="eyebrow">Лабораторія</div><div class="score"><span class="big">${LB.score}</span><span class="of">з 5</span></div>
       <div class="hint">${rec ? 'Новий рекорд!' : `Рекорд: ${LB.best} з 5`} · бал зараховується, якщо розчин приготовано без підказки й показу відповіді</div>
+      ${gsBlock()}
       <div class="actions"><button class="btn" id="lb-again">Ще раз</button></div></div>`;
     $('lb-again').onclick = () => { Object.assign(LB, { mode:'run', round:1, score:0 }); newOrder(); };
+    gsWire('Лабораторія (розчини, правило хреста)', LB.score, 5, `Приготовано без підказок: ${LB.score} з 5 замовлень`);
     return;
   }
   const c = LB.cur, tot = LB.a + LB.b, w = tot ? (LB.a * c.w1 + LB.b * c.w2) / tot : 0, max = Math.ceil(c.M * 1.1);
@@ -766,6 +768,22 @@ document.querySelectorAll('#toc button').forEach(b => b.onclick = () => {
 });
 
 /* ================= перемикання розділів ================= */
+
+/* ===== надсилання результату гри ===== */
+let GS_NAME = ''; try { GS_NAME = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function gsBlock() { return `<div class="gsend stack" id="gs-box"><label class="field">Ім'я та прізвище<input class="gs-name" value="${esc(GS_NAME)}" placeholder="Як тебе звати" autocomplete="name"></label><div class="actions"><button class="btn" data-gs>Надіслати результат вчителю</button></div><div class="hint gs-st" aria-live="polite"></div></div>`; }
+function gsWire(game, got, max, details) {
+  const box = $('gs-box'); if (!box) return;
+  const inp = box.querySelector('.gs-name'), st = box.querySelector('.gs-st'), bt = box.querySelector('[data-gs]');
+  inp.oninput = () => { GS_NAME = inp.value; try { localStorage.setItem('nova_name', GS_NAME); } catch (e) {} };
+  bt.onclick = () => {
+    if (!inp.value.trim()) { st.textContent = "Спершу впиши ім'я."; inp.focus(); return; }
+    bt.disabled = true; st.textContent = 'Надсилаю…';
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ name: inp.value.trim(), cls: 'гра', topic: 'Гра: ' + game, score: `${got}/${max}`, mark: Math.max(1, Math.round(got / Math.max(1, max) * 12)), details: `Гра: ${game}\n${details}` }) })
+      .then(() => { st.textContent = 'Надіслано вчителю ✓'; }).catch(() => { st.textContent = 'Не вдалося надіслати. Спробуй ще раз.'; bt.disabled = false; });
+  };
+}
 const VIEWS = ['teoriya', 'praktyka', 'test', 'gra'];
 function show(v) {
   if (!VIEWS.includes(v)) v = 'teoriya';

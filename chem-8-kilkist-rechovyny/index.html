@@ -977,7 +977,7 @@ function sendResults() {
   T.sent = 'sending'; drawSend();
   const { got, max, mark } = total();
   const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
-    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+    `${i + 1}. ${r.label} (${r.pts} б.): ${T.tasks[i] && typeof T.tasks[i].q === 'string' ? String(T.tasks[i].q).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() + ' — ' : ''}${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
   fetch(SHEET_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },

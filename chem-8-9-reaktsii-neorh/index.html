@@ -776,7 +776,7 @@ function sendResults() {
   const { got, max, mark } = total();
   T.sent = 'wait'; drawSend();
   const details = [`Тема: ${TOPIC}`, ...T.results.map((r, i) =>
-    `${i + 1}. ${r.label} (${r.pts} б.): ${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
+    `${i + 1}. ${r.label} (${r.pts} б.): ${T.tasks[i] && typeof T.tasks[i].q === 'string' ? plain(T.tasks[i].q) + ' — ' : ''}${r.ok ? '✓' : `✗ відповідь «${r.given}», правильно «${r.right}»`}`)].join('\n');
   fetch(SHEET_URL, {
     method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
     body: JSON.stringify({ name: T.name.trim(), cls: T.cls.trim(), topic: TOPIC, score: `${got}/${max}`, mark, details })
