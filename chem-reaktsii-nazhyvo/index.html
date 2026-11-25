@@ -1,0 +1,668 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Реакції наживо</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Lab bench: graph paper page, one big test tube on a "bench" card, list of reactions beside it */
+:root{
+  --paper:#f4f7f7; --grid:#e1e9e9; --ink:#13201f; --muted:#566867; --card:#ffffff; --line:#d1dcdb;
+  --acc:#0b7a74; --acc-bg:#ddf0ee; --stage:#e9f1f3; --stage2:#dbe7ea; --glass:#5d7a80; --glass-in:rgba(255,255,255,.55);
+  --c-gas:#2f6fd6; --c-ppt:#8a4fd8; --c-exp:#d47a1f; --c-org:#2f8f5b;
+  --k-met:#5b6b7f; --k-non:#3c8f4a; --k-ox:#c46a1c; --k-base:#2f6fd6; --k-acid:#c9373a; --k-salt:#8a4fd8; --k-org:#0b7a74; --k-oth:#7a6a55;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif; --body:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101615; --grid:#1a2322; --ink:#ecf3f2; --muted:#9aaba9; --card:#172120; --line:#2a3634;
+  --acc:#4fc6bd; --acc-bg:#133230; --stage:#1b2a2d; --stage2:#223438; --glass:#9fc2c8; --glass-in:rgba(255,255,255,.07);
+  --c-gas:#6aa0f5; --c-ppt:#b48af2; --c-exp:#f0a35a; --c-org:#5fc28c;
+  --k-met:#9fb0c4; --k-non:#6cc77a; --k-ox:#f0a35a; --k-base:#6aa0f5; --k-acid:#f07477; --k-salt:#b48af2; --k-org:#4fc6bd; --k-oth:#c9b79c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101615; --grid:#1a2322; --ink:#ecf3f2; --muted:#9aaba9; --card:#172120; --line:#2a3634;
+  --acc:#4fc6bd; --acc-bg:#133230; --stage:#1b2a2d; --stage2:#223438; --glass:#9fc2c8; --glass-in:rgba(255,255,255,.07);
+  --c-gas:#6aa0f5; --c-ppt:#b48af2; --c-exp:#f0a35a; --c-org:#5fc28c;
+  --k-met:#9fb0c4; --k-non:#6cc77a; --k-ox:#f0a35a; --k-base:#6aa0f5; --k-acid:#f07477; --k-salt:#b48af2; --k-org:#4fc6bd; --k-oth:#c9b79c; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(28px,6vw,42px)/1.1 var(--display);margin:6px 0 8px;text-wrap:balance}
+h2{font:700 19px/1.3 var(--display);margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:62ch}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;width:max-content;max-width:100%;background:var(--card)}
+.tab{font:700 15px var(--body);padding:10px 18px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.tab+.tab{border-left:2px solid var(--ink)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.chip:focus-visible,.ri:focus-visible,.arr:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:18px}
+.btn{font:700 15px var(--body);padding:10px 16px;border-radius:10px;border:2px solid var(--ink);background:var(--ink);color:var(--card);cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 13.5px var(--body);padding:7px 12px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--card)}
+sub,sup{font-size:.72em;line-height:0}
+/* lab */
+.lab{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+.rlist{display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 40px);overflow:auto;position:sticky;top:16px;padding:2px 4px 6px 2px}
+.rgroup{display:flex;flex-direction:column;gap:6px}
+.rgroup h3{margin:0;font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gc)}
+.ri{display:flex;flex-direction:column;gap:1px;text-align:left;font:600 14.5px/1.35 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-left:5px solid var(--gc);border-radius:10px;padding:8px 10px;cursor:pointer}
+.ri small{font:500 12.5px var(--mono);color:var(--muted)}
+.ri[aria-current="true"]{border-color:var(--ink);border-left-color:var(--gc);box-shadow:3px 3px 0 var(--ink)}
+.bench{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rhead{display:flex;flex-direction:column;gap:6px}
+.tag{display:inline-block;width:max-content;font:700 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:var(--gc);border:2px solid var(--gc)}
+.stagebox{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:16px;align-items:center;background:var(--stage);border-radius:12px;padding:10px 14px;margin-top:12px;background-image:linear-gradient(0deg,var(--stage2) 0 18%,transparent 18%)}
+.stagebox svg{width:100%;max-width:330px;height:auto;display:block;margin:0 auto}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.side small{display:block;font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.side b{font-weight:700;font-size:15.5px;line-height:1.4}
+.caption{font:600 14px/1.45 var(--body);color:var(--ink);min-height:3em;border-left:3px solid var(--acc);padding-left:10px}
+.predict{font-size:15px;color:var(--muted)}
+.info{display:flex;flex-direction:column;gap:12px}
+.eq{font:700 clamp(15px,2.6vw,19px)/1.5 var(--mono);background:var(--stage);padding:10px 12px;border-radius:10px;overflow-x:auto;white-space:nowrap}
+.eq.small{font-size:14.5px;font-weight:600}
+.cond{font:500 13px var(--mono);color:var(--muted);margin-left:6px}
+.kv{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 14px}
+.kv dt{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.kv dd{margin:0}
+.test{background:var(--acc-bg);border-radius:10px;padding:10px 12px;font-weight:600}
+@keyframes flick{0%,100%{transform:scale(1,1)}30%{transform:scale(.92,1.08)}60%{transform:scale(1.06,.94)}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick .35s infinite}
+@keyframes glowp{0%,100%{opacity:1}50%{opacity:.55}}
+.glow{animation:glowp .8s infinite}
+/* chains */
+.chainsel{display:flex;flex-wrap:wrap;gap:8px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;padding:14px 4px}
+.node{font:700 clamp(15px,2.4vw,18px) var(--mono);padding:8px 12px;border-radius:10px;border:2px solid var(--kc);color:var(--ink);background:var(--card);transition:background .3s,box-shadow .3s}
+.node.on{background:var(--kc);color:var(--card);box-shadow:3px 3px 0 var(--ink)}
+.node.hid{color:transparent;position:relative}
+.node.hid::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;color:var(--kc)}
+.arr{display:inline-flex;align-items:center;gap:2px;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:6px 4px;border-radius:8px;font:700 13px var(--mono)}
+.arr svg{width:30px;height:14px}
+.arr.on{color:var(--acc)}
+.arr:hover{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--kc);margin-right:6px;vertical-align:-1px}
+.step{display:flex;flex-direction:column;gap:10px}
+.toggle{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:15px;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--acc)}
+footer{font-size:13px;color:var(--muted)}
+@media (max-width:820px){
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .rlist{position:static;max-height:none;flex-direction:row;overflow-x:auto;gap:12px;padding-bottom:8px}
+  .rgroup{flex-direction:row;align-items:stretch;gap:6px}
+  .rgroup h3{display:none}
+  .ri{min-width:165px;max-width:200px}
+  .stagebox{background-image:none}
+}
+@media (max-width:560px){
+  .stagebox{grid-template-columns:minmax(0,1fr)}
+  .stagebox svg{max-width:240px}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .kv dt{padding-top:6px}
+}
+@media (prefers-reduced-motion:reduce){.flame,.glow{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Хімія · 8–11 клас · класичні досліди</div>
+    <h1>Реакції наживо</h1>
+    <p class="lead">Добування газів і як їх розпізнати, знамениті осади, класичні досліди та якісні реакції в органіці. Обери реакцію, спрогнозуй результат і проведи її в пробірці.</p>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Розділи">
+    <button class="tab" role="tab" data-v="probirka" aria-selected="true">Пробірка</button>
+    <button class="tab" role="tab" data-v="lantsyuzhky" aria-selected="false">Ланцюжки</button>
+  </nav>
+
+  <section id="v-probirka" class="lab">
+    <aside class="rlist" id="rlist" aria-label="Реакції"></aside>
+    <div class="bench">
+      <div class="card">
+        <div class="rhead"><span class="tag" id="r-cat"></span><h2 id="r-name"></h2></div>
+        <div class="stagebox">
+          <svg id="tube" viewBox="0 -70 240 432" role="img" aria-label="Пробірка">
+            <defs>
+              <clipPath id="cin"><path d="M92 -70 L92 250 A28 28 0 0 0 148 250 L148 -70 Z"/></clipPath>
+              <linearGradient id="silver" x1="0" x2="1"><stop offset="0" stop-color="#7d838a"/><stop offset=".25" stop-color="#eef1f4"/><stop offset=".5" stop-color="#9da3aa"/><stop offset=".75" stop-color="#f6f8fa"/><stop offset="1" stop-color="#80868d"/></linearGradient>
+              <radialGradient id="flashg"><stop offset="0" stop-color="#fff7b0"/><stop offset=".5" stop-color="#ffb020" stop-opacity=".8"/><stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/></radialGradient>
+            </defs>
+            <!-- stand -->
+            <rect x="40" y="352" width="160" height="6" rx="3" fill="var(--glass)" opacity=".35"/>
+            <!-- spirit lamp -->
+            <g id="lamp" style="opacity:0;transition:opacity .4s;transform:translateY(12px)">
+              <path d="M96 338 L102 306 L138 306 L144 338 Z" fill="var(--glass)" opacity=".5"/>
+              <rect x="116" y="298" width="8" height="10" fill="#8a8a8a"/>
+              <path class="flame" d="M120 270 C110 284 112 296 120 299 C128 296 130 284 120 270 Z" fill="#ff9a2a"/>
+              <path class="flame" d="M120 281 C115 289 116 295 120 297 C124 295 125 289 120 281 Z" fill="#5aa7ff" opacity=".85"/>
+            </g>
+            <g clip-path="url(#cin)">
+              <rect x="88" y="26" width="64" height="260" fill="var(--glass-in)"/>
+              <g id="solid"></g>
+              <g id="liq" style="transform:translateY(170px)">
+                <rect id="liqr" x="86" y="0" width="68" height="320"/>
+                <rect id="turb" x="86" y="0" width="68" height="320" opacity="0"/>
+                <rect x="86" y="0" width="68" height="2.5" fill="#fff" opacity=".35"/>
+              </g>
+              <g id="front"></g>
+              <g id="pp"></g>
+              <g id="bb"></g>
+              <rect id="mir" x="86" y="26" width="68" height="262" fill="url(#silver)" opacity="0"/>
+            </g>
+            <g id="foamout"></g>
+            <!-- gas inlet tube -->
+            <g id="gast" style="opacity:0;transition:opacity .4s">
+              <path d="M200 -66 L200 -36 Q200 -24 188 -24 L140 -24 L140 268" fill="none" stroke="var(--glass)" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+              <text id="gastxt" x="206" y="-44" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="var(--ink)"></text>
+            </g>
+            <!-- pipette -->
+            <g id="pip" style="opacity:0;transition:opacity .3s">
+              <ellipse cx="120" cy="-56" rx="9" ry="11" fill="#d14b4b"/>
+              <rect x="116" y="-48" width="8" height="40" rx="2" fill="var(--glass-in)" stroke="var(--glass)" stroke-width="2"/>
+              <text id="piptxt" x="134" y="-30" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="var(--ink)"></text>
+            </g>
+            <g id="drops"></g>
+            <!-- tube outline -->
+            <path d="M86 20 Q88 22 89 26 L89 250 A31 31 0 0 0 151 250 L151 26 Q152 22 154 20" fill="none" stroke="var(--glass)" stroke-width="3" stroke-linecap="round"/>
+            <rect x="97" y="34" width="4.5" height="205" rx="2.2" fill="#fff" opacity=".28"/>
+            <g id="paper"></g>
+            <g id="splint"></g>
+            <g id="fx"></g>
+          </svg>
+          <div class="side">
+            <div><small>У пробірці</small><b id="r-in"></b></div>
+            <div><small>Що робимо</small><b id="r-add"></b></div>
+            <div class="caption" id="cap" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:14px"><button class="btn" id="run">▶ Провести дослід</button><button class="btn ghost" id="reset">↺ Спочатку</button></div>
+      </div>
+      <div class="card info" id="info"></div>
+    </div>
+  </section>
+
+  <section id="v-lantsyuzhky" hidden>
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div><div class="eyebrow">Генетичні зв'язки</div><h2 style="margin-top:4px">Ланцюжки перетворень</h2></div>
+      <p class="lead">Натисни на стрілку — побачиш рівняння, умови й тип реакції. «Пройти ланцюжок» показує всі переходи по черзі.</p>
+      <div class="chainsel" id="chsel"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="card" style="margin-top:18px;display:flex;flex-direction:column;gap:12px">
+      <h2 id="ch-title"></h2>
+      <div class="chain" id="chain"></div>
+      <div class="actions">
+        <button class="btn" id="ch-play">▶ Пройти ланцюжок</button>
+        <label class="toggle"><input type="checkbox" id="ch-train"> Тренування: сховати рівняння і речовини</label>
+      </div>
+      <div class="step" id="step"></div>
+    </div>
+  </section>
+  <footer>Хімія з Артуром Валентиновичем · NovaШкола</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const rnd = (a, b) => a + Math.random() * (b - a);
+const SUBS = '₀₁₂₃₄₅₆₇₈₉', SUPS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const F = s => String(s)
+  .replace(/[₀-₉ₙ]+/g, m => '<sub>' + [...m].map(c => c === 'ₙ' ? 'n' : SUBS.indexOf(c)).join('') + '</sub>')
+  .replace(/[⁰-⁹⁺⁻¹²³]+/g, m => '<sup>' + [...m].map(c => c === '⁺' ? '+' : c === '⁻' ? '−' : c === '¹' ? 1 : c === '²' ? 2 : c === '³' ? 3 : SUPS.indexOf(c)).join('') + '</sup>');
+const W = 'rgba(170,210,235,.42)';
+const CUSO4 = 'rgba(35,125,215,.72)';
+const CUOH2 = '#62bcef';
+
+/* ===================== РЕАКЦІЇ ===================== */
+const CATS = {
+  gas: { name:'Добування газів', c:'var(--c-gas)' },
+  ppt: { name:'Знамениті осади', c:'var(--c-ppt)' },
+  exp: { name:'Класичні досліди', c:'var(--c-exp)' },
+  org: { name:'Органіка: якісні реакції', c:'var(--c-org)' },
+};
+/* steps: [мс, дія, параметри] */
+const R = [
+ { id:'o2kmno4', cat:'gas', cls:'8 кл', name:'Кисень з перманганату калію',
+   inT:'Кристали KMnO₄ (сухі)', add:'Нагріваємо, підносимо тліючу скіпку', lvl:null, solid:{ k:'powder', c:'#3b1a4a', n:70 },
+   steps:[[0,'heat'],[600,'cap','Кристали потріскують — виділяється газ'],[2000,'splint','glow'],[2100,'cap','Підносимо тліючу скіпку до отвору…'],[3300,'flare'],[3400,'cap','Скіпка яскраво спалахнула!']], end:4600,
+   eq:'2KMnO₄ → K₂MnO₄ + MnO₂ + O₂↑', cond:'t', type:'розкладу', see:'Кристали потріскують, тліюча скіпка біля отвору пробірки яскраво спалахує.',
+   test:'Кисень O₂ — тліюча скіпка спалахує.', why:'Найпоширеніший лабораторний спосіб добути кисень. Газ збирають у пробірку отвором догори (O₂ трохи важчий за повітря) або над водою.' },
+ { id:'o2h2o2', cat:'gas', cls:'8 кл', name:'Кисень з пероксиду водню',
+   inT:'Розчин H₂O₂ (3 %)', add:'Додаємо щіпку MnO₂, підносимо тліючу скіпку', lvl:170, liq:W, solid:{ k:'powder', c:'#222', n:40, enter:1 },
+   steps:[[0,'enter'],[700,'bubbles',{ src:'bottom', dur:5200, rate:28 }],[800,'cap','Бурхливо виділяються бульбашки'],[2200,'splint','glow'],[3300,'flare'],[3400,'cap','Тліюча скіпка спалахнула — це кисень']], end:5200,
+   eq:'2H₂O₂ → 2H₂O + O₂↑', cond:'кат. MnO₂', type:'розкладу, каталітична', see:'Розчин «закипає» від бульбашок, тліюча скіпка спалахує. Чорний порошок MnO₂ лишається — це каталізатор.',
+   test:'Кисень O₂ — тліюча скіпка спалахує.', why:'Каталізатор пришвидшує реакцію, але сам не витрачається: після досліду MnO₂ можна відфільтрувати й використати знову.' },
+ { id:'h2', cat:'gas', cls:'8 кл', name:'Водень: цинк і кислота',
+   inT:'Хлоридна кислота HCl', add:'Кидаємо гранулу цинку, підносимо палаючу скіпку', lvl:165, liq:W, solid:{ k:'granule', enter:1 },
+   steps:[[0,'enter'],[600,'bubbles',{ src:'solid', dur:6000, rate:14 }],[700,'cap','На гранулі з\'являються бульбашки газу'],[700,'shrink',{ to:.82, dur:6000 }],[2400,'splint','fire'],[2500,'cap','Підносимо палаючу скіпку…'],[3500,'pop'],[3550,'cap','«Гавкаючий» хлопок — це водень!']], end:5200,
+   eq:'Zn + 2HCl → ZnCl₂ + H₂↑', type:'заміщення', see:'Гранула вкривається бульбашками й поступово зменшується. Біля полум\'я газ згоряє з характерним «гавкаючим» хлопком.',
+   test:'Водень H₂ — хлопок біля полум\'я. Чистий водень згоряє тихо, хлопає суміш з повітрям.', why:'Метали, що стоять у ряду активності лівіше за H, витісняють водень з кислот. Водень збирають у пробірку отвором донизу — він найлегший газ.' },
+ { id:'co2', cat:'gas', cls:'8–9 кл', name:'Вуглекислий газ з мармуру',
+   inT:'Хлоридна кислота HCl', add:'Кидаємо шматочок мармуру, вносимо палаючу скіпку', lvl:165, liq:W, solid:{ k:'chunk', enter:1 },
+   steps:[[0,'enter'],[600,'bubbles',{ src:'solid', dur:6200, rate:20 }],[700,'shrink',{ to:.35, dur:6400 }],[700,'cap','Мармур «шипить» і розчиняється'],[2300,'splint','fire'],[2400,'cap','Вносимо палаючу скіпку…'],[3300,'out'],[3350,'cap','Скіпка згасла — газ не підтримує горіння']], end:5000,
+   eq:'CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂↑', type:'обміну', see:'Мармур «шипить» і поступово розчиняється, палаюча скіпка в пробірці гасне.',
+   test:'CO₂ — палаюча скіпка гасне, а вапняна вода каламутніє (див. наступний дослід).', why:'Так добувають CO₂ в апараті Кіппа. Цей газ важчий за повітря, тому його збирають отвором догори.' },
+ { id:'lime', cat:'gas', cls:'8–9 кл', name:'Як довести, що це CO₂: вапняна вода',
+   inT:'Вапняна вода Ca(OH)₂ (прозора)', add:'Пропускаємо вуглекислий газ', lvl:160, liq:W, gas:'CO₂',
+   steps:[[0,'gas',{ dur:4200 }],[900,'turbid',{ c:'#ffffff', o:.62, t:1400 }],[1000,'cap','Розчин каламутніє, «біліє»'],[1300,'ppt',{ c:'#ffffff', n:55, slow:1 }]], end:5200,
+   eq:'Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O', type:'обміну', see:'Прозора вапняна вода каламутніє — утворюється дрібний білий осад крейди CaCO₃.',
+   test:'Якісна реакція на CO₂. Палаюча скіпка гасне і в азоті, тому надійна перевірка — саме вапняна вода.', why:'Видихни через трубочку у вапняну воду — вона теж скаламутніє: у видихуваному повітрі багато CO₂.' },
+ { id:'nh3', cat:'gas', cls:'9 кл', name:'Амоніак: як його розпізнати',
+   inT:'Суміш NH₄Cl і Ca(OH)₂ (сухі)', add:'Нагріваємо, підносимо вологий лакмус і паличку з HCl', lvl:null, solid:{ k:'powder', c:'#eceae4', n:80 }, paper:'#d2443f',
+   steps:[[0,'heat'],[700,'cap','Відчувається різкий запах'],[1800,'paper','#3a63c9'],[1900,'cap','Волога червона лакмусова папірця синіє'],[3100,'smoke'],[3200,'cap','Паличка з HCl «димить» — білий дим NH₄Cl']], end:5000,
+   eq:'2NH₄Cl + Ca(OH)₂ → CaCl₂ + 2NH₃↑ + 2H₂O', cond:'t', eq2:'NH₃ + HCl → NH₄Cl (білий дим)', type:'обміну', see:'Різкий запах нашатирю, волога червона лакмусова папірця синіє, біля палички з HCl з\'являється білий «дим».',
+   test:'Амоніак NH₃ — запах, вологий лакмус синіє, білий дим з HCl. Це ж і якісна реакція на йони NH₄⁺.', why:'Амоніак легший за повітря, тому його збирають у пробірку отвором донизу.' },
+ { id:'agcl', cat:'ppt', cls:'8–9 кл', name:'Аргентум хлорид — сирнистий осад',
+   inT:'Розчин NaCl', add:'Доливаємо розчин AgNO₃', lvl:175, liq:W,
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'AgNO₃' }],[500,'turbid',{ c:'#ffffff', o:.55, t:500 }],[600,'cap','Миттєво біліє…'],[700,'ppt',{ c:'#f7f6f1', n:65, big:1 }],[1500,'cap','Білий сирнистий осад AgCl'],[3600,'pptColor',{ c:'#b9b3a8', dur:3000 }],[3700,'cap','На світлі осад поступово темніє']], end:5600,
+   eq:'NaCl + AgNO₃ → AgCl↓ + NaNO₃', ion:'Ag⁺ + Cl⁻ → AgCl↓', type:'обміну', see:'Білий сирнистий осад, який не розчиняється в нітратній кислоті й темніє на світлі (виділяється срібло).',
+   test:'Якісна реакція на хлорид-іони Cl⁻ (і на йони Ag⁺).', why:'Розкладання галогенідів срібла на світлі — основа плівкової фотографії.' },
+ { id:'baso4', cat:'ppt', cls:'8–9 кл', name:'Барій сульфат — білий осад',
+   inT:'Розбавлена H₂SO₄', add:'Доливаємо розчин BaCl₂', lvl:175, liq:W,
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'BaCl₂' }],[500,'turbid',{ c:'#ffffff', o:.6, t:600 }],[700,'ppt',{ c:'#ffffff', n:85 }],[800,'cap','Дрібний білий осад, схожий на молоко']], end:4600,
+   eq:'H₂SO₄ + BaCl₂ → BaSO₄↓ + 2HCl', ion:'Ba²⁺ + SO₄²⁻ → BaSO₄↓', type:'обміну', see:'Одразу випадає дрібний білий осад, який не розчиняється навіть у кислотах.',
+   test:'Якісна реакція на сульфат-іони SO₄²⁻ (і на йони Ba²⁺).', why:'BaSO₄ настільки нерозчинний, що його п\'ють перед рентгеном шлунка, хоч розчинні сполуки барію отруйні.' },
+ { id:'cuoh2', cat:'ppt', cls:'8–9 кл', name:'Купрум(II) гідроксид — блакитний осад',
+   inT:'Розчин CuSO₄ (синій)', add:'Доливаємо розчин NaOH', lvl:175, liq:CUSO4,
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'NaOH' }],[450,'ppt',{ c:CUOH2, n:70, big:1 }],[500,'turbid',{ c:CUOH2, o:.45, t:500 }],[600,'color',{ c:'rgba(150,200,235,.4)', dur:2200 }],[700,'cap','Драглистий блакитний осад, розчин світлішає']], end:4800,
+   eq:'CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄', ion:'Cu²⁺ + 2OH⁻ → Cu(OH)₂↓', type:'обміну', see:'Випадає драглистий блакитний осад, синій колір розчину зникає.',
+   test:'Якісна реакція на йони Cu²⁺.', why:'Свіжий Cu(OH)₂ — реактив для органіки: з ним розпізнають гліцерол, альдегіди, глюкозу й білки.' },
+ { id:'feoh3', cat:'ppt', cls:'9 кл', name:'Ферум(III) гідроксид — бурий осад',
+   inT:'Розчин FeCl₃ (жовтий)', add:'Доливаємо розчин NaOH', lvl:175, liq:'rgba(214,160,40,.68)',
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'NaOH' }],[450,'ppt',{ c:'#9a4a22', n:70, big:1 }],[500,'turbid',{ c:'#a5532a', o:.5, t:500 }],[600,'color',{ c:W, dur:2200 }],[700,'cap','Бурий драглистий осад']], end:4800,
+   eq:'FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl', ion:'Fe³⁺ + 3OH⁻ → Fe(OH)₃↓', type:'обміну', see:'Випадає бурий (кольору іржі) драглистий осад.',
+   test:'Якісна реакція на йони Fe³⁺.', why:'Іржа — це по суті гідратований Fe(OH)₃ / Fe₂O₃, тому колір такий знайомий.' },
+ { id:'feoh2', cat:'ppt', cls:'9 кл', name:'Ферум(II) гідроксид — осад, що буріє',
+   inT:'Розчин FeSO₄ (блідо-зелений)', add:'Доливаємо розчин NaOH', lvl:175, liq:'rgba(165,215,155,.55)',
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'NaOH' }],[450,'ppt',{ c:'#71906a', n:65, big:1 }],[500,'turbid',{ c:'#71906a', o:.4, t:500 }],[600,'color',{ c:W, dur:2000 }],[700,'cap','Сіро-зелений осад…'],[3200,'pptColor',{ c:'#8c5a32', dur:3200 }],[3300,'cap','…який на повітрі поступово буріє']], end:6600,
+   eq:'FeSO₄ + 2NaOH → Fe(OH)₂↓ + Na₂SO₄', ion:'Fe²⁺ + 2OH⁻ → Fe(OH)₂↓', eq2:'4Fe(OH)₂ + O₂ + 2H₂O → 4Fe(OH)₃', type:'обміну', see:'Сіро-зелений осад, який на повітрі буріє — Fe(OH)₂ окиснюється киснем до Fe(OH)₃.',
+   test:'Якісна реакція на йони Fe²⁺.', why:'Так можна відрізнити солі Fe²⁺ від Fe³⁺: перші дають зеленуватий осад, другі — одразу бурий.' },
+ { id:'na', cat:'exp', cls:'8 кл', name:'Натрій у воді',
+   inT:'Вода з краплею фенолфталеїну', add:'Кидаємо шматочок натрію', lvl:150, liq:W, solid:{ k:'sodium', enter:1 },
+   steps:[[0,'enter'],[700,'sodium',{ dur:4200 }],[700,'bubbles',{ src:'na', dur:4200, rate:16 }],[600,'cap','Натрій плавиться в кульку й «бігає» по воді з шипінням'],[900,'color',{ c:'rgba(214,36,110,.62)', dur:3200 }],[2300,'cap','Розчин стає малиновим — утворився луг']], end:5200,
+   eq:'2Na + 2H₂O → 2NaOH + H₂↑', type:'заміщення', see:'Натрій плавиться в блискучу кульку й «бігає» по поверхні з шипінням, розчин з фенолфталеїном стає малиновим.',
+   test:'Фенолфталеїн малиновіє в лузі — це доказ утворення NaOH.', why:'Лужні метали такі активні, що їх зберігають під шаром гасу. Калій реагує ще бурхливіше — водень загоряється.' },
+ { id:'nail', cat:'exp', cls:'8–9 кл', name:'Мідний цвях',
+   inT:'Розчин CuSO₄ (синій)', add:'Опускаємо залізний цвях', lvl:150, liq:CUSO4, solid:{ k:'nail', enter:1 },
+   steps:[[0,'enter'],[800,'coat',{ c:'#c4562a', dur:4200 }],[900,'cap','Цвях вкривається червоним нальотом міді'],[1200,'color',{ c:'rgba(130,190,150,.55)', dur:5200 }],[3200,'cap','Синій розчин світлішає й зеленіє']], end:6400,
+   eq:'Fe + CuSO₄ → FeSO₄ + Cu', type:'заміщення', see:'Цвях вкривається червоним шаром міді, синій розчин світлішає і набуває зеленуватого відтінку.',
+   test:'Активніший метал витісняє менш активний з розчину його солі.', why:'Ферум стоїть у ряду активності лівіше за Купрум. Мідь ліворуч від срібла — тому працює і «срібне дерево».' },
+ { id:'tree', cat:'exp', cls:'8–9 кл', name:'Срібне дерево',
+   inT:'Розчин AgNO₃ (безбарвний)', add:'Опускаємо мідний дріт', lvl:150, liq:W, solid:{ k:'wire', enter:1 },
+   steps:[[0,'enter'],[800,'crystals',{ dur:4600 }],[900,'cap','На дроті виростають сріблясті кристалики'],[1600,'color',{ c:'rgba(45,130,215,.55)', dur:5200 }],[3400,'cap','Розчин поступово синіє — у ньому з\'являються йони Cu²⁺']], end:6600,
+   eq:'Cu + 2AgNO₃ → Cu(NO₃)₂ + 2Ag', type:'заміщення', see:'На мідному дроті виростають сріблясті кристали, схожі на гілочки, а безбарвний розчин синіє.',
+   test:'Синій колір розчину — ознака йонів Cu²⁺.', why:'Красиво виходить, якщо дріт скрутити спіраллю й залишити на кілька годин — виросте справжнє «дерево».' },
+ { id:'neutral', cat:'exp', cls:'8 кл', name:'Нейтралізація з фенолфталеїном',
+   inT:'Розчин NaOH + фенолфталеїн (малиновий)', add:'Доливаємо хлоридну кислоту', lvl:175, liq:'rgba(214,36,110,.66)',
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'HCl', n:8 }],[700,'color',{ c:W, dur:2400 }],[900,'cap','Малинове забарвлення зникає']], end:4000,
+   eq:'NaOH + HCl → NaCl + H₂O', ion:'H⁺ + OH⁻ → H₂O', type:'обміну (нейтралізація)', see:'Малинове забарвлення зникає: лугу більше немає, середовище стало нейтральним.',
+   test:'Фенолфталеїн: у лузі малиновий, у нейтральному і кислому середовищі — безбарвний.', why:'Так за допомогою індикатора «ловлять» момент, коли кислота повністю прореагувала з лугом (титрування).' },
+ { id:'paste', cat:'exp', cls:'9–11 кл', name:'Зубна паста для слона',
+   inT:'H₂O₂ (концентр.) + рідке мило', add:'Доливаємо розчин KI (каталізатор)', lvl:200, liq:'rgba(200,225,240,.5)',
+   steps:[[0,'drops',{ c:'rgba(230,200,120,.9)', label:'KI', n:4 }],[500,'color',{ c:'rgba(225,185,90,.6)', dur:800 }],[700,'foam',{ c:'#f3e2b0', dur:3200 }],[800,'cap','Миттєво виростає стовп піни й лізе з пробірки!']], end:5000,
+   eq:'2H₂O₂ → 2H₂O + O₂↑', cond:'кат. KI', type:'розкладу, каталітична', see:'Розчин жовтіє, і за секунду з пробірки вилазить густий стовп теплої піни.',
+   test:'Піна наповнена киснем: тліюча скіпка в ній спалахує.', why:'Йодид-іони — каталізатор, тому розклад іде дуже швидко, а мило «ловить» кисень у бульбашки. Жовтий колір дає трохи йоду.' },
+ { id:'aloh3', cat:'exp', cls:'9 кл', name:'Амфотерний Al(OH)₃',
+   inT:'Розчин AlCl₃', add:'Доливаємо NaOH: спершу трохи, потім надлишок', lvl:180, liq:W,
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'NaOH', n:4, rise:10 }],[450,'ppt',{ c:'#f4f6f6', n:60, big:1 }],[500,'turbid',{ c:'#ffffff', o:.45, t:500 }],[600,'cap','Білий драглистий осад Al(OH)₃'],[3000,'drops',{ c:'rgba(235,240,245,.9)', label:'NaOH (надл.)', n:7, rise:16 }],[3700,'pptGone',{ dur:2200 }],[3800,'cap','У надлишку лугу осад розчиняється!']], end:6400,
+   eq:'AlCl₃ + 3NaOH → Al(OH)₃↓ + 3NaCl', eq2:'Al(OH)₃ + NaOH → Na[Al(OH)₄]', type:'обміну, потім сполучення', see:'Спершу випадає білий драглистий осад, а в надлишку лугу він розчиняється.',
+   test:'Амфотерні гідроксиди (Al(OH)₃, Zn(OH)₂) реагують і з кислотами, і з лугами.', why:'Тому, щоб добути Al(OH)₃, луг доливають обережно, по краплі.' },
+ { id:'kscn', cat:'exp', cls:'9–11 кл', name:'«Кров» із пробірки',
+   inT:'Розчин FeCl₃ (жовтий)', add:'Доливаємо розчин KSCN', lvl:175, liq:'rgba(214,160,40,.6)',
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'KSCN', n:4 }],[400,'color',{ c:'rgba(140,12,25,.9)', dur:1200 }],[600,'cap','Розчин стає криваво-червоним']], end:3200,
+   eq:'FeCl₃ + 3KSCN → Fe(SCN)₃ + 3KCl', type:'обміну', see:'Жовтий розчин миттєво стає криваво-червоним.',
+   test:'Найчутливіша якісна реакція на йони Fe³⁺.', why:'Цим дослідом «фокусники» імітують кров: на шкіру наносять розчин FeCl₃, а «ніж» змочують KSCN.' },
+ { id:'br2', cat:'org', cls:'10 кл', name:'Бромна вода знебарвлюється',
+   inT:'Бромна вода (жовто-оранжева)', add:'Пропускаємо етилен', lvl:165, liq:'rgba(222,145,40,.68)', gas:'C₂H₄',
+   steps:[[0,'gas',{ dur:4200 }],[900,'color',{ c:W, dur:3200 }],[1000,'cap','Бромна вода знебарвлюється']], end:5000,
+   eq:'CH₂=CH₂ + Br₂ → CH₂Br–CH₂Br', type:'приєднання', see:'Жовто-оранжева бромна вода поступово стає безбарвною.',
+   test:'Якісна реакція на подвійний і потрійний зв\'язок (алкени, алкіни). Алкани бромну воду не знебарвлюють.', why:'Так само знебарвлюється розчин KMnO₄ (реакція Вагнера).' },
+ { id:'mirror', cat:'org', cls:'10–11 кл', name:'Срібне дзеркало',
+   inT:'Амоніачний розчин Ag₂O', add:'Доливаємо альдегід, нагріваємо', lvl:175, liq:W,
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'альдегід', n:4 }],[1000,'heat'],[1100,'cap','Нагріваємо на водяній бані…'],[2200,'mirror',{ dur:3200 }],[2600,'cap','Стінки вкриваються блискучим шаром срібла']], end:5800,
+   eq:'CH₃CHO + Ag₂O → CH₃COOH + 2Ag↓', cond:'NH₃, t', type:'окиснення', see:'Стінки пробірки вкриваються блискучим срібним шаром — виходить справжнє дзеркало.',
+   test:'Якісна реакція на альдегідну групу (альдегіди, глюкоза, метанова кислота).', why:'Так колись виготовляли дзеркала й ялинкові кулі.' },
+ { id:'cu2o', cat:'org', cls:'10–11 кл', name:'Альдегід і Cu(OH)₂: цегляно-червоний осад',
+   inT:'Свіжий осад Cu(OH)₂', add:'Доливаємо альдегід, нагріваємо', lvl:175, liq:'rgba(150,200,235,.4)', pre:{ c:CUOH2, n:60 },
+   steps:[[0,'drops',{ c:'rgba(235,240,245,.9)', label:'альдегід', n:4 }],[900,'heat'],[1000,'cap','Нагріваємо…'],[1900,'pptColor',{ c:'#e2b31c', dur:1600 }],[2000,'cap','Осад жовтіє (CuOH)…'],[3700,'pptColor',{ c:'#b23a1a', dur:1800 }],[3800,'cap','…і стає цегляно-червоним (Cu₂O)']], end:6000,
+   eq:'CH₃CHO + 2Cu(OH)₂ → CH₃COOH + Cu₂O↓ + 2H₂O', cond:'t', type:'окиснення', see:'При нагріванні блакитний осад жовтіє, а потім стає цегляно-червоним.',
+   test:'Якісна реакція на альдегідну групу. Глюкоза дає те саме.', why:'Без нагрівання альдегід з Cu(OH)₂ не реагує — на відміну від гліцеролу.' },
+ { id:'glyc', cat:'org', cls:'10 кл', name:'Гліцерол і Cu(OH)₂: волошкова синь',
+   inT:'Свіжий осад Cu(OH)₂', add:'Доливаємо гліцерол', lvl:175, liq:'rgba(150,200,235,.4)', pre:{ c:CUOH2, n:60 },
+   steps:[[0,'drops',{ c:'rgba(240,240,235,.9)', label:'гліцерол', n:5 }],[600,'pptGone',{ dur:2000 }],[600,'color',{ c:'rgba(25,75,220,.85)', dur:2400 }],[800,'cap','Осад розчиняється, розчин стає яскраво-синім']], end:4000,
+   eq:'Гліцерол + Cu(OH)₂ → гліцерат купруму(II)', type:'комплексоутворення', see:'Блакитний осад розчиняється без нагрівання, а розчин стає яскраво-синім (волошковим).',
+   test:'Якісна реакція на багатоатомні спирти (гліцерол, етиленгліколь, глюкоза).', why:'Етанол так не реагує: потрібно кілька груп OH поруч.' },
+ { id:'phenol', cat:'org', cls:'10 кл', name:'Фенол і FeCl₃',
+   inT:'Розчин фенолу', add:'Доливаємо розчин FeCl₃', lvl:175, liq:W,
+   steps:[[0,'drops',{ c:'rgba(214,160,40,.9)', label:'FeCl₃', n:4 }],[400,'color',{ c:'rgba(95,35,150,.82)', dur:1400 }],[600,'cap','Розчин стає фіолетовим']], end:3200,
+   eq:'C₆H₅OH + FeCl₃ → фіолетовий комплекс', type:'комплексоутворення', see:'Безбарвний розчин набуває фіолетового забарвлення.',
+   test:'Якісна реакція на фенол. Ще одна — з бромною водою: білий осад трибромфенолу.', why:'Спирти з FeCl₃ такого забарвлення не дають — так фенол і розрізняють.' },
+ { id:'starch', cat:'org', cls:'10–11 кл', name:'Йод і крохмаль',
+   inT:'Крохмальний клейстер', add:'Доливаємо розчин йоду', lvl:175, liq:'rgba(238,236,226,.6)',
+   steps:[[0,'drops',{ c:'rgba(150,80,30,.9)', label:'I₂', n:4 }],[400,'color',{ c:'rgba(22,28,110,.9)', dur:1500 }],[600,'cap','Розчин стає темно-синім']], end:3200,
+   eq:'Крохмаль + I₂ → синє забарвлення', type:'якісна реакція', see:'Безбарвний клейстер миттєво стає темно-синім. При нагріванні колір зникає, при охолодженні повертається.',
+   test:'Якісна реакція на крохмаль (і навпаки — на йод).', why:'Капни йодом на картоплю чи хліб — і побачиш синю пляму.' },
+ { id:'biuret', cat:'org', cls:'11 кл', name:'Білок: біуретова реакція',
+   inT:'Розчин білка + NaOH', add:'Доливаємо кілька крапель CuSO₄', lvl:175, liq:'rgba(240,235,215,.5)',
+   steps:[[0,'drops',{ c:'rgba(35,125,215,.85)', label:'CuSO₄', n:4 }],[450,'color',{ c:'rgba(120,45,165,.75)', dur:1500 }],[600,'cap','Розчин стає фіолетовим']], end:3200,
+   eq:'Білок + Cu(OH)₂ → фіолетовий комплекс', cond:'NaOH, CuSO₄', type:'комплексоутворення', see:'Розчин білка набуває фіолетового забарвлення.',
+   test:'Якісна реакція на пептидні зв\'язки — тобто на білки.', why:'Яєчний білок, розведений водою, — ідеальний зразок для цього досліду.' },
+];
+
+/* ===================== ПРОБІРКА: рушій ===================== */
+const S = { r:null, timers:[], lvl:290, running:false, ppt:[], solid:null, coat:null };
+const svgEl = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const at = (ms, fn) => S.timers.push(setTimeout(fn, ms));
+const every = (ms, fn) => { const id = setInterval(fn, ms); S.timers.push(id); return id; };
+const hw = y => y > 250 ? Math.sqrt(Math.max(0, 28 * 28 - (y - 250) ** 2)) : 28;
+
+function setLevel(y, dur) { S.lvl = y; const g = $('liq'); g.style.transition = dur ? `transform ${dur}ms ease` : 'none'; g.style.transform = `translateY(${y}px)`; }
+function setLiq(c, dur) { const r = $('liqr'); r.style.transition = dur ? `fill ${dur}ms linear` : 'none'; r.style.fill = c; }
+function restPos(big) {
+  const y = 277 - Math.pow(Math.random(), .8) * (big ? 20 : 14), w = hw(y) - (big ? 4 : 2.5);
+  return [120 + rnd(-w, w), y];
+}
+
+function buildSolid(s) {
+  const g = $('solid'); g.innerHTML = ''; $('front').innerHTML = ''; S.solid = null; S.coat = null;
+  if (!s) return;
+  const L = S.r.lvl || 290;
+  if (s.k === 'powder') {
+    const pg = svgEl('g', {}, g);
+    for (let i = 0; i < s.n; i++) { const [x, y] = restPos(true); svgEl('circle', { cx:x, cy:y, r:rnd(1.4, 2.6), fill:s.c }, pg); }
+    S.solid = pg;
+  } else if (s.k === 'granule') {
+    S.solid = svgEl('polygon', { points:'107,270 111,258 121,254 131,259 134,270 125,277 112,276', fill:'#8d969c', stroke:'#68727a', 'stroke-width':1.5 }, g);
+  } else if (s.k === 'chunk') {
+    S.solid = svgEl('path', { d:'M105 276 L104 262 Q106 252 117 251 L131 253 Q137 257 136 266 L135 276 Z', fill:'#f0ebe0', stroke:'#c9c1b0', 'stroke-width':1.5 }, g);
+  } else if (s.k === 'nail') {
+    const ng = svgEl('g', {}, g);
+    svgEl('rect', { x:110, y:34, width:20, height:6, rx:2, fill:'#7d858d' }, ng);
+    svgEl('rect', { x:115.5, y:38, width:9, height:224, fill:'#8a9199' }, ng);
+    svgEl('polygon', { points:'115.5,262 124.5,262 120,274', fill:'#8a9199' }, ng);
+    S.coat = svgEl('rect', { x:115.5, y:L + 3, width:9, height:262 - L - 3, fill:'#8a9199' }, ng);
+    S.coatTip = svgEl('polygon', { points:'115.5,262 124.5,262 120,274', fill:'#8a9199' }, ng);
+    S.solid = ng;
+  } else if (s.k === 'wire') {
+    const wg = svgEl('g', {}, g);
+    svgEl('path', { d:'M120 -10 L120 160 C108 168 132 176 120 184 C108 192 132 200 120 208 C108 216 132 224 120 232 C108 240 132 248 120 256 L120 266', fill:'none', stroke:'#c4703b', 'stroke-width':3.2, 'stroke-linecap':'round' }, wg);
+    S.solid = wg;
+  } else if (s.k === 'sodium') {
+    const sg = svgEl('g', {}, $('front'));
+    svgEl('rect', { x:113, y:L - 6, width:14, height:9, rx:4.5, fill:'#d8d8cc', stroke:'#a9a99c', 'stroke-width':1 }, sg);
+    S.solid = sg;
+  }
+  if (S.solid) { S.solid.style.transformBox = 'fill-box'; S.solid.style.transformOrigin = '50% 100%'; }
+  if (s.enter) S.solid.style.transform = `translateY(${s.k === 'nail' || s.k === 'wire' ? -230 : -300}px)`;
+}
+
+function reset() {
+  S.timers.forEach(t => { clearTimeout(t); clearInterval(t); }); S.timers = [];
+  document.querySelectorAll('#tube *').forEach(e => e.getAnimations && e.getAnimations().forEach(a => a.cancel()));
+  const r = S.r; S.running = false;
+  ['pp', 'bb', 'drops', 'fx', 'splint', 'paper', 'foamout'].forEach(id => $(id).innerHTML = '');
+  S.ppt = [];
+  $('lamp').style.opacity = 0; $('gast').style.opacity = 0; $('pip').style.opacity = 0;
+  $('mir').style.transition = 'none'; $('mir').style.opacity = 0;
+  const t = $('turb'); t.style.transition = 'none'; t.style.opacity = 0;
+  setLevel(r.lvl || 300, 0); setLiq(r.liq || 'transparent', 0);
+  buildSolid(r.solid);
+  if (r.pre) for (let i = 0; i < r.pre.n; i++) { const [x, y] = restPos(true); const c = svgEl('circle', { cx:0, cy:0, r:rnd(2.4, 4.2), fill:r.pre.c, opacity:.95 }, $('pp')); c.style.transform = `translate(${x}px,${y}px)`; S.ppt.push(c); }
+  if (r.paper) { const p = svgEl('rect', { x:132, y:-58, width:16, height:44, rx:2, fill:r.paper, stroke:'rgba(0,0,0,.25)' }, $('paper')); p.id = 'paperr'; svgEl('line', { x1:140, y1:-66, x2:140, y2:-58, stroke:'var(--glass)', 'stroke-width':2 }, $('paper')); }
+  $('cap').textContent = '';
+  $('run').disabled = false; $('run').textContent = '▶ Провести дослід';
+  renderInfo(false);
+}
+
+const OPS = {
+  cap: t => { $('cap').innerHTML = F(t); },
+  heat: () => { $('lamp').style.opacity = 1; },
+  enter: () => { const s = S.solid; if (!s) return; const k = S.r.solid.k; s.style.transition = `transform ${k === 'nail' || k === 'wire' ? 900 : 650}ms cubic-bezier(.5,0,.9,.6)`; s.style.transform = 'translateY(0)'; if (k === 'powder') return; },
+  drops: (o) => {
+    const n = o.n || 6, pip = $('pip'); $('piptxt').textContent = o.label || ''; pip.style.opacity = 1;
+    for (let i = 0; i < n; i++) at(250 + i * 170, () => {
+      const d = svgEl('circle', { cx:120, cy:0, r:3.4, fill:o.c }, $('drops'));
+      d.animate([{ transform:'translateY(-6px)', opacity:1 }, { transform:`translateY(${S.lvl}px)`, opacity:1, offset:.9 }, { transform:`translateY(${S.lvl + 6}px)`, opacity:0 }], { duration:420 + S.lvl * 1.2, easing:'cubic-bezier(.5,0,1,1)', fill:'forwards' }).onfinish = () => d.remove();
+    });
+    if (S.r.lvl) setLevel(S.lvl - (o.rise ?? 18), 250 + n * 170 + 400);
+    at(350 + n * 170 + 500, () => pip.style.opacity = 0);
+  },
+  gas: (o) => { $('gastxt').innerHTML = F(S.r.gas || ''); $('gastxt').textContent = S.r.gas; $('gast').style.opacity = 1; OPS.bubbles({ src:'gas', dur:o.dur, rate:9 }); at(o.dur + 300, () => $('gast').style.opacity = 0); },
+  color: (o) => setLiq(o.c, o.dur),
+  turbid: (o) => { const t = $('turb'); t.style.fill = o.c; t.style.transition = `opacity ${o.t || 600}ms`; t.style.opacity = o.o; at((o.t || 600) + 900, () => { t.style.transition = 'opacity 3600ms'; t.style.opacity = o.o * .18; }); },
+  ppt: (o) => {
+    for (let i = 0; i < o.n; i++) {
+      const sx = 120 + rnd(-24, 24), sy = rnd(S.lvl + 8, 262), [ex, ey] = restPos(o.big);
+      const c = svgEl('circle', { cx:0, cy:0, r:o.big ? rnd(2.4, 4.5) : rnd(1.6, 2.9), fill:o.c, opacity:0 }, $('pp')); S.ppt.push(c);
+      c.style.transition = 'fill 1s';
+      c.animate([{ transform:`translate(${sx}px,${sy}px)`, opacity:0 }, { transform:`translate(${sx + rnd(-3, 3)}px,${sy + 6}px)`, opacity:.95, offset:.25 }, { transform:`translate(${ex}px,${ey}px)`, opacity:.95 }],
+        { duration:(o.slow ? 4200 : 2600) + rnd(0, 1600), delay:rnd(0, 700), easing:'cubic-bezier(.45,0,.8,1)', fill:'forwards' });
+    }
+  },
+  pptColor: (o) => S.ppt.forEach(c => { c.style.transition = `fill ${o.dur}ms`; c.style.fill = o.c; }),
+  pptGone: (o) => { S.ppt.forEach(c => c.animate([{ opacity:.95 }, { opacity:0 }], { duration:o.dur * rnd(.6, 1), delay:rnd(0, 400), fill:'forwards' })); const t = $('turb'); t.style.transition = `opacity ${o.dur}ms`; t.style.opacity = 0; },
+  bubbles: (o) => {
+    const t0 = performance.now();
+    const id = every(1000 / o.rate, () => {
+      if (performance.now() - t0 > o.dur) { clearInterval(id); return; }
+      let x, y;
+      if (o.src === 'gas') { x = 140 + rnd(-2, 2); y = 266; }
+      else if (o.src === 'solid') { const k = S.r.solid.k; x = 120 + rnd(-13, 13); y = k === 'chunk' ? rnd(252, 268) : rnd(256, 272); }
+      else if (o.src === 'na') { x = 120 + (S.naX || 0) + rnd(-7, 7); y = S.lvl + 2; }
+      else { x = 120 + rnd(-20, 20); y = rnd(262, 274); }
+      if (y <= S.lvl + 1 && o.src !== 'na') return;
+      const r = rnd(1.6, 3.6), b = svgEl('circle', { cx:0, cy:0, r, fill:'rgba(255,255,255,.3)', stroke:'rgba(255,255,255,.85)', 'stroke-width':1 }, $('bb'));
+      const dx = rnd(-6, 6), dist = Math.max(4, y - S.lvl);
+      b.animate([{ transform:`translate(${x}px,${y}px) scale(.6)`, opacity:1 }, { transform:`translate(${x + dx}px,${S.lvl + 1}px) scale(1.1)`, opacity:.9, offset:.95 }, { transform:`translate(${x + dx}px,${S.lvl - 2}px) scale(1.3)`, opacity:0 }],
+        { duration:o.src === 'na' ? 500 : dist * 7 + 200, easing:'ease-in' }).onfinish = () => b.remove();
+    });
+  },
+  shrink: (o) => { if (!S.solid) return; S.solid.style.transition = `transform ${o.dur}ms linear`; S.solid.style.transform = `scale(${o.to})`; },
+  coat: (o) => { if (!S.coat) return; [S.coat, S.coatTip].forEach(e => { e.style.transition = `fill ${o.dur}ms`; e.style.fill = o.c; }); },
+  crystals: (o) => {
+    for (let i = 0; i < 46; i++) {
+      const y = rnd(Math.max(S.lvl + 8, 150), 262), x = 120 + rnd(-13, 13);
+      const g = svgEl('g', {}, $('fx'));
+      const L = rnd(3, 7), a = rnd(0, 180);
+      svgEl('line', { x1:x, y1:y, x2:x + L * Math.cos(a), y2:y + L * Math.sin(a), stroke:'#e9ecef', 'stroke-width':2, 'stroke-linecap':'round' }, g);
+      svgEl('circle', { cx:x, cy:y, r:rnd(1.2, 2.2), fill:'#c9ced3', stroke:'#8d949b', 'stroke-width':.6 }, g);
+      g.style.transformBox = 'fill-box'; g.style.transformOrigin = 'center';
+      g.animate([{ transform:'scale(0)', opacity:0 }, { transform:'scale(1)', opacity:1 }], { duration:900, delay:rnd(0, o.dur), fill:'both', easing:'ease-out' });
+    }
+  },
+  mirror: (o) => { const m = $('mir'); m.style.transition = `opacity ${o.dur}ms ease-in`; m.style.opacity = .93; },
+  sodium: (o) => {
+    const s = S.solid; if (!s) return; const t0 = performance.now();
+    const id = every(40, () => { const t = (performance.now() - t0) / o.dur; if (t > 1) { clearInterval(id); return; }
+      S.naX = Math.sin(t * 13) * 12 + Math.sin(t * 5.3) * 5; const sc = Math.max(0, 1 - t * 1.05);
+      s.style.transition = 'none'; s.style.transform = `translateX(${S.naX}px) scale(${sc})`; });
+    s.querySelector('rect').setAttribute('rx', 4.5);
+  },
+  paper: (c) => { const p = $('paperr'); if (!p) return; p.style.transition = 'fill 1.4s'; p.style.fill = c; },
+  splint: (state) => {
+    const g = $('splint'); g.innerHTML = '';
+    const sg = svgEl('g', {}, g);
+    svgEl('line', { x1:205, y1:-60, x2:132, y2:-6, stroke:'#a57a46', 'stroke-width':5, 'stroke-linecap':'round' }, sg);
+    if (state === 'glow') { const e = svgEl('circle', { cx:131, cy:-5, r:4.6, fill:'#ff6a1a' }, sg); e.setAttribute('class', 'glow'); S.tip = e; }
+    else { S.tip = svgEl('path', { d:'M131 -2 C121 -10 124 -22 131 -30 C138 -22 141 -10 131 -2 Z', fill:'#ff9a2a', class:'flame' }, sg); }
+    sg.animate([{ transform:'translate(40px,-30px)', opacity:0 }, { transform:'translate(0,0)', opacity:1 }], { duration:600, easing:'ease-out' });
+  },
+  flare: () => {
+    const g = $('splint').firstChild; if (!g) return; S.tip && S.tip.remove();
+    const f = svgEl('g', {}, g);
+    svgEl('circle', { cx:131, cy:-14, r:28, fill:'url(#flashg)', opacity:.8 }, f);
+    svgEl('path', { d:'M131 0 C114 -12 118 -36 131 -52 C144 -36 148 -12 131 0 Z', fill:'#ffb21f', class:'flame' }, f);
+    svgEl('path', { d:'M131 -3 C124 -10 125 -22 131 -32 C137 -22 138 -10 131 -3 Z', fill:'#fff3a8', class:'flame' }, f);
+    f.animate([{ opacity:0, transform:'scale(.3)' }, { opacity:1, transform:'scale(1)' }], { duration:350, easing:'ease-out' });
+  },
+  out: () => {
+    const g = $('splint').firstChild; if (!g) return; S.tip && S.tip.animate([{ opacity:1 }, { opacity:0 }], { duration:400, fill:'forwards' });
+    for (let i = 0; i < 6; i++) { const s = svgEl('circle', { cx:131, cy:-6, r:3, fill:'#9aa0a6', opacity:.6 }, $('fx'));
+      s.animate([{ transform:'translate(0,0) scale(1)', opacity:.6 }, { transform:`translate(${rnd(-10, 14)}px,${rnd(-50, -30)}px) scale(3)`, opacity:0 }], { duration:1600, delay:i * 180, fill:'forwards' }); }
+  },
+  pop: () => {
+    const f = svgEl('g', {}, $('fx'));
+    svgEl('circle', { cx:124, cy:-10, r:34, fill:'url(#flashg)' }, f);
+    const t = svgEl('text', { x:150, y:-40, 'font-family':'Unbounded, sans-serif', 'font-weight':700, 'font-size':20, fill:'var(--ink)' }, f); t.textContent = 'ПАХ!';
+    f.style.transformBox = 'fill-box'; f.style.transformOrigin = 'center';
+    f.animate([{ opacity:0, transform:'scale(.4)' }, { opacity:1, transform:'scale(1.05)', offset:.3 }, { opacity:0, transform:'scale(1.2)' }], { duration:1300, fill:'forwards', easing:'ease-out' });
+  },
+  smoke: () => {
+    const g = $('fx'); const rod = svgEl('line', { x1:60, y1:-64, x2:110, y2:-14, stroke:'var(--glass)', 'stroke-width':4, 'stroke-linecap':'round' }, g);
+    rod.animate([{ opacity:0, transform:'translate(-30px,-20px)' }, { opacity:1, transform:'translate(0,0)' }], { duration:500, fill:'forwards' });
+    for (let i = 0; i < 18; i++) { const s = svgEl('circle', { cx:112, cy:-14, r:rnd(3, 6), fill:'#ffffff', opacity:0, stroke:'rgba(0,0,0,.08)' }, g);
+      s.animate([{ transform:'translate(0,0) scale(.6)', opacity:0 }, { opacity:.9, offset:.2 }, { transform:`translate(${rnd(-26, 26)}px,${rnd(-60, -20)}px) scale(2.6)`, opacity:0 }], { duration:2200, delay:500 + i * 110, fill:'forwards' }); }
+  },
+  foam: (o) => {
+    const inside = $('pp'), out = $('foamout');
+    const mk = (parent, x, y, delay) => { const c = svgEl('circle', { cx:x, cy:y, r:rnd(4, 8), fill:o.c, stroke:'rgba(160,130,60,.35)', 'stroke-width':1 }, parent);
+      c.style.transformBox = 'fill-box'; c.style.transformOrigin = 'center';
+      c.animate([{ transform:'scale(0)', opacity:0 }, { transform:'scale(1)', opacity:1 }], { duration:500, delay, fill:'both', easing:'ease-out' }); };
+    for (let y = S.lvl + 6; y > 20; y -= 6) for (let k = 0; k < 4; k++) mk(inside, 120 + rnd(-22, 22), y + rnd(-3, 3), (S.lvl - y) / (S.lvl - 20) * o.dur * .45);
+    for (let i = 0; i < 110; i++) { const t = Math.random(); const y = 20 - t * 70; const spread = 18 + t * 30;
+      mk(out, 120 + rnd(-spread, spread), y + rnd(-4, 4), o.dur * .45 + t * o.dur * .4); }
+    for (let i = 0; i < 40; i++) { const side = Math.random() < .5 ? -1 : 1, y = rnd(20, 130); mk(out, 120 + side * rnd(34, 46), y, o.dur * .8 + (y - 20) * 8); }
+  },
+};
+
+function run() {
+  if (S.running) return; reset(); S.running = true;
+  $('run').disabled = true; $('run').textContent = 'Іде дослід…';
+  S.r.steps.forEach(([t, op, arg]) => at(t, () => OPS[op](arg)));
+  at(S.r.end, () => { S.running = false; $('run').disabled = false; $('run').textContent = '▶ Ще раз'; renderInfo(true); });
+}
+
+function renderInfo(done) {
+  const r = S.r, el = $('info');
+  if (!done) { el.innerHTML = `<div class="predict"><b style="color:var(--ink)">Спрогнозуй.</b> Що ми побачимо? Скажи вголос — і проведи дослід, щоб перевірити.</div>`; return; }
+  el.innerHTML = `
+    <div class="eq">${F(r.eq)}${r.cond ? `<span class="cond">(${F(r.cond)})</span>` : ''}</div>
+    ${r.eq2 ? `<div class="eq small">${F(r.eq2)}</div>` : ''}
+    ${r.ion ? `<div class="eq small">Йонне: ${F(r.ion)}</div>` : ''}
+    <dl class="kv">
+      <dt>Що бачимо</dt><dd>${F(r.see)}</dd>
+      <dt>Тип реакції</dt><dd>${F(r.type)}</dd>
+      <dt>Як розпізнати</dt><dd><div class="test">${F(r.test)}</div></dd>
+      <dt>Цікаво</dt><dd>${F(r.why)}</dd>
+    </dl>`;
+}
+
+function pick(id) {
+  const r = R.find(x => x.id === id) || R[0]; S.r = r;
+  document.querySelectorAll('.ri').forEach(b => b.setAttribute('aria-current', b.dataset.id === r.id));
+  $('r-cat').textContent = `${CATS[r.cat].name} · ${r.cls}`; $('r-cat').style.setProperty('--gc', CATS[r.cat].c);
+  $('r-name').innerHTML = F(r.name); $('r-in').innerHTML = F(r.inT); $('r-add').innerHTML = F(r.add);
+  reset();
+}
+$('rlist').innerHTML = Object.entries(CATS).map(([k, c]) => `<div class="rgroup" style="--gc:${c.c}"><h3>${c.name}</h3>${R.filter(r => r.cat === k).map(r =>
+  `<button class="ri" data-id="${r.id}"><span>${F(r.name)}</span><small>${r.cls}</small></button>`).join('')}</div>`).join('');
+document.querySelectorAll('.ri').forEach(b => b.onclick = () => { pick(b.dataset.id); if (matchMedia('(max-width:820px)').matches) $('r-name').scrollIntoView({ behavior:'smooth', block:'start' }); });
+$('run').onclick = run; $('reset').onclick = reset;
+
+/* ===================== ЛАНЦЮЖКИ ===================== */
+const KINDS = { met:'метал', non:'неметал', ox:'оксид', base:'основа', acid:'кислота', salt:'сіль', org:'органічна речовина', oth:'інше' };
+const CH = [
+ { t:'Кальцій: метал → луг → сіль', cls:'8 кл', n:[['Ca','met'],['CaO','ox'],['Ca(OH)₂','base'],['CaCl₂','salt'],['CaCO₃','salt']], s:[
+   { eq:'2Ca + O₂ → 2CaO', type:'сполучення', note:'Метал + кисень → основний оксид.' },
+   { eq:'CaO + H₂O → Ca(OH)₂', type:'сполучення', note:'«Гасіння» вапна: суміш сильно розігрівається.' },
+   { eq:'Ca(OH)₂ + 2HCl → CaCl₂ + 2H₂O', type:'обміну (нейтралізація)', tube:'neutral' },
+   { eq:'CaCl₂ + Na₂CO₃ → CaCO₃↓ + 2NaCl', type:'обміну', note:'Іде, бо випадає білий осад.' } ] },
+ { t:'Сульфур: неметал → кислота → сіль', cls:'8–9 кл', n:[['S','non'],['SO₂','ox'],['SO₃','ox'],['H₂SO₄','acid'],['BaSO₄','salt']], s:[
+   { eq:'S + O₂ → SO₂', cond:'t', type:'сполучення', note:'Сірка горить синім полум\'ям, газ з різким запахом.' },
+   { eq:'2SO₂ + O₂ ⇄ 2SO₃', cond:'t, кат. V₂O₅', type:'сполучення, оборотна' },
+   { eq:'SO₃ + H₂O → H₂SO₄', type:'сполучення', note:'Кислотний оксид + вода → кислота.' },
+   { eq:'H₂SO₄ + BaCl₂ → BaSO₄↓ + 2HCl', type:'обміну', tube:'baso4', note:'Якісна реакція на сульфат-іони.' } ] },
+ { t:'Фосфор: від неметалу до осаду', cls:'8–9 кл', n:[['P','non'],['P₂O₅','ox'],['H₃PO₄','acid'],['Na₃PO₄','salt'],['Ca₃(PO₄)₂','salt']], s:[
+   { eq:'4P + 5O₂ → 2P₂O₅', type:'сполучення', note:'Фосфор горить сліпучим полум\'ям з густим білим димом.' },
+   { eq:'P₂O₅ + 3H₂O → 2H₃PO₄', cond:'t', type:'сполучення' },
+   { eq:'H₃PO₄ + 3NaOH → Na₃PO₄ + 3H₂O', type:'обміну (нейтралізація)' },
+   { eq:'2Na₃PO₄ + 3CaCl₂ → Ca₃(PO₄)₂↓ + 6NaCl', type:'обміну', note:'Ca₃(PO₄)₂ — основа кісток і фосфорних добрив.' } ] },
+ { t:'Купрум: коло нерозчинної основи', cls:'8–9 кл', n:[['Cu','met'],['CuO','ox'],['CuCl₂','salt'],['Cu(OH)₂','base'],['CuO','ox'],['Cu','met']], s:[
+   { eq:'2Cu + O₂ → 2CuO', cond:'t', type:'сполучення', note:'Мідна пластинка в полум\'ї чорніє.' },
+   { eq:'CuO + 2HCl → CuCl₂ + H₂O', type:'обміну', note:'Основний оксид + кислота → сіль + вода.' },
+   { eq:'CuCl₂ + 2NaOH → Cu(OH)₂↓ + 2NaCl', type:'обміну', tube:'cuoh2' },
+   { eq:'Cu(OH)₂ → CuO + H₂O', cond:'t', type:'розкладу', note:'Нерозчинні основи при нагріванні розкладаються: блакитний осад чорніє.' },
+   { eq:'CuO + H₂ → Cu + H₂O', cond:'t', type:'заміщення (окисно-відновна)', note:'Водень відновлює мідь — чорний порошок червоніє.' } ] },
+ { t:'Ферум(III): від металу до іржі й назад', cls:'9 кл', n:[['Fe','met'],['FeCl₃','salt'],['Fe(OH)₃','base'],['Fe₂O₃','ox'],['Fe','met']], s:[
+   { eq:'2Fe + 3Cl₂ → 2FeCl₃', cond:'t', type:'сполучення', note:'З хлором Ферум одразу стає тривалентним, а з HCl — двовалентним.' },
+   { eq:'FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl', type:'обміну', tube:'feoh3' },
+   { eq:'2Fe(OH)₃ → Fe₂O₃ + 3H₂O', cond:'t', type:'розкладу' },
+   { eq:'Fe₂O₃ + 2Al → 2Fe + Al₂O₃', cond:'t', type:'заміщення', note:'Алюмотермія: так зварюють залізничні рейки.' } ] },
+ { t:'Алюміній: амфотерність', cls:'9 кл', n:[['Al','met'],['Al₂O₃','ox'],['AlCl₃','salt'],['Al(OH)₃','base'],['Na[Al(OH)₄]','salt']], s:[
+   { eq:'4Al + 3O₂ → 2Al₂O₃', type:'сполучення', note:'Тонка плівка Al₂O₃ захищає алюміній від корозії.' },
+   { eq:'Al₂O₃ + 6HCl → 2AlCl₃ + 3H₂O', type:'обміну' },
+   { eq:'AlCl₃ + 3NaOH → Al(OH)₃↓ + 3NaCl', type:'обміну', tube:'aloh3' },
+   { eq:'Al(OH)₃ + NaOH → Na[Al(OH)₄]', type:'сполучення', tube:'aloh3', note:'Амфотерний гідроксид реагує і з кислотами, і з лугами.' } ] },
+ { t:'Карбон: від вугілля до вапна', cls:'8–9 кл', n:[['C','non'],['CO₂','ox'],['Na₂CO₃','salt'],['CaCO₃','salt'],['CO₂','ox']], s:[
+   { eq:'C + O₂ → CO₂', cond:'t', type:'сполучення' },
+   { eq:'CO₂ + 2NaOH → Na₂CO₃ + H₂O', type:'обміну', note:'Кислотний оксид + луг → сіль + вода.' },
+   { eq:'Na₂CO₃ + CaCl₂ → CaCO₃↓ + 2NaCl', type:'обміну' },
+   { eq:'CaCO₃ → CaO + CO₂↑', cond:'t', type:'розкладу', note:'Так випалюють вапно. А кислота з CaCO₃ теж дає CO₂ — подивись у пробірці.', tube:'co2' } ] },
+ { t:'Від метану до оцтової кислоти', cls:'10–11 кл', n:[['CH₄','org'],['C₂H₂','org'],['C₂H₄','org'],['C₂H₅OH','org'],['CH₃CHO','org'],['CH₃COOH','org']], s:[
+   { eq:'2CH₄ → C₂H₂ + 3H₂', cond:'1500 °C', type:'розкладу (дегідрування)' },
+   { eq:'C₂H₂ + H₂ → C₂H₄', cond:'Ni, t', type:'приєднання (гідрування)' },
+   { eq:'C₂H₄ + H₂O → C₂H₅OH', cond:'H⁺, t', type:'приєднання (гідратація)', tube:'br2', note:'А довести, що в етилену є подвійний зв\'язок, можна бромною водою.' },
+   { eq:'C₂H₅OH + CuO → CH₃CHO + Cu + H₂O', cond:'t', type:'окиснення', note:'Розжарений чорний дріт CuO в етанолі стає червоним.' },
+   { eq:'CH₃CHO + Ag₂O → CH₃COOH + 2Ag↓', cond:'NH₃, t', type:'окиснення', tube:'mirror' } ] },
+ { t:'Від карбіду до аніліну', cls:'10–11 кл', n:[['CaC₂','oth'],['C₂H₂','org'],['C₆H₆','org'],['C₆H₅NO₂','org'],['C₆H₅NH₂','org']], s:[
+   { eq:'CaC₂ + 2H₂O → C₂H₂↑ + Ca(OH)₂', type:'обміну (гідроліз)', note:'Лабораторний спосіб добування ацетилену.' },
+   { eq:'3C₂H₂ → C₆H₆', cond:'C акт., 600 °C', type:'тримеризація (реакція Зелінського)' },
+   { eq:'C₆H₆ + HNO₃ → C₆H₅NO₂ + H₂O', cond:'H₂SO₄ конц.', type:'заміщення (нітрування)' },
+   { eq:'C₆H₅NO₂ + 3H₂ → C₆H₅NH₂ + 2H₂O', cond:'кат., t', type:'відновлення (реакція Зініна)' } ] },
+ { t:'Від крохмалю до поліетилену', cls:'10–11 кл', n:[['(C₆H₁₀O₅)ₙ','org'],['C₆H₁₂O₆','org'],['C₂H₅OH','org'],['C₂H₄','org'],['(–CH₂–CH₂–)ₙ','org']], s:[
+   { eq:'(C₆H₁₀O₅)ₙ + nH₂O → nC₆H₁₂O₆', cond:'H⁺, t', type:'гідроліз', tube:'starch', note:'Крохмаль у суміші легко виявити йодом.' },
+   { eq:'C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂↑', cond:'дріжджі', type:'спиртове бродіння' },
+   { eq:'C₂H₅OH → C₂H₄ + H₂O', cond:'H₂SO₄ конц., t > 170 °C', type:'відщеплення (дегідратація)', tube:'br2' },
+   { eq:'nCH₂=CH₂ → (–CH₂–CH₂–)ₙ', cond:'t, p, кат.', type:'полімеризація' } ] },
+];
+const C = { i:0, step:-1, train:false, shown:new Set(), play:null };
+$('legend').innerHTML = Object.entries(KINDS).map(([k, n]) => `<span style="--kc:var(--k-${k})">${n}</span>`).join('');
+$('chsel').innerHTML = CH.map((c, i) => `<button class="chip" data-i="${i}" aria-pressed="${i === 0}">${F(c.t)} <span style="opacity:.6">· ${c.cls}</span></button>`).join('');
+document.querySelectorAll('#chsel .chip').forEach(b => b.onclick = () => { stopPlay(); C.i = +b.dataset.i; C.step = -1; C.shown = new Set();
+  document.querySelectorAll('#chsel .chip').forEach(x => x.setAttribute('aria-pressed', x === b)); renderChain(); });
+const ARROW = '<svg viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7 H26 M20 2 L27 7 L20 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function renderChain() {
+  const c = CH[C.i]; $('ch-title').innerHTML = F(c.t);
+  $('chain').innerHTML = c.n.map(([f, k], j) => {
+    const hid = C.train && j > 0 && !C.shown.has(j - 1);
+    const on = C.step >= 0 && (j === C.step || j === C.step + 1);
+    return (j ? `<button class="arr ${j - 1 === C.step ? 'on' : ''}" data-s="${j - 1}" aria-label="Перехід ${j}">${j}${ARROW}</button>` : '') +
+      `<span class="node ${on ? 'on' : ''} ${hid ? 'hid' : ''}" style="--kc:var(--k-${k})">${F(f)}</span>`; }).join('');
+  document.querySelectorAll('#chain .arr').forEach(b => b.onclick = () => { stopPlay(); C.step = +b.dataset.s; if (!C.train) C.shown.add(C.step); renderChain(); });
+  renderStep();
+}
+function renderStep() {
+  const c = CH[C.i], el = $('step');
+  if (C.step < 0) { el.innerHTML = `<p class="lead">Обери стрілку з номером переходу.</p>`; return; }
+  const s = c.s[C.step], from = c.n[C.step][0], to = c.n[C.step + 1][0], open = !C.train || C.shown.has(C.step);
+  el.innerHTML = `<div class="eyebrow">Перехід ${C.step + 1}: ${F(from)} → ${C.train && !open ? '?' : F(to)}</div>
+    ${open ? `<div class="eq">${F(s.eq)}${s.cond ? `<span class="cond">(${F(s.cond)})</span>` : ''}</div>
+      <dl class="kv"><dt>Тип реакції</dt><dd>${F(s.type)}</dd>${s.note ? `<dt>Зверни увагу</dt><dd>${F(s.note)}</dd>` : ''}</dl>`
+      : `<p>Склади рівняння самостійно: з чим має прореагувати ${F(from)} і що утвориться?</p><div class="actions"><button class="btn" id="ch-show">Показати відповідь</button></div>`}
+    ${open && s.tube ? `<div class="actions"><button class="btn ghost" id="ch-tube">🧪 Подивитись дослід у пробірці</button></div>` : ''}`;
+  if ($('ch-show')) $('ch-show').onclick = () => { C.shown.add(C.step); renderChain(); };
+  if ($('ch-tube')) $('ch-tube').onclick = () => { go('probirka'); pick(s.tube); window.scrollTo({ top:0 }); };
+}
+function stopPlay() { clearInterval(C.play); C.play = null; $('ch-play').textContent = '▶ Пройти ланцюжок'; }
+$('ch-play').onclick = () => {
+  if (C.play) { stopPlay(); return; }
+  const c = CH[C.i]; C.step = 0; C.shown.add(0); renderChain(); $('ch-play').textContent = '⏸ Зупинити';
+  C.play = setInterval(() => { if (C.step >= c.s.length - 1) { stopPlay(); return; } C.step++; C.shown.add(C.step); renderChain(); }, 3200);
+};
+$('ch-train').onchange = e => { C.train = e.target.checked; C.shown = new Set(); stopPlay(); renderChain(); };
+
+/* ===================== вкладки ===================== */
+const VIEWS = ['probirka', 'lantsyuzhky'];
+function show(v) { if (!VIEWS.includes(v)) v = 'probirka'; VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v)); if (v !== 'lantsyuzhky') stopPlay(); }
+function go(v) { show(v); try { history.replaceState(null, '', '#' + v); } catch (e) {} }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.v));
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+pick('o2kmno4'); renderChain(); show(location.hash.slice(1));
+</script>
+
+</html>
