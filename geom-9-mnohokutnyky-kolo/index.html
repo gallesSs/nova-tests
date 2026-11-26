@@ -1,0 +1,495 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Многокутники й коло</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 2px}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.fr>span{font-size:.92em}
+.figw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center}
+.figw svg{width:100%;max-width:320px;height:auto;display:block;margin:0 auto}
+.rd{display:flex;flex-direction:column;gap:6px;font:600 15px var(--body)}
+.rd input[type=range]{width:100%;accent-color:var(--oh)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:15px}
+.kv b{font-family:var(--mono)}
+.fx{font:700 clamp(17px,4.4vw,21px)/1.5 var(--mono);background:var(--oh-bg);border-radius:10px;padding:8px 12px;overflow-x:auto}
+.optg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.optg .opt{align-items:center;font-family:var(--mono);font-weight:600}
+@media (max-width:620px){.figw{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Геометрія · 9 клас · Правильні многокутники</div>
+    <div class="brand"><h1>Многокутники й коло</h1><span class="ohbadge" aria-hidden="true">πR²</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="zadachi" aria-selected="false">Задачі</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+    </nav>
+  </header>
+
+  <section id="v-teoriya" class="stack">
+    <div class="card sec">
+      <h2>Інтерактив: правильний n-кутник</h2>
+      <div class="figw">
+        <svg id="pg" viewBox="-130 -130 260 260" role="img" aria-label="Правильний многокутник з описаним і вписаним колом"></svg>
+        <div class="stack">
+          <label class="rd">Кількість сторін: <b id="nv" style="font-family:var(--mono)"></b><input type="range" id="nr" min="3" max="12" value="6"></label>
+          <div class="kv" id="nk"></div>
+          <p class="hint">Синє коло — описане (радіус R), зелене — вписане (радіус r).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sec">
+      <h2>1. Кути правильного многокутника</h2>
+      <p>У правильного многокутника всі сторони рівні й усі кути рівні.</p>
+      <div class="fx">Сума кутів: 180° · (n − 2)</div>
+      <div class="fx">Один кут: α = 180° · (n − 2) / n</div>
+      <div class="fx">Зовнішній кут: 360° / n · центральний кут: 360° / n</div>
+      <div class="example"><b>Приклад:</b> дев'ятикутник: α = 180° · 7 / 9 = 140°. Зовнішній кут — 360° / 9 = 40° (не плутай!).</div>
+    </div>
+
+    <div class="card sec">
+      <h2>2. Описане і вписане коло</h2>
+      <p>Навколо будь-якого правильного многокутника можна описати коло і в нього можна вписати коло. Їхні центри збігаються.</p>
+      <div class="fx">R = a / (2 sin(180°/n)) · r = a / (2 tg(180°/n))</div>
+      <div class="tblw"><table>
+        <tr><th>Фігура</th><th>R (описане)</th><th>r (вписане)</th><th>Сторона через R</th></tr>
+        <tr><td>Трикутник</td><td class="f">a√3 / 3</td><td class="f">a√3 / 6</td><td class="f">a = R√3</td></tr>
+        <tr><td>Квадрат</td><td class="f">a√2 / 2</td><td class="f">a / 2</td><td class="f">a = R√2</td></tr>
+        <tr><td>Шестикутник</td><td class="f">a</td><td class="f">a√3 / 2</td><td class="f">a = R</td></tr>
+      </table></div>
+      <p class="note">Для правильного трикутника R = 2r. Для шестикутника сторона дорівнює радіусу описаного кола — він складається з шести рівносторонніх трикутників.</p>
+    </div>
+
+    <div class="card sec">
+      <h2>3. Довжина кола і дуги</h2>
+      <div class="fx">C = 2πR = πd</div>
+      <div class="fx">Дуга: l = πRα / 180°</div>
+      <div class="example"><b>Приклад:</b> C = 8π см → d = C / π = 8 см.</div>
+    </div>
+
+    <div class="card sec">
+      <h2>4. Площа круга і сектора</h2>
+      <div class="fx">S = πR²</div>
+      <div class="fx">Сектор: S = πR² · α / 360°</div>
+      <div class="example"><b>Приклад:</b> R = 6 см, α = 60°: S = π · 36 · 60/360 = 6π см².</div>
+    </div>
+
+    <div class="card sec">
+      <h2>5. Площа правильного трикутника</h2>
+      <div class="fx">S = a²√3 / 4</div>
+      <ol class="steps">
+        <li>Через R: a = R√3, тоді S = 3√3 R² / 4. Наприклад, R = 8: a = 8√3, S = 192·√3/4 = 48√3 см².</li>
+        <li>Через r: R = 2r, a = 2√3 r, тоді S = 3√3 r². Наприклад, r = 4: S = 3√3 · 16 = 48√3 см².</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="v-zadachi" class="stack" hidden>
+    <div class="card stack"><div class="seg" id="pseg"></div><div class="stat hint" id="pstat"></div></div>
+    <div class="card task" id="ptask"></div>
+  </section>
+  <section id="v-test" class="stack" hidden></section>
+  <footer>Математика з Артуром Валентиновичем</footer>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h.replace(/<span class="fr"><span>(.*?)<\/span><span>(.*?)<\/span><\/span>/g, '($1)/($2)'); return d.textContent.replace(/\s+/g, ' ').trim(); };
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const LETTERS = 'АБВГ';
+
+/* ---------- інтерактив ---------- */
+function drawPoly() {
+  const n = +$('nr').value, R = 110, r = R * Math.cos(Math.PI / n), a = 2 * R * Math.sin(Math.PI / n);
+  const pts = Array.from({ length:n }, (_, i) => { const t = -Math.PI / 2 + i * 2 * Math.PI / n; return [R * Math.cos(t), R * Math.sin(t)]; });
+  const m = [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2];
+  $('pg').innerHTML = `<circle r="${R}" fill="none" stroke="var(--c-stru)" stroke-width="2"/>
+    <circle r="${r}" fill="none" stroke="var(--c-prop)" stroke-width="2"/>
+    <polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="var(--oh-bg)" fill-opacity=".5" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="0" y1="0" x2="${pts[0][0]}" y2="${pts[0][1]}" stroke="var(--c-stru)" stroke-width="2"/><text x="${pts[0][0] / 2 + 8}" y="${pts[0][1] / 2}" fill="var(--c-stru)" font-family="JetBrains Mono" font-weight="700" font-size="15">R</text>
+    <line x1="0" y1="0" x2="${m[0]}" y2="${m[1]}" stroke="var(--c-prop)" stroke-width="2" stroke-dasharray="5 4"/><text x="${m[0] / 2 + 6}" y="${m[1] / 2 + 14}" fill="var(--c-prop)" font-family="JetBrains Mono" font-weight="700" font-size="15">r</text>
+    <circle r="3.5" fill="var(--ink)"/>`;
+  const ang = 180 * (n - 2) / n, f = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
+  const names = { 3:'трикутник', 4:'квадрат', 5:"п'ятикутник", 6:'шестикутник', 7:'семикутник', 8:'восьмикутник', 9:"дев'ятикутник", 10:'десятикутник', 11:'одинадцятикутник', 12:'дванадцятикутник' };
+  $('nv').textContent = `${n} — ${names[n]}`;
+  $('nk').innerHTML = `<span>Кут</span><b>${f(ang)}°</b><span>Сума кутів</span><b>${180 * (n - 2)}°</b><span>Центральний кут</span><b>${f(360 / n)}°</b>
+    <span>Якщо R = 1</span><b>a ≈ ${f(a / R)}, r ≈ ${f(r / R)}</b>`;
+}
+$('nr').oninput = drawPoly; drawPoly();
+
+/* ---------- числа з коренем і π ---------- */
+function V(num, den = 1, rad = 1, pi = false) { const g = gcd(num, den); return { num:num / g, den:den / g, rad, pi }; }
+function show(v, unit = '') {
+  let top = (v.num === 1 && (v.rad > 1 || v.pi) ? '' : v.num) + (v.rad > 1 ? '√' + v.rad : '') + (v.pi ? 'π' : '');
+  const body = v.den > 1 ? `<span class="fr"><span>${top}</span><span>${v.den}</span></span>` : top;
+  return body + (unit ? ' ' + unit : '');
+}
+const key = v => `${v.num}/${v.den}/${v.rad}/${v.pi}`;
+function mkOpts(right, wrongs, unit) {
+  const seen = new Set([key(right)]), o = [show(right, unit)];
+  for (const w of wrongs) { if (!w || w.num <= 0) continue; const k = key(w); if (seen.has(k)) continue; seen.add(k); o.push(show(w, unit)); if (o.length === 4) break; }
+  let k = 2; while (o.length < 4) { const w = V(right.num * k + 1, right.den, right.rad, right.pi); if (!seen.has(key(w))) { seen.add(key(w)); o.push(show(w, unit)); } k++; }
+  return o;
+}
+const DEG = '°';
+
+/* ---------- генератори ---------- */
+const KINDS = {
+  ang:{ n:'Кути многокутника', c:'var(--c-stru)' }, sq:{ n:'Квадрат і коло', c:'var(--c-nom)' }, len:{ n:'Довжина кола', c:'var(--c-calc)' },
+  hex:{ n:'Шестикутник і коло', c:'var(--c-prop)' }, tri:{ n:'Трикутник і коло', c:'var(--c-react)' }, sec:{ n:'Площа сектора', c:'var(--c-prod)' }, area:{ n:'Площа трикутника', c:'var(--c-stru)' },
+};
+const NG = { 5:"п'ятикутника", 6:'шестикутника', 8:'восьмикутника', 9:"дев'ятикутника", 10:'десятикутника', 12:'дванадцятикутника', 15:"п'ятнадцятикутника", 18:'вісімнадцятикутника', 20:'двадцятикутника' };
+const G = {
+  ang() {
+    const n = +pick(Object.keys(NG)), a = 180 * (n - 2) / n;
+    if (Math.random() < .65) {
+      const w = [360 / n, 180 * (n - 2), 180 - 360 / n + (n % 2 ? 0 : 10), a - 20, a + 10, 180 * (n - 1) / n].filter(x => Number.isInteger(x) && x !== a && x > 0 && x < 360);
+      return { k:'ang', q:`Знайдіть кут правильного ${NG[n]}.`, right:a + DEG, opts:mkOpts(V(a), w.map(x => V(x)), DEG).map(s => s.replace(' °', '°')),
+        sol:[`α = 180° · (n − 2) / n = 180° · ${n - 2} / ${n} = ${a}°.`, `${360 / n}° — це зовнішній (центральний) кут, не плутай.`] };
+    }
+    const w = [n + 1, n - 1, n + 2, Math.round(360 / (180 - a)) * 2, n * 2].filter(x => x !== n && x > 2);
+    return { k:'ang', q:`Кут правильного многокутника дорівнює ${a}°. Скільки в нього сторін?`, right:String(n), opts:[String(n), ...[...new Set([...w, n + 3, n + 4, n - 2].filter(x => x !== n && x > 2))].slice(0, 3).map(String)],
+      sol:[`Зовнішній кут: 180° − ${a}° = ${180 - a}°.`, `n = 360° / ${180 - a}° = ${n}.`] };
+  },
+  sq() {
+    const k = pick([2, 3, 4, 5, 6, 7, 8, 9, 10]), t = Math.random();
+    if (t < .4) return { k:'sq', q:`Знайдіть радіус кола, описаного навколо квадрата зі стороною ${k}√2 см.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k, 2, 2), V(k, 2), V(2 * k), V(k, 1, 2)], 'см'), sol:[`R = a√2 / 2 = ${k}√2 · √2 / 2 = ${k} · 2 / 2 = ${k} см.`] };
+    if (t < .7) return { k:'sq', q:`Знайдіть радіус кола, вписаного в квадрат зі стороною ${2 * k} см.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k, 1, 2), V(2 * k), V(k, 2), V(2 * k, 1, 2)], 'см'), sol:[`r = a / 2 = ${2 * k} / 2 = ${k} см.`] };
+    return { k:'sq', q:`Радіус кола, описаного навколо квадрата, дорівнює ${k} см. Знайдіть сторону квадрата.`, right:show(V(k, 1, 2), 'см'),
+      opts:mkOpts(V(k, 1, 2), [V(k, 2, 2), V(2 * k), V(k), V(k, 1, 3)], 'см'), sol:[`a = R√2 = ${k}√2 см.`] };
+  },
+  len() {
+    const k = pick([4, 6, 8, 10, 12, 14, 16, 18, 20]), t = Math.random();
+    if (t < .45) return { k:'len', q:`Знайдіть діаметр кола, довжина якого дорівнює ${k}π см.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k, 2), V(k / 2, 1, 1, true), V(k, 1, 1, true), V(2 * k)], 'см'), sol:[`C = πd → d = C / π = ${k}π / π = ${k} см.`] };
+    if (t < .75) return { k:'len', q:`Знайдіть довжину кола радіуса ${k / 2} см.`, right:show(V(k, 1, 1, true), 'см'),
+      opts:mkOpts(V(k, 1, 1, true), [V(k / 2, 1, 1, true), V(k * k / 4, 1, 1, true), V(2 * k, 1, 1, true), V(k)], 'см'), sol:[`C = 2πR = 2π · ${k / 2} = ${k}π см.`] };
+    const R = pick([3, 6, 9, 12]), al = pick([60, 120, 30, 90]); const num = R * al, den = 180;
+    return { k:'len', q:`Знайдіть довжину дуги кола радіуса ${R} см, що відповідає центральному куту ${al}°.`, right:show(V(num, den, 1, true), 'см'),
+      opts:mkOpts(V(num, den, 1, true), [V(R * R * al, 360, 1, true), V(num, 360, 1, true), V(2 * R, 1, 1, true), V(num, den)], 'см'), sol:[`l = πRα / 180° = π · ${R} · ${al} / 180 = ${plain(show(V(num, den, 1, true)))} см.`] };
+  },
+  hex() {
+    const k = pick([2, 3, 4, 5, 6, 7, 8, 9, 10]), t = Math.random();
+    if (t < .45) return { k:'hex', q:`Навколо правильного шестикутника описане коло діаметра ${2 * k} см. Знайдіть сторону шестикутника.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k, 1, 3), V(2 * k), V(k, 2, 3), V(k + 2)], 'см'), sol:[`R = d / 2 = ${k} см.`, `У правильного шестикутника a = R = ${k} см.`] };
+    if (t < .75) return { k:'hex', q:`Сторона правильного шестикутника дорівнює ${2 * k} см. Знайдіть радіус вписаного кола.`, right:show(V(k, 1, 3), 'см'),
+      opts:mkOpts(V(k, 1, 3), [V(2 * k), V(k), V(2 * k, 1, 3), V(k, 1, 2)], 'см'), sol:[`r = a√3 / 2 = ${2 * k}√3 / 2 = ${k}√3 см.`] };
+    return { k:'hex', q:`Радіус кола, описаного навколо правильного шестикутника, дорівнює ${k} см. Знайдіть периметр шестикутника.`, right:show(V(6 * k), 'см'),
+      opts:mkOpts(V(6 * k), [V(3 * k), V(6 * k, 1, 3), V(12 * k), V(k * 6 + 6)], 'см'), sol:[`a = R = ${k} см.`, `P = 6a = ${6 * k} см.`] };
+  },
+  tri() {
+    const k = pick([2, 4, 6, 8, 10]), t = Math.random();
+    if (t < .5) { const r = k / 2;
+      return { k:'tri', q:`У правильний трикутник зі стороною ${k}√3 см вписане коло. Знайдіть площу круга, обмеженого цим колом.`, right:show(V(r * r, 1, 1, true), 'см²'),
+        opts:mkOpts(V(r * r, 1, 1, true), [V(k * k, 1, 1, true), V(r * r * 3, 1, 1, true), V(k * k * 3, 4, 3, true), V(2 * r * r, 1, 1, true)], 'см²'),
+        sol:[`r = a√3 / 6 = ${k}√3 · √3 / 6 = ${3 * k} / 6 = ${r} см.`, `S = πr² = ${r * r}π см².`] }; }
+    if (t < .75) return { k:'tri', q:`Сторона правильного трикутника дорівнює ${k}√3 см. Знайдіть радіус описаного кола.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k, 2), V(k, 1, 3), V(2 * k), V(k, 3, 3)], 'см'), sol:[`R = a√3 / 3 = ${k}√3 · √3 / 3 = ${k} см.`] };
+    return { k:'tri', q:`Радіус кола, вписаного в правильний трикутник, дорівнює ${k / 2} см. Знайдіть радіус описаного кола.`, right:show(V(k), 'см'),
+      opts:mkOpts(V(k), [V(k / 2), V(k, 2, 3), V(3 * k / 2), V(k, 1, 3)], 'см'), sol:[`У правильному трикутнику R = 2r = ${k} см.`] };
+  },
+  sec() {
+    const [al, R] = pick([[60, 6], [60, 12], [90, 4], [90, 6], [90, 8], [120, 3], [120, 6], [120, 9], [30, 6], [30, 12], [45, 4], [45, 8], [150, 6]]);
+    const s = V(R * R * al, 360, 1, true);
+    const hexNote = al === 60 && Math.random() < .5;
+    return { k:'sec', q:hexNote ? `Круговий сектор відповідає центральному куту 60° (як одна шоста частина круга, в який вписаний правильний шестикутник). Знайдіть площу сектора, якщо радіус круга дорівнює ${R} см.` : `Знайдіть площу кругового сектора з центральним кутом ${al}°, якщо радіус круга дорівнює ${R} см.`,
+      right:show(s, 'см²'), opts:mkOpts(s, [V(R * al, 360, 1, true), V(R * R, 1, 1, true), V(R * R * al, 180, 1, true), V(R * R * al, 360)], 'см²'),
+      sol:[`S = πR² · α / 360° = π · ${R * R} · ${al} / 360 = ${plain(show(s))} см².`] };
+  },
+  area() {
+    if (Math.random() < .5) { const R = pick([2, 4, 6, 8, 10]); const S = V(3 * R * R, 4, 3);
+      return { k:'area', q:`Знайдіть площу правильного трикутника, якщо навколо нього описане коло радіуса ${R} см.`, right:show(S, 'см²'),
+        opts:mkOpts(S, [V(R * R, 4, 3), V(3 * R * R, 1, 3), V(3 * R * R, 4), V(R * R * 3, 2, 3)], 'см²'),
+        sol:[`a = R√3 = ${R}√3 см.`, `S = a²√3 / 4 = ${3 * R * R}√3 / 4 = ${plain(show(S))} см².`] }; }
+    const r = pick([1, 2, 3, 4, 5]); const S = V(3 * r * r, 1, 3);
+    return { k:'area', q:`Знайдіть площу правильного трикутника, якщо в нього вписане коло радіуса ${r} см.`, right:show(S, 'см²'),
+      opts:mkOpts(S, [V(r * r, 1, 3), V(3 * r * r, 4, 3), V(12 * r * r, 1, 3), V(3 * r * r)], 'см²'),
+      sol:[`R = 2r = ${2 * r} см, a = R√3 = ${2 * r}√3 см.`, `S = a²√3 / 4 = ${12 * r * r}√3 / 4 = ${plain(show(S))} см².`] };
+  },
+};
+const gen = k => { const t = G[k](); t.opts = shuffle(t.opts.slice(0, 4)); return t; };
+
+/* ---------- практика ---------- */
+const P = { kind:'all', t:null, done:false, got:0, all:0 };
+$('pseg').innerHTML = [['all', 'Усі типи'], ...Object.entries(KINDS).map(([k, v]) => [k, v.n])].map(([k, n]) => `<button class="segb" data-k="${k}" aria-pressed="${k === 'all'}">${n}</button>`).join('');
+$('pseg').querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; $('pseg').querySelectorAll('.segb').forEach(x => x.setAttribute('aria-pressed', x === b)); newP(); });
+function newP() { P.t = gen(P.kind === 'all' ? pick(Object.keys(KINDS)) : P.kind); P.done = false; renderP(); }
+function renderP() {
+  const t = P.t; $('pstat').textContent = `Правильно: ${P.got} з ${P.all}`;
+  $('ptask').style.setProperty('--c', KINDS[t.k].c);
+  $('ptask').innerHTML = `<div class="tline"><span class="tag">${KINDS[t.k].n}</span></div><div class="q">${t.q}</div>
+    <div class="optg">${t.opts.map((o, i) => `<button class="opt" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o}</span></button>`).join('')}</div>
+    <div id="p-fb"></div><div class="actions"><button class="btn ghost" id="p-next">Наступне завдання</button></div>`;
+  $('ptask').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (P.done) return; P.done = true; P.all++; const ok = t.opts[+b.dataset.i] === t.right; if (ok) P.got++;
+    $('ptask').querySelectorAll('.opt').forEach(x => { x.disabled = true; if (t.opts[+x.dataset.i] === t.right) x.classList.add('ok'); });
+    if (!ok) b.classList.add('bad');
+    $('p-fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? 'Правильно!' : 'Не зовсім.'}</b></div><div class="solbox"><b>Розв'язання</b><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
+    $('pstat').textContent = `Правильно: ${P.got} з ${P.all}`;
+  });
+  $('p-next').onclick = newP;
+}
+
+/* ---------- тест ---------- */
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, sent:'' };
+try { T.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function makeTest() { const order = ['ang', 'ang', 'sq', 'sq', 'len', 'len', 'hex', 'hex', 'tri', 'tri', 'sec', 'sec', 'area', 'area'], seen = new Set();
+  return order.map(k => { let t, g = 0; do { t = gen(k); } while (seen.has(t.q) && g++ < 50); seen.add(t.q); return { ...t, a:null }; }); }
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">14 завдань · 14 балів</div><h2 style="margin-top:4px">Тест: правильні многокутники і коло</h2></div>
+      <p>Кути многокутників, описане й вписане коло, довжина кола, площі круга, сектора й трикутника. Можна користуватися чернеткою. Результат прийде вчителю.</p>
+      <div class="row"><label class="field">Ім'я та прізвище<input id="t-name" value="${esc(T.name)}" autocomplete="name"></label><label class="field">Клас<input id="t-cls" value="${esc(T.cls)}" inputmode="numeric"></label></div>
+      <div class="err" id="t-err"></div><div class="actions"><button class="btn" id="t-go">Почати тест</button></div></div>`;
+    $('t-go').onclick = () => { T.name = $('t-name').value.trim(); T.cls = $('t-cls').value.trim();
+      if (!T.name) { $('t-err').textContent = "Впиши ім'я та прізвище."; return; }
+      try { localStorage.setItem('nova_name', T.name); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.phase = 'run'; T.sent = ''; renderTest(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1;
+    v.innerHTML = `<div class="dots">${T.tasks.map((x, j) => `<button class="dot ${x.a !== null ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${KINDS[t.k].c}"><div class="tline"><span class="tag">${KINDS[t.k].n}</span><span class="count">${T.i + 1} / ${N}</span></div>
+      <div class="q">${t.q}</div><div class="optg">${t.opts.map((o, i) => `<button class="opt ${t.a === i ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o}</span></button>`).join('')}</div>
+      <div class="actions"><button class="btn ghost" id="t-prev" ${T.i ? '' : 'disabled'}>Назад</button>${last ? '<button class="btn" id="t-fin">Завершити тест</button>' : '<button class="btn" id="t-next">Далі</button>'}</div></div>`;
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => { T.i = +b.dataset.j; renderTest(); });
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.a = +b.dataset.i; if (!last) T.i++; renderTest(); });
+    $('t-prev').onclick = () => { T.i--; renderTest(); };
+    if ($('t-next')) $('t-next').onclick = () => { T.i++; renderTest(); };
+    if ($('t-fin')) $('t-fin').onclick = () => { T.phase = 'done'; renderTest(); send(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  const ok = t => t.a !== null && t.opts[t.a] === t.right;
+  const got = T.tasks.filter(ok).length, N = T.tasks.length, mark = Math.max(1, Math.round(got / N * 12));
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">${esc(T.name)}${T.cls ? ' · ' + esc(T.cls) + ' клас' : ''}</div><div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+    <div class="hint">Правильно ${got} з ${N}</div><div class="send ${T.sent || 'wait'}">${T.sent === 'ok' ? 'Результат надіслано вчителю.' : T.sent === 'fail' ? 'Не вдалося надіслати. <button class="btn ghost" id="t-resend">Ще раз</button>' : 'Надсилаю результат…'}</div>
+    <div class="actions"><button class="btn ghost" id="t-again">Пройти ще раз</button></div></div>
+    <div class="card stack"><h2>Розбір</h2><ol class="review">${T.tasks.map((t, i) => { const g = ok(t);
+      return `<li class="${g ? 'ok' : 'bad'}"><span class="m">${g ? '✓' : '✗'}</span><div class="rb"><b>${i + 1}.</b> ${t.q}${g ? '' : `<div class="yours">Твоя відповідь: ${t.a === null ? '—' : t.opts[t.a]}</div><div class="why">Правильно: <b>${t.right}</b>. ${t.sol.join(' ')}</div>`}</div></li>`; }).join('')}</ol></div>`;
+  if ($('t-resend')) $('t-resend').onclick = send;
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+function send() {
+  const ok = t => t.a !== null && t.opts[t.a] === t.right;
+  const got = T.tasks.filter(ok).length, N = T.tasks.length;
+  const details = T.tasks.map((t, i) => `${ok(t) ? '✓' : '✗'} ${i + 1}. [${KINDS[t.k].n}] ${plain(t.q)}${ok(t) ? '' : `\n     відповів: «${t.a === null ? '—' : plain(t.opts[t.a])}» → правильно: «${plain(t.right)}»`}`).join('\n');
+  T.sent = 'wait';
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name:T.name, cls:T.cls, topic:'Геометрія: правильні многокутники і коло', score:`${got}/${N}`, mark:Math.max(1, Math.round(got / N * 12)), details }) })
+    .then(() => { T.sent = 'ok'; if (T.phase === 'done') renderTest(); }).catch(() => { T.sent = 'fail'; if (T.phase === 'done') renderTest(); });
+}
+
+/* ---------- вкладки ---------- */
+const VIEWS = ['teoriya', 'zadachi', 'test'];
+function showV(v) { if (!VIEWS.includes(v)) v = 'teoriya'; VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'zadachi' && !P.t) newP(); if (v === 'test' && T.phase === 'start') renderTest(); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { showV(b.dataset.v); try { history.replaceState(null, '', '#' + b.dataset.v); } catch (e) {} window.scrollTo({ top:0 }); });
+window.addEventListener('hashchange', () => showV(location.hash.slice(1)));
+showV(location.hash.slice(1));
+</script>
+
+</html>

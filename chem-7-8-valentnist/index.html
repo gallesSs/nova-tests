@@ -1,0 +1,684 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Валентність</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.bondsvg{width:100%;max-width:440px;height:auto;display:block}
+.bondsvg text{font:700 15px var(--mono);fill:var(--ink)}
+.atomA{fill:var(--oh-bg);stroke:var(--oh);stroke-width:2}
+.atomB{fill:var(--card);stroke:var(--ink);stroke-width:2}
+.stk{stroke:var(--ink);stroke-width:2.4;stroke-linecap:round}
+.stk.free{stroke:var(--bad);stroke-width:3}
+.bond{stroke:var(--oh);stroke-width:2.2}
+.stepper{display:inline-flex;align-items:center;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.stepper button{font:700 18px var(--mono);width:40px;height:40px;border:0;background:var(--card);color:var(--ink);cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper span{font:700 18px var(--mono);min-width:38px;text-align:center}
+.ctrl{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.ctrl label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.ctrl select{font:600 15px var(--body);padding:9px 10px;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.bigf{font:700 clamp(26px,7vw,36px)/1.2 var(--mono)}
+.romb{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-width:520px}
+.romb .opt{justify-content:center;font:700 17px var(--mono);padding:10px 6px}
+.stat{display:flex;flex-wrap:wrap;gap:8px 18px;font:700 14px var(--mono);color:var(--muted)}
+.vt td,.vt th{white-space:nowrap}
+.pv{font:600 15px var(--mono);color:var(--muted);min-height:1.5em}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · 7–8 клас · Хімічні формули</div>
+    <div class="brand"><h1>Валентність</h1><span class="ohbadge" aria-hidden="true">Al<sup>III</sup>₂O<sup>II</sup>₃</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="zadachi" aria-selected="false">Задачі</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+      <button class="tab" role="tab" data-v="gra" aria-selected="false">Гра</button>
+    </nav>
+  </header>
+
+  <!-- ================= ТЕОРІЯ ================= -->
+  <section id="v-teoriya" class="stack">
+    <div class="card sec">
+      <h2>1. Що таке валентність</h2>
+      <div class="def"><span class="lbl">Означення</span><span><b>Валентність</b> — здатність атома утворювати певну кількість хімічних зв'язків з іншими атомами.</span></div>
+      <p>Валентність позначають римськими цифрами над символом: H<sup>I</sup>, O<sup>II</sup>, Al<sup>III</sup>. Кожен зв'язок — це одна «риска» в графічній формулі. Валентність показує, скільки рисок «тримає» атом.</p>
+      <div class="tblw"><table>
+        <tr><th>Речовина</th><th>Графічна формула</th><th>Валентності</th></tr>
+        <tr><td class="f">HCl</td><td class="f">H–Cl</td><td>H — I, Cl — I</td></tr>
+        <tr><td class="f">H₂O</td><td class="f">H–O–H</td><td>H — I, O — II</td></tr>
+        <tr><td class="f">NH₃</td><td class="f">H–N(–H)–H</td><td>H — I, N — III</td></tr>
+        <tr><td class="f">CO₂</td><td class="f">O=C=O</td><td>O — II, C — IV</td></tr>
+      </table></div>
+    </div>
+
+    <div class="card sec">
+      <h2>2. Постійна і змінна валентність</h2>
+      <p>У одних елементів валентність завжди однакова — її треба знати напам'ять. Інші можуть мати різну валентність у різних сполуках — тоді її вказують у назві: ферум(III) оксид.</p>
+      <div class="tblw"><table class="vt">
+        <tr><th>Валентність</th><th>Постійна</th></tr>
+        <tr><td>I</td><td class="f">H, Li, Na, K, Ag, F</td></tr>
+        <tr><td>II</td><td class="f">O, Mg, Ca, Ba, Zn</td></tr>
+        <tr><td>III</td><td class="f">Al, B</td></tr>
+      </table></div>
+      <div class="tblw"><table class="vt">
+        <tr><th>Елемент</th><th>Змінна валентність</th><th>Приклади</th></tr>
+        <tr><td class="f">Fe</td><td>II, III</td><td class="f">FeO, Fe₂O₃</td></tr>
+        <tr><td class="f">Cu</td><td>I, II</td><td class="f">Cu₂O, CuO</td></tr>
+        <tr><td class="f">C</td><td>II, IV</td><td class="f">CO, CO₂</td></tr>
+        <tr><td class="f">S</td><td>II, IV, VI</td><td class="f">H₂S, SO₂, SO₃</td></tr>
+        <tr><td class="f">N</td><td>I–V</td><td class="f">N₂O, NO, N₂O₃, NO₂, N₂O₅</td></tr>
+        <tr><td class="f">P</td><td>III, V</td><td class="f">PH₃, P₂O₅</td></tr>
+        <tr><td class="f">Cl</td><td>I, III, V, VII</td><td class="f">HCl, Cl₂O₇</td></tr>
+        <tr><td class="f">Mn</td><td>II, IV, VII</td><td class="f">MnO, MnO₂, Mn₂O₇</td></tr>
+        <tr><td class="f">Cr</td><td>II, III, VI</td><td class="f">CrO, Cr₂O₃, CrO₃</td></tr>
+      </table></div>
+      <p class="note">Підказка: в оксидах неметалів найвища валентність часто дорівнює номеру групи: S — VI, P — V, Cl — VII, N — V, C — IV.</p>
+    </div>
+
+    <div class="card sec">
+      <h2>3. Головне правило</h2>
+      <div class="def"><span class="lbl">У бінарній сполуці AₓBᵧ</span><span class="big">x · V(A) = y · V(B)</span><span>Скільки рисок у всіх атомів A — стільки ж у всіх атомів B. Вільних рисок не лишається.</span></div>
+    </div>
+
+    <div class="card sec">
+      <h2>4. Як визначити валентність за формулою</h2>
+      <div class="example"><b>Приклад: яка валентність Мангану в Mn₂O₇?</b>
+        <ol class="steps">
+          <li>Валентність Оксигену відома: II.</li>
+          <li>Рахуємо всі риски Оксигену: 7 · II = 14.</li>
+          <li>Стільки ж рисок у двох атомів Мангану: 14 : 2 = 7.</li>
+          <li>Відповідь: Mn — <b>VII</b>.</li>
+        </ol></div>
+      <div class="example"><b>Приклад: яка валентність Нітрогену в NH₃?</b>
+        <ol class="steps"><li>Гідроген — I, рисок: 3 · I = 3.</li><li>Атом Нітрогену один: 3 : 1 = 3. Відповідь: N — <b>III</b>.</li></ol></div>
+    </div>
+
+    <div class="card sec">
+      <h2>5. Як скласти формулу за валентністю</h2>
+      <div class="example"><b>Приклад: алюміній оксид (Al — III, O — II)</b>
+        <ol class="steps">
+          <li>Записуємо символи й валентності: Al<sup>III</sup> O<sup>II</sup>.</li>
+          <li>Знаходимо найменше спільне кратне (НСК) валентностей: НСК(3, 2) = 6.</li>
+          <li>Ділимо НСК на кожну валентність: Al — 6 : 3 = 2, O — 6 : 2 = 3.</li>
+          <li>Записуємо індекси: <b class="f">Al₂O₃</b>. Перевірка: 2 · III = 3 · II = 6 ✓</li>
+        </ol></div>
+      <div class="example"><b>Приклад: сульфур(VI) оксид (S — VI, O — II)</b>
+        <ol class="steps"><li>НСК(6, 2) = 6.</li><li>S — 6 : 6 = 1, O — 6 : 2 = 3.</li><li>Формула <b class="f">SO₃</b> (індекс 1 не пишемо).</li></ol></div>
+      <p class="note">Швидкий спосіб «навхрест»: валентність одного елемента стає індексом іншого: Al<sup>III</sup>O<sup>II</sup> → Al₂O₃. Але якщо індекси мають спільний дільник — скорочуй: C<sup>IV</sup>O<sup>II</sup> → C₂O₄ → <b class="f">CO₂</b>.</p>
+    </div>
+
+    <div class="card sec">
+      <h2>6. Групи атомів</h2>
+      <p>Деякі групи атомів поводяться як одне ціле й мають свою валентність. Якщо такої групи у формулі кілька — її беруть у дужки, а індекс пишуть за дужкою.</p>
+      <div class="tblw"><table class="vt">
+        <tr><th>Група</th><th>Назва</th><th>Валентність</th><th>Приклад</th></tr>
+        <tr><td class="f">OH</td><td>гідроксид</td><td>I</td><td class="f">Ca(OH)₂</td></tr>
+        <tr><td class="f">NO₃</td><td>нітрат</td><td>I</td><td class="f">Mg(NO₃)₂</td></tr>
+        <tr><td class="f">SO₄</td><td>сульфат</td><td>II</td><td class="f">Al₂(SO₄)₃</td></tr>
+        <tr><td class="f">CO₃</td><td>карбонат</td><td>II</td><td class="f">Na₂CO₃</td></tr>
+        <tr><td class="f">PO₄</td><td>ортофосфат</td><td>III</td><td class="f">Ca₃(PO₄)₂</td></tr>
+      </table></div>
+      <p class="note">Дужки потрібні тільки тоді, коли групи більше однієї: Na₂SO₄, але Al₂(SO₄)₃.</p>
+    </div>
+
+    <div class="card sec" id="calc">
+      <h2>7. Конструктор формул</h2>
+      <p>Обери елемент і партнера — побачиш, як риски з'єднуються, і розв'язання через НСК.</p>
+      <div class="ctrl">
+        <label>Елемент<select id="cA"></select></label>
+        <label>Партнер<select id="cB"></select></label>
+      </div>
+      <div id="cOut" class="stack"></div>
+    </div>
+  </section>
+
+  <!-- ================= ЗАДАЧІ ================= -->
+  <section id="v-zadachi" class="stack" hidden>
+    <div class="card stack">
+      <div class="seg" id="pseg"></div>
+      <div class="stat" id="pstat"></div>
+    </div>
+    <div class="card task" id="ptask"></div>
+  </section>
+
+  <!-- ================= ТЕСТ ================= -->
+  <section id="v-test" class="stack" hidden></section>
+
+  <!-- ================= ГРА ================= -->
+  <section id="v-gra" class="stack" hidden></section>
+  <footer>Хімія з Артуром Валентиновичем · NovaШкола</footer>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const lcm = (a, b) => a * b / gcd(a, b);
+const ROM = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+const fH = f => String(f).replace(/(\d+)/g, '<sub>$1</sub>');
+const LETTERS = 'АБВГД';
+
+/* ---------- дані ---------- */
+const EL = { H:['Гідроген',[1]], Li:['Літій',[1]], Na:['Натрій',[1]], K:['Калій',[1]], Ag:['Аргентум',[1]], Cu:['Купрум',[1, 2]],
+  Mg:['Магній',[2]], Ca:['Кальцій',[2]], Ba:['Барій',[2]], Zn:['Цинк',[2]], Fe:['Ферум',[2, 3]], Al:['Алюміній',[3]], B:['Бор',[3]],
+  Cr:['Хром',[2, 3, 6]], Mn:['Манган',[2, 4, 7]], Pb:['Плюмбум',[2, 4]], Sn:['Станум',[2, 4]], C:['Карбон',[2, 4]], Si:['Силіцій',[4]],
+  N:['Нітроген',[1, 2, 3, 4, 5]], P:['Фосфор',[3, 5]], S:['Сульфур',[2, 4, 6]], Cl:['Хлор',[1, 3, 5, 7]], O:['Оксиген',[2]] };
+const PART = { O:{ v:2, n:'оксид', g:0, w:'з Оксигеном' }, Cl:{ v:1, n:'хлорид', g:0, w:'з Хлором (I)' }, S:{ v:2, n:'сульфід', g:0, w:'із Сульфуром (II)' },
+  OH:{ v:1, n:'гідроксид', g:1 }, NO3:{ v:1, n:'нітрат', g:1 }, SO4:{ v:2, n:'сульфат', g:1 }, CO3:{ v:2, n:'карбонат', g:1 }, PO4:{ v:3, n:'ортофосфат', g:1 } };
+/* допустимі пари [елемент, валентність, партнер] — лише реальні сполуки */
+const PAIRS = [];
+const add = (els, partner) => els.split(' ').forEach(t => { const [e, v] = t.split(':'); PAIRS.push([e, +v, partner]); });
+add('Li:1 Na:1 K:1 Ag:1 Cu:1 Cu:2 Mg:2 Ca:2 Ba:2 Zn:2 Fe:2 Fe:3 Al:3 B:3 Cr:2 Cr:3 Cr:6 Mn:2 Mn:4 Mn:7 Pb:2 Pb:4 Sn:2 Sn:4 C:2 C:4 Si:4 N:1 N:2 N:3 N:4 N:5 P:3 P:5 S:4 S:6 Cl:1 Cl:7 H:1', 'O');
+add('Na:1 K:1 Li:1 Ag:1 Cu:2 Mg:2 Ca:2 Ba:2 Zn:2 Fe:2 Fe:3 Al:3 Cr:3 Pb:2 Sn:2 Sn:4 P:3 P:5 H:1', 'Cl');
+add('Na:1 K:1 Ag:1 Cu:2 Ca:2 Ba:2 Zn:2 Fe:2 Al:3 Pb:2 H:1', 'S');
+add('Na:1 K:1 Li:1 Ca:2 Ba:2 Mg:2 Zn:2 Cu:2 Fe:2 Fe:3 Al:3 Cr:3', 'OH');
+add('Na:1 K:1 Ag:1 Ca:2 Ba:2 Mg:2 Zn:2 Cu:2 Fe:3 Al:3 Pb:2', 'NO3');
+add('Na:1 K:1 Ca:2 Ba:2 Mg:2 Zn:2 Cu:2 Fe:2 Fe:3 Al:3 Cr:3', 'SO4');
+add('Na:1 K:1 Ca:2 Ba:2 Mg:2 Zn:2', 'CO3');
+add('Na:1 K:1 Ca:2 Ba:2 Mg:2 Zn:2 Al:3 Fe:3', 'PO4');
+const isVar = e => EL[e][1].length > 1;
+function comp(e, v, p) {
+  const P = PART[p], L = lcm(v, P.v), ia = L / v, ib = L / P.v;
+  let f = e + (ia > 1 ? ia : '');
+  f += P.g ? (ib > 1 ? `(${p})${ib}` : p) : p + (ib > 1 ? ib : '');
+  if (e === 'H' && p === 'O') f = 'H2O';
+  if (e === 'H' && p === 'Cl') f = 'HCl';
+  if (e === 'H' && p === 'S') f = 'H2S';
+  const name = `${EL[e][0]}${isVar(e) ? `(${ROM[v]})` : ''} ${P.n}`;
+  return { e, v, p, ia, ib, f, name, L };
+}
+const POOL = PAIRS.map(([e, v, p]) => comp(e, v, p));
+const HYDR = [['NH3', 'N', 3, 1, 3], ['CH4', 'C', 4, 1, 4], ['H2S', 'S', 2, 1, 2], ['PH3', 'P', 3, 1, 3], ['SiH4', 'Si', 4, 1, 4], ['HCl', 'Cl', 1, 1, 1]];
+
+/* ---------- розбір введеної формули ---------- */
+const CYR = { 'А':'A', 'В':'B', 'С':'C', 'Е':'E', 'Н':'H', 'І':'I', 'К':'K', 'М':'M', 'О':'O', 'Р':'P', 'Т':'T', 'Х':'X', 'а':'a', 'с':'c', 'е':'e', 'о':'o', 'р':'p', 'х':'x', 'і':'i', 'у':'y' };
+const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+function norm(s) { return String(s).replace(/[А-Яа-яІі]/g, c => CYR[c] || c).replace(/[₀-₉]/g, c => SUBD.indexOf(c)).replace(/\s+/g, '').replace(/[{[]/g, '(').replace(/[}\]]/g, ')'); }
+function parseF(s) {
+  s = norm(s); let i = 0; const KNOWN = new Set([...Object.keys(EL), 'O']);
+  function group() {
+    const m = {};
+    while (i < s.length && s[i] !== ')') {
+      let sub;
+      if (s[i] === '(') { i++; sub = group(); if (s[i] !== ')') throw 0; i++; }
+      else { const mm = /^[A-Z][a-z]?/.exec(s.slice(i)); if (!mm) throw 0; let sym = mm[0];
+        if (!KNOWN.has(sym) && sym.length === 2 && KNOWN.has(sym[0])) sym = sym[0];
+        if (!KNOWN.has(sym)) throw 0; i += sym.length; sub = { [sym]:1 }; }
+      const d = /^\d+/.exec(s.slice(i)); const k = d ? +d[0] : 1; if (d) i += d[0].length; if (k === 0) throw 0;
+      for (const x in sub) m[x] = (m[x] || 0) + sub[x] * k;
+    }
+    return m;
+  }
+  try { const m = group(); if (i !== s.length || !Object.keys(m).length) return null; return { m, first:/^[A-Z][a-z]?/.exec(s)[0], s }; } catch (e) { return null; }
+}
+function checkF(input, correct) {
+  const a = parseF(input), b = parseF(correct);
+  if (!a) return { ok:false, why: /[a-z]{2}/.test(norm(input)) || /^[a-z]/.test(norm(input)) ? 'Не вдалося прочитати формулу — перевір великі й малі літери (Fe, а не fe).' : 'Не вдалося прочитати формулу. Пиши так: Al2O3, Ca(OH)2.' };
+  const ka = Object.keys(a.m).sort().join(), kb = Object.keys(b.m).sort().join();
+  if (ka !== kb) return { ok:false, why:'У формулі не ті елементи.' };
+  const same = Object.keys(b.m).every(k => a.m[k] === b.m[k]);
+  if (same) {
+    if (a.first !== b.first) return { ok:false, why:'Склад правильний, але першим пишуть метал (або елемент з позитивною валентністю).' };
+    if (b.s.includes('(') && !a.s.includes('(')) return { ok:false, why:'Групу атомів, якої у формулі кілька, треба взяти в дужки.' };
+    return { ok:true };
+  }
+  const r = Object.keys(b.m).map(k => a.m[k] / b.m[k]);
+  if (r.every(x => Math.abs(x - r[0]) < 1e-9)) return { ok:false, why:'Співвідношення правильне, але індекси треба скоротити.' };
+  return { ok:false, why:'Валентності не зрівнялись.' };
+}
+
+/* ---------- малюнок зв'язків ---------- */
+function bondSVG(e, va, ia, p, vb, ib) {
+  const W = 440, gapA = Math.min(70, (W - 40) / Math.max(ia, 1)), gapB = Math.min(70, (W - 40) / Math.max(ib, 1));
+  const rA = p.length > 2 ? 22 : 20, rB = p.length > 2 ? 26 : 20;
+  const xs = (n, g) => Array.from({ length:n }, (_, i) => W / 2 + (i - (n - 1) / 2) * g);
+  const ax = xs(ia, gapA), bx = xs(ib, gapB), yA = 40, yB = 150;
+  const sticks = (x, y, n, dir, r) => Array.from({ length:n }, (_, k) => { const ang = (n === 1 ? 0 : (k / (n - 1) - .5) * 1.4); const dx = Math.sin(ang), dy = Math.cos(ang) * dir;
+    return { x1:x + dx * r, y1:y + dy * r, x2:x + dx * (r + 14), y2:y + dy * (r + 14) }; });
+  const SA = ax.flatMap(x => sticks(x, yA, va, 1, rA)), SB = bx.flatMap(x => sticks(x, yB, vb, -1, rB));
+  const n = Math.min(SA.length, SB.length);
+  let out = `<svg class="bondsvg" viewBox="0 0 ${W} 190" role="img" aria-label="Зв'язки між атомами">`;
+  for (let k = 0; k < n; k++) out += `<line class="bond" x1="${SA[k].x2}" y1="${SA[k].y2}" x2="${SB[k].x2}" y2="${SB[k].y2}"/>`;
+  SA.forEach((s, k) => out += `<line class="stk ${k >= n ? 'free' : ''}" x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}"/>`);
+  SB.forEach((s, k) => out += `<line class="stk ${k >= n ? 'free' : ''}" x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}"/>`);
+  ax.forEach(x => out += `<circle class="atomA" cx="${x}" cy="${yA}" r="${rA}"/><text x="${x}" y="${yA + 5}" text-anchor="middle">${e}</text>`);
+  bx.forEach(x => out += `<circle class="atomB" cx="${x}" cy="${yB}" r="${rB}"/><text x="${x}" y="${yB + 5}" text-anchor="middle" style="font-size:${p.length > 2 ? 12 : 15}px">${p}</text>`);
+  return out + '</svg>';
+}
+
+/* ---------- конструктор у теорії ---------- */
+(function () {
+  const A = $('cA'), B = $('cB');
+  const opts = [...new Set(PAIRS.map(([e, v]) => e + ':' + v))].filter(x => !x.startsWith('H:'));
+  A.innerHTML = opts.map(x => { const [e, v] = x.split(':'); return `<option value="${x}">${e} — ${EL[e][0]} (${ROM[v]})</option>`; }).join('');
+  A.value = 'Al:3';
+  function upd() {
+    const [e, v] = A.value.split(':'); const ps = PAIRS.filter(p => p[0] === e && p[1] === +v).map(p => p[2]);
+    const cur = B.value; B.innerHTML = ps.map(p => `<option value="${p}">${fH(p).replace(/<\/?sub>/g, '')} — ${PART[p].n} (${ROM[PART[p].v]})</option>`).join('');
+    B.value = ps.includes(cur) ? cur : ps[0]; draw();
+  }
+  function draw() {
+    const [e, v] = A.value.split(':'), c = comp(e, +v, B.value), P = PART[c.p];
+    $('cOut').innerHTML = `<div class="bigf">${fH(c.f)}</div><div class="hint">${c.name}</div>
+      ${bondSVG(e, c.v, c.ia, c.p, P.v, c.ib)}
+      <ol class="steps"><li>${e}<sup>${ROM[c.v]}</sup> і ${fH(c.p)}<sup>${ROM[P.v]}</sup></li><li>НСК(${c.v}, ${P.v}) = ${c.L}</li>
+      <li>${e}: ${c.L} : ${c.v} = ${c.ia}; ${fH(c.p)}: ${c.L} : ${P.v} = ${c.ib}</li><li>Перевірка: ${c.ia} · ${ROM[c.v]} = ${c.ib} · ${ROM[P.v]} = ${c.L} ✓</li></ol>`;
+  }
+  A.onchange = upd; B.onchange = draw; upd();
+})();
+
+/* ---------- генератори завдань ---------- */
+const KINDS = {
+  val:{ name:'Валентність за формулою', c:'var(--c-stru)' },
+  form:{ name:'Формула за валентністю', c:'var(--c-calc)' },
+  grp:{ name:'Формули з групами атомів', c:'var(--c-nom)' },
+  name:{ name:'Назва → формула', c:'var(--c-react)' },
+};
+function genVal() {
+  if (Math.random() < .18) { const [f, e, v] = pick(HYDR);
+    return { k:'val', q:`Визнач валентність ${EL[e][0].replace(/ій$/, 'ію').replace(/н$/, 'ну').replace(/р$/, 'ру').replace(/ен$/, 'ену')} у сполуці <span class="f">${fH(f)}</span>.`, qs:`Валентність ${e} у ${f}`, ans:v,
+      sol:[`Гідроген — I.`, `Рисок Гідрогену: ${f === 'HCl' ? 1 : f.match(/\d+/) ? f.match(/\d+/)[0] : 1} · I = ${v}.`, `Атом ${e} один, тож його валентність ${ROM[v]}.`] }; }
+  const c = pick(POOL.filter(x => !x.ia || x.e !== 'H').filter(x => !PART[x.p].g && x.e !== 'H' && (isVar(x.e) || Math.random() < .35)));
+  const P = PART[c.p], tot = c.ib * P.v;
+  return { k:'val', q:`Визнач валентність елемента <b>${c.e}</b> у сполуці <span class="f">${fH(c.f)}</span>.`, qs:`Валентність ${c.e} у ${c.f}`, ans:c.v,
+    sol:[`Валентність ${c.p === 'O' ? 'Оксигену' : c.p === 'Cl' ? 'Хлору' : 'Сульфуру'} у цій сполуці — ${ROM[P.v]}.`, `Усього рисок: ${c.ib} · ${ROM[P.v]} = ${tot}.`, `Ділимо на кількість атомів ${c.e}: ${tot} : ${c.ia} = ${c.v}.`, `Відповідь: ${ROM[c.v]}.`] };
+}
+const solForm = c => { const P = PART[c.p]; return [`${c.e}<sup>${ROM[c.v]}</sup> і ${fH(c.p)}<sup>${ROM[P.v]}</sup>.`, `НСК(${c.v}, ${P.v}) = ${c.L}.`, `Індекси: ${c.e} — ${c.L} : ${c.v} = ${c.ia}; ${fH(c.p)} — ${c.L} : ${P.v} = ${c.ib}.`, `Формула: <b class="f">${fH(c.f)}</b>.`]; };
+function genForm() {
+  const c = pick(POOL.filter(x => !PART[x.p].g && x.e !== 'H' && x.ia * x.ib > 1));
+  const P = PART[c.p];
+  return { k:'form', q:`Склади формулу сполуки <b>${c.e}<sup>${ROM[c.v]}</sup></b> ${P.w || ''}.`, qs:`${c.e}(${ROM[c.v]}) + ${c.p}`, ans:c.f, sol:solForm(c) };
+}
+function genGrp() {
+  const c = pick(POOL.filter(x => PART[x.p].g && x.e !== 'H'));
+  const P = PART[c.p];
+  return { k:'grp', q:`Склади формулу: <b>${c.e}<sup>${ROM[c.v]}</sup></b> і група <b class="f">${fH(c.p)}</b><sup>${ROM[P.v]}</sup> (${P.n}).`, qs:`${c.e}(${ROM[c.v]}) + ${c.p}`, ans:c.f,
+    sol:[...solForm(c), c.ib > 1 ? 'Груп кілька — беремо в дужки, індекс за дужкою.' : 'Група одна — дужки не потрібні.'] };
+}
+function genName() {
+  const c = pick(POOL.filter(x => x.e !== 'H'));
+  return { k:'name', q:`Напиши формулу: <b>${c.name}</b>.`, qs:c.name, ans:c.f, sol:[`Валентність ${c.e} — ${ROM[c.v]}${isVar(c.e) ? ' (вказана в назві)' : ' (постійна)'}; ${fH(c.p)} — ${ROM[PART[c.p].v]}.`, ...solForm(c).slice(1)] };
+}
+function wrongF(c) {
+  const P = PART[c.p], set = new Set([c.f]), out = [];
+  const mk = (ia, ib) => { let f = c.e + (ia > 1 ? ia : ''); f += P.g ? (ib > 1 ? `(${c.p})${ib}` : c.p) : c.p + (ib > 1 ? ib : ''); return f; };
+  const cand = shuffle([[c.ib, c.ia], [1, 1], [c.ia, 1], [1, c.ib], [P.v, c.v], [c.ia + 1, c.ib], [2, 3], [3, 2], [1, 2], [2, 1]]);
+  for (const [a, b] of cand) { const f = mk(a, b); if (!set.has(f) && !(a === c.ia * 2 && b === c.ib * 2)) { const p1 = parseF(f), p2 = parseF(c.f); if (p1 && p2 && JSON.stringify(Object.keys(p1.m).sort().map(k => p1.m[k] / (a ? 1 : 1))) === JSON.stringify(Object.keys(p2.m).sort().map(k => p2.m[k]))) continue; set.add(f); out.push(f); } if (out.length === 3) break; }
+  return out;
+}
+function genPick() {
+  const c = pick(POOL.filter(x => x.e !== 'H' && x.ia * x.ib > 1));
+  const o = shuffle([c.f, ...wrongF(c)]);
+  return { k:'name', choice:1, q:`Яка формула відповідає назві <b>${c.name}</b>?`, qs:c.name, opts:o, ans:c.f, sol:solForm(c) };
+}
+const GEN = { val:genVal, form:genForm, grp:genGrp, name:() => Math.random() < .5 ? genName() : genPick() };
+
+/* ---------- поле відповіді ---------- */
+function answerUI(t, prefix, sel) {
+  if (t.k === 'val') return `<div class="romb">${[1, 2, 3, 4, 5, 6, 7].map(v => `<button class="opt ${sel === v ? 'sel' : ''}" data-v="${v}">${ROM[v]}</button>`).join('')}</div>`;
+  if (t.choice) return `<div class="opts">${t.opts.map((f, i) => `<button class="opt ${sel === f ? 'sel' : ''}" data-v="${esc(f)}"><span class="k">${LETTERS[i]}</span><span class="f">${fH(f)}</span></button>`).join('')}</div>`;
+  return `<div class="inrow"><input id="${prefix}-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="наприклад, Al2O3" value="${esc(sel || '')}"></div><div class="pv" id="${prefix}-pv"></div>`;
+}
+const isRight = (t, a) => t.k === 'val' || t.choice ? String(a) === String(t.ans) : checkF(a || '', t.ans);
+const okOf = (t, a) => { const r = isRight(t, a); return typeof r === 'object' ? r.ok : r; };
+const ansText = (t, a) => t.k === 'val' ? (a ? ROM[a] : '—') : (a || '—');
+const rightText = t => t.k === 'val' ? ROM[t.ans] : t.ans;
+
+/* ---------- практика ---------- */
+const P = { kind:'val', t:null, done:false, got:0, all:0 };
+$('pseg').innerHTML = Object.entries(KINDS).map(([k, v]) => `<button class="segb" data-k="${k}" aria-pressed="${k === P.kind}">${v.name}</button>`).join('');
+$('pseg').querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; $('pseg').querySelectorAll('.segb').forEach(x => x.setAttribute('aria-pressed', x === b)); newP(); });
+function newP() { P.t = GEN[P.kind](); P.done = false; P.sel = null; renderP(); }
+function renderP() {
+  const t = P.t;
+  $('pstat').innerHTML = `<span>Правильно: ${P.got} з ${P.all}</span>`;
+  $('ptask').style.setProperty('--c', KINDS[t.k].c);
+  $('ptask').innerHTML = `<div class="tline"><span class="tag">${KINDS[t.k].name}</span></div><div class="q">${t.q}</div>${answerUI(t, 'p', P.sel)}
+    <div id="p-fb"></div><div class="actions"><button class="btn" id="p-check">Перевірити</button><button class="btn ghost" id="p-next">Інше завдання</button></div>`;
+  wireAns('p', t, v => { P.sel = v; }, () => !P.done);
+  $('p-check').onclick = checkP; $('p-next').onclick = newP;
+}
+function wireAns(prefix, t, set, can) {
+  const box = $(prefix === 'p' ? 'ptask' : 'v-test');
+  box.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { if (!can()) return; box.querySelectorAll('[data-v]').forEach(x => x.classList.toggle('sel', x === b)); set(t.k === 'val' ? +b.dataset.v : b.dataset.v); });
+  const inp = $(prefix + '-in');
+  if (inp) { const pv = () => { const n = norm(inp.value); $(prefix + '-pv').innerHTML = n ? 'Як читається: <span class="f">' + fH(n) + '</span>' : ''; };
+    inp.oninput = () => { set(inp.value); pv(); }; pv(); inp.onkeydown = e => { if (e.key === 'Enter') (prefix === 'p' ? checkP : () => $('t-next') ? $('t-next').click() : $('t-fin') && $('t-fin').click())(); }; }
+}
+function checkP() {
+  const t = P.t; if (P.done) return; if (P.sel == null || P.sel === '') { $('p-fb').innerHTML = '<div class="fb bad">Спершу дай відповідь.</div>'; return; }
+  const r = isRight(t, P.sel), ok = typeof r === 'object' ? r.ok : r;
+  P.done = true; P.all++; if (ok) P.got++;
+  $('ptask').querySelectorAll('[data-v]').forEach(b => { b.disabled = true; if (String(t.k === 'val' ? +b.dataset.v : b.dataset.v) === String(t.ans)) b.classList.add('ok'); else if (b.classList.contains('sel')) b.classList.add('bad'); });
+  $('p-fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? 'Правильно!' : 'Не зовсім.'}</b> ${ok ? '' : (r.why || '') + ` Правильна відповідь: <span class="f">${t.k === 'val' ? ROM[t.ans] : fH(t.ans)}</span>`}</div>
+    <div class="solbox"><b>Розв'язання</b><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
+  $('pstat').innerHTML = `<span>Правильно: ${P.got} з ${P.all}</span>`;
+  $('p-check').disabled = true;
+}
+
+/* ---------- тест ---------- */
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, sent:'' };
+try { T.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function makeTest() {
+  const out = [], seen = new Set(), push = (g, n) => { let guard = 0; while (n > 0 && guard++ < 200) { const t = g(); if (seen.has(t.qs)) continue; seen.add(t.qs); out.push(t); n--; } };
+  push(genVal, 5); push(genForm, 4); push(genGrp, 3); push(genName, 1); push(genPick, 2);
+  return out.map(t => ({ ...t, a:null }));
+}
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">15 завдань · 15 балів</div><h2 style="margin-top:4px">Тест: валентність і формули</h2></div>
+      <p>Визнач валентність, склади формули (зокрема з групами атомів) і впізнай формулу за назвою. Формули пиши латиницею: <span class="f">Al2O3</span>, <span class="f">Ca(OH)2</span>. Результат прийде вчителю.</p>
+      <div class="row"><label class="field">Ім'я та прізвище<input id="t-name" value="${esc(T.name)}" autocomplete="name"></label><label class="field">Клас<input id="t-cls" value="${esc(T.cls)}" inputmode="numeric"></label></div>
+      <div class="err" id="t-err"></div><div class="actions"><button class="btn" id="t-go">Почати тест</button></div></div>`;
+    $('t-go').onclick = () => { T.name = $('t-name').value.trim(); T.cls = $('t-cls').value.trim();
+      if (!T.name) { $('t-err').textContent = "Впиши ім'я та прізвище."; return; }
+      try { localStorage.setItem('nova_name', T.name); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.phase = 'run'; T.sent = ''; renderTest(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1;
+    v.innerHTML = `<div class="dots">${T.tasks.map((x, j) => `<button class="dot ${x.a != null && x.a !== '' ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${KINDS[t.k].c}"><div class="tline"><span class="tag">${KINDS[t.k].name}</span><span class="count">${T.i + 1} / ${N}</span></div>
+      <div class="q">${t.q}</div>${answerUI(t, 't', t.a)}
+      <div class="actions"><button class="btn ghost" id="t-prev" ${T.i ? '' : 'disabled'}>Назад</button>${last ? '<button class="btn" id="t-fin">Завершити тест</button>' : '<button class="btn" id="t-next">Далі</button>'}</div></div>`;
+    wireAns('t', t, a => { t.a = a; }, () => true);
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => { T.i = +b.dataset.j; renderTest(); });
+    $('t-prev').onclick = () => { T.i--; renderTest(); };
+    if ($('t-next')) $('t-next').onclick = () => { T.i++; renderTest(); };
+    if ($('t-fin')) $('t-fin').onclick = () => { T.phase = 'done'; renderTest(); send(); window.scrollTo({ top:0 }); };
+    const inp = $('t-in'); if (inp) inp.focus({ preventScroll:true });
+    return;
+  }
+  const got = T.tasks.filter(t => okOf(t, t.a)).length, N = T.tasks.length, mark = Math.max(1, Math.round(got / N * 12));
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">${esc(T.name)}${T.cls ? ' · ' + esc(T.cls) + ' клас' : ''}</div><div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+    <div class="hint">Правильно ${got} з ${N}</div><div class="send ${T.sent || 'wait'}">${T.sent === 'ok' ? 'Результат надіслано вчителю.' : T.sent === 'fail' ? 'Не вдалося надіслати. <button class="btn ghost" id="t-resend">Ще раз</button>' : 'Надсилаю результат…'}</div>
+    <div class="actions"><button class="btn ghost" id="t-again">Пройти ще раз</button></div></div>
+    <div class="card stack"><h2>Розбір</h2><ol class="review">${T.tasks.map((t, i) => { const ok = okOf(t, t.a);
+      return `<li class="${ok ? 'ok' : 'bad'}"><span class="m">${ok ? '✓' : '✗'}</span><div class="rb"><b>${i + 1}.</b> ${t.q}${ok ? '' : `<div class="yours">Твоя відповідь: <span class="f">${t.k === 'val' ? ansText(t, t.a) : fH(esc(norm(t.a || '—')))}</span></div><div class="why">Правильно: <b class="f">${t.k === 'val' ? ROM[t.ans] : fH(t.ans)}</b> — ${t.sol.slice(-2).join(' ')}</div>`}</div></li>`; }).join('')}</ol></div>`;
+  if ($('t-resend')) $('t-resend').onclick = send;
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+function send() {
+  const got = T.tasks.filter(t => okOf(t, t.a)).length, N = T.tasks.length;
+  const qp = h => plain(h.replace(/<sup>(.*?)<\/sup>/g, '($1)')); const details = T.tasks.map((t, i) => { const ok = okOf(t, t.a); return `${ok ? '✓' : '✗'} ${i + 1}. ${qp(t.q)}${ok ? '' : `\n     відповів: «${ansText(t, t.a)}» → правильно: «${rightText(t)}»`}`; }).join('\n');
+  T.sent = 'wait';
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name:T.name, cls:T.cls, topic:'Валентність. Складання формул', score:`${got}/${N}`, mark:Math.max(1, Math.round(got / N * 12)), details }) })
+    .then(() => { T.sent = 'ok'; if (T.phase === 'done') renderTest(); }).catch(() => { T.sent = 'fail'; if (T.phase === 'done') renderTest(); });
+}
+
+/* ---------- гра: валентний конструктор ---------- */
+let GS_NAME = ''; try { GS_NAME = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function gsBlock() { try { GS_NAME = localStorage.getItem('nova_name') || GS_NAME; } catch (e) {} return `<div class="stack" id="gs-box"><label class="field">Ім'я та прізвище<input class="gs-name" value="${esc(GS_NAME)}" placeholder="Як тебе звати" autocomplete="name"></label><div class="actions"><button class="btn" data-gs>Надіслати результат вчителю</button></div><div class="hint gs-st" aria-live="polite"></div></div>`; }
+function gsWire(game, got, max, details) {
+  const box = $('gs-box'); if (!box) return;
+  const inp = box.querySelector('.gs-name'), st = box.querySelector('.gs-st'), bt = box.querySelector('[data-gs]');
+  inp.oninput = () => { GS_NAME = inp.value; try { localStorage.setItem('nova_name', GS_NAME); } catch (e) {} };
+  bt.onclick = () => { if (!inp.value.trim()) { st.textContent = "Спершу впиши ім'я."; inp.focus(); return; }
+    bt.disabled = true; st.textContent = 'Надсилаю…';
+    fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ name:inp.value.trim(), cls:'гра', topic:'Гра: ' + game, score:`${got}/${max}`, mark:Math.max(1, Math.round(got / Math.max(1, max) * 12)), details:`Гра: ${game}\n${details}` }) })
+      .then(() => { st.textContent = 'Надіслано вчителю ✓'; }).catch(() => { st.textContent = 'Не вдалося надіслати. Спробуй ще раз.'; bt.disabled = false; }); };
+}
+const G = { mode:'menu', round:0, rounds:[], ia:1, ib:1, score:0, miss:0, log:[], t0:0, tried:false, best:null };
+try { G.best = JSON.parse(localStorage.getItem('val_best') || 'null'); } catch (e) {}
+function gameRounds() {
+  const easy = shuffle(POOL.filter(x => !PART[x.p].g && x.e !== 'H' && x.ia * x.ib > 1)).slice(0, 6);
+  const hard = shuffle(POOL.filter(x => PART[x.p].g && x.e !== 'H' && x.ia * x.ib > 1)).slice(0, 4);
+  return [...easy, ...hard];
+}
+function renderGame() {
+  const v = $('v-gra');
+  if (G.mode === 'menu') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">Гра · 10 раундів</div><h2 style="margin-top:4px">Валентний конструктор</h2></div>
+      <p>У кожного атома є «риски» — стільки, яка в нього валентність. Додавай і прибирай атоми, поки кожна риска не знайде пару. Вільна риска світиться червоним. Індекси мають бути найменшими можливими.</p>
+      <p class="hint">Рахується час і помилки. ${G.best ? `Твій рекорд: ${G.best.s} з 10 за ${G.best.t} с.` : ''}</p>
+      <div class="actions"><button class="btn" id="g-go">Почати</button></div></div>`;
+    $('g-go').onclick = () => { Object.assign(G, { mode:'run', round:0, rounds:gameRounds(), score:0, miss:0, log:[], t0:performance.now() }); newRound(); };
+    return;
+  }
+  if (G.mode === 'run') {
+    const c = G.rounds[G.round], Pv = PART[c.p].v, fa = G.ia * c.v, fb = G.ib * Pv;
+    v.innerHTML = `<div class="card task" style="--c:var(--c-calc)"><div class="tline"><span class="tag">Раунд ${G.round + 1} / 10</span><span class="count">✓ ${G.score} · помилок ${G.miss}</span></div>
+      <div class="q">Збери <b>${c.name}</b>: <b>${c.e}<sup>${ROM[c.v]}</sup></b> і <b class="f">${fH(c.p)}<sup>${ROM[Pv]}</sup></b></div>
+      ${bondSVG(c.e, c.v, G.ia, c.p, Pv, G.ib)}
+      <div class="ctrl"><label>Атомів ${c.e}<span class="stepper"><button id="a-" ${G.ia < 2 ? 'disabled' : ''} aria-label="Менше">−</button><span>${G.ia}</span><button id="a+" ${G.ia > 5 ? 'disabled' : ''} aria-label="Більше">+</button></span></label>
+        <label>${PART[c.p].g ? 'Груп ' : 'Атомів '}${c.p}<span class="stepper"><button id="b-" ${G.ib < 2 ? 'disabled' : ''} aria-label="Менше">−</button><span>${G.ib}</span><button id="b+" ${G.ib > 5 ? 'disabled' : ''} aria-label="Більше">+</button></span></label></div>
+      <div class="stat"><span>Рисок у ${c.e}: ${G.ia} · ${c.v} = ${fa}</span><span>Рисок у ${c.p}: ${G.ib} · ${Pv} = ${fb}</span></div>
+      <div id="g-fb"></div>
+      <div class="actions"><button class="btn" id="g-ok">Готово</button></div></div>`;
+    const set = (k, d) => { G[k] = Math.max(1, Math.min(6, G[k] + d)); renderGame(); };
+    $('a-').onclick = () => set('ia', -1); $('a+').onclick = () => set('ia', 1); $('b-').onclick = () => set('ib', -1); $('b+').onclick = () => set('ib', 1);
+    $('g-ok').onclick = () => {
+      const ok = G.ia === c.ia && G.ib === c.ib;
+      if (ok) { if (!G.tried) G.score++; G.log.push(`${G.tried ? '✗' : '✓'} ${c.name} → ${c.f}`); G.round++; if (G.round >= 10) finishGame(); else newRound(); return; }
+      G.miss++; if (!G.tried) G.tried = true;
+      const why = fa !== fb ? 'Є вільні риски — валентності не зрівнялись.' : 'Рисок порівну, але індекси можна скоротити.';
+      $('g-fb').innerHTML = `<div class="fb bad"><b>Ще ні.</b> ${why}</div>`;
+    };
+    return;
+  }
+  const secs = Math.round(G.time / 1000);
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">Валентний конструктор</div><div class="score"><span class="big">${G.score}</span><span class="of">з 10 з першої спроби</span></div>
+    <div class="hint">Час: ${secs} с · помилок: ${G.miss}${G.rec ? ' · новий рекорд!' : ''}</div>${gsBlock()}
+    <div class="actions"><button class="btn" id="g-again">Ще раз</button></div></div>`;
+  $('g-again').onclick = () => { G.mode = 'menu'; renderGame(); };
+  gsWire('Валентний конструктор', G.score, 10, `З першої спроби: ${G.score} з 10, час ${secs} с, помилок ${G.miss}\n` + G.log.join('\n'));
+}
+function newRound() { G.ia = 1; G.ib = 1; G.tried = false; renderGame(); }
+function finishGame() {
+  G.time = performance.now() - G.t0; G.mode = 'done'; const secs = Math.round(G.time / 1000);
+  G.rec = !G.best || G.score > G.best.s || (G.score === G.best.s && secs < G.best.t);
+  if (G.rec) { G.best = { s:G.score, t:secs }; try { localStorage.setItem('val_best', JSON.stringify(G.best)); } catch (e) {} }
+  renderGame();
+}
+
+/* ---------- вкладки ---------- */
+const VIEWS = ['teoriya', 'zadachi', 'test', 'gra'];
+function show(v) { if (!VIEWS.includes(v)) v = 'teoriya'; VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'zadachi' && !P.t) newP(); if (v === 'test' && T.phase === 'start') renderTest(); if (v === 'gra' && G.mode === 'menu') renderGame(); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { show(b.dataset.v); try { history.replaceState(null, '', '#' + b.dataset.v); } catch (e) {} window.scrollTo({ top:0 }); });
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+show(location.hash.slice(1));
+</script>
+
+</html>
