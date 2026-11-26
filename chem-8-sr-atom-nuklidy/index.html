@@ -209,7 +209,7 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
 const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
 const LETTERS = 'АБВГ';
-const sp = s => s.replace(/\^(\d+)/g, '<sup>$1</sup>');
+const sp = s => s.replace(/(\d)([spdf])\^(\d+?)(?=\d[spdf]|\D|$)/g, '$1$2<sup>$3</sup>');
 /* c — вибір (перший варіант правильний), n — числова відповідь */
 const TASKS = [
  { t:'c', q:sp('Електронна формула атома Магнію (Z = 12):'), o:[sp('1s^22s^22p^63s^2'), sp('1s^22s^22p^8'), sp('1s^22s^22p^63s^1'), sp('1s^22s^22p^63p^2')], e:'12 електронів: 2 + 2 + 6 + 2.' },
