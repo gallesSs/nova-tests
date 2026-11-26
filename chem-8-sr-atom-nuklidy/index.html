@@ -1,0 +1,299 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Самостійна: атом і ядро</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · 8 клас · Самостійна робота</div>
+    <div class="brand"><h1>Атом і ядро</h1><span class="ohbadge" aria-hidden="true">A = Z + N</span></div>
+  </header>
+  <section id="app" class="stack"></section>
+  <footer>Хімія з Артуром Валентиновичем · NovaШкола</footer>
+</div>
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
+const LETTERS = 'АБВГ';
+const sp = s => s.replace(/\^(\d+)/g, '<sup>$1</sup>');
+/* c — вибір (перший варіант правильний), n — числова відповідь */
+const TASKS = [
+ { t:'c', q:sp('Електронна формула атома Магнію (Z = 12):'), o:[sp('1s^22s^22p^63s^2'), sp('1s^22s^22p^8'), sp('1s^22s^22p^63s^1'), sp('1s^22s^22p^63p^2')], e:'12 електронів: 2 + 2 + 6 + 2.' },
+ { t:'n', q:'Скільки нейтронів у ядрі Феруму-56 (Z = 26)?', a:30, e:'N = A − Z = 56 − 26 = 30.' },
+ { t:'n', q:'Нуклід містить 17 протонів і 20 нейтронів. Яке його масове число?', a:37, e:'A = Z + N = 17 + 20 = 37.' },
+ { t:'c', q:sp('Який елемент має електронну формулу 1s^22s^22p^63s^23p^5?'), o:['Хлор', 'Аргон', 'Сульфур', 'Флуор'], e:'2 + 2 + 6 + 2 + 5 = 17 електронів → елемент №17.' },
+ { t:'n', q:'Скільки електронів на зовнішньому енергетичному рівні атома Сульфуру (Z = 16)?', a:6, e:'1s²2s²2p⁶3s²3p⁴ → на 3-му рівні 2 + 4 = 6.' },
+ { t:'n', q:'Скільки неспарених електронів в атомі Нітрогену (Z = 7)?', a:3, e:'1s²2s²2p³ — три p-електрони займають три різні орбіталі по одному.' },
+ { t:'c', q:'Ізотопи — це атоми одного елемента, які мають:', o:['різне число нейтронів', 'різне число протонів', 'різне число електронів', 'різний заряд ядра'], e:'Z однакове, N — різне, тому й масові числа різні.' },
+ { t:'n', q:'Радій-226 (Z = 88) зазнає α-розпаду. Яке масове число утвореного ядра?', a:222, e:'α-розпад: A − 4 = 226 − 4 = 222.' },
+ { t:'n', q:'Радій-226 (Z = 88) зазнає α-розпаду. Який заряд (Z) утвореного ядра?', a:86, e:'α-розпад: Z − 2 = 88 − 2 = 86 (це Радон).' },
+ { t:'c', q:'Яка частинка вилітає з ядра під час β⁻-розпаду?', o:['електрон', 'ядро Гелію-4', 'протон', 'нейтрон'], e:'Нейтрон перетворюється на протон, і вилітає електрон.' },
+ { t:'n', q:'Торій-234 (Z = 90) зазнає β⁻-розпаду. Який заряд (Z) утвореного ядра?', a:91, e:'β⁻-розпад: Z + 1 = 91, A не змінюється (234).' },
+ { t:'n', q:'Скільки нейтронів у ядрі Урану-238 (Z = 92)?', a:146, e:'238 − 92 = 146.' },
+ { t:'c', q:'Яка максимальна кількість електронів може бути на третьому енергетичному рівні?', o:['18', '8', '32', '2'], e:'2n² = 2 · 3² = 18.' },
+ { t:'n', q:'Скільки електронів у йоні Na⁺ (Z = 11)?', a:10, e:'Атом Na має 11 електронів, йон Na⁺ віддав один: 11 − 1 = 10.' },
+ { t:'n', q:'Уран-238 (Z = 92) після ланцюжка розпадів перетворюється на Плюмбум-206 (Z = 82). Скільки α-розпадів відбулося?', a:8, e:'Масове число змінюється тільки при α-розпаді: (238 − 206) / 4 = 8.' },
+ { t:'n', q:'У тому самому ланцюжку U-238 (Z = 92) → Pb-206 (Z = 82) скільки відбулося β⁻-розпадів?', a:6, e:'8 α-розпадів зменшили Z на 16: 92 − 16 = 76. До 82 бракує 6 → 6 β⁻-розпадів (кожен +1).' },
+ { t:'c', q:'Ядерна реакція: Нітроген-14 (Z = 7) + ядро Гелію-4 (Z = 2) → Оксиген-17 (Z = 8) + ? Яка частинка утворилась?', o:['протон', 'нейтрон', 'електрон', 'ядро Гелію-4'], e:'A: 14 + 4 = 17 + 1; Z: 7 + 2 = 8 + 1 → частинка з A = 1, Z = 1 — протон.' },
+ { t:'n', q:'Період напіврозпаду радіонукліда — 5 діб. Було 80 г. Скільки грамів лишиться через 15 діб?', a:10, e:'15 діб = 3 періоди: 80 → 40 → 20 → 10 г.' },
+ { t:'c', q:'Що однакове в атомах Карбону-12 і Карбону-14?', o:['кількість протонів', 'кількість нейтронів', 'масове число', 'маса атома'], e:'Це ізотопи одного елемента: Z = 6 в обох.' },
+ { t:'n', q:'Із 64 мг радіонукліда за 12 годин лишилось 4 мг. Який період напіврозпаду (у годинах)?', a:3, e:'64 → 32 → 16 → 8 → 4: це 4 періоди. 12 год : 4 = 3 год.' },
+ { t:'c', q:'Який підрівень заповнюється електронами одразу після 3p?', o:['4s', '3d', '4p', '3f'], e:'4s має нижчу енергію, ніж 3d.' },
+ { t:'n', q:'Період напіврозпаду — 30 років. Через скільки років із 200 г лишиться 25 г?', a:90, e:'200 → 100 → 50 → 25: 3 періоди · 30 = 90 років.' },
+ { t:'c', q:'Атом якого елемента має 4 енергетичні рівні і 2 електрони на зовнішньому рівні?', o:['Кальцій', 'Магній', 'Берилій', 'Калій'], e:'4-й період, II група → Кальцій (1s²2s²2p⁶3s²3p⁶4s²).' },
+ { t:'n', q:'Скільки всього електронів на p-підрівнях атома Силіцію (Z = 14)?', a:8, e:'1s²2s²2p⁶3s²3p² → p-електронів: 6 + 2 = 8.' },
+ { t:'c', q:'Яке випромінювання має найбільшу проникну здатність?', o:['γ-випромінювання', 'α-випромінювання', 'β-випромінювання', 'у всіх однакова'], e:'α зупиняє аркуш паперу, β — алюмінієва пластинка, γ — лише товстий шар свинцю чи бетону.' },
+];
+const S = { phase:'start', name:'', cls:'8', i:0, tasks:[], sent:'' };
+try { S.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
+const num = s => { const v = parseFloat(String(s ?? '').replace(',', '.').replace(/\s/g, '')); return isNaN(v) ? null : v; };
+const isOk = t => t.t === 'c' ? t.a2 != null && t.opts[t.a2].r : num(t.a2) !== null && Math.abs(num(t.a2) - t.a) < 1e-9;
+const ansTxt = t => t.t === 'c' ? (t.a2 == null ? '—' : plain(t.opts[t.a2].h)) : (t.a2 === '' || t.a2 == null ? '—' : t.a2);
+const rightTxt = t => t.t === 'c' ? plain(t.o[0]) : String(t.a);
+function render() {
+  const v = $('app');
+  if (S.phase === 'start') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">${TASKS.length} завдань · ${TASKS.length} балів · 50 хвилин</div><h2 style="margin-top:4px">Самостійна робота: будова атома, нукліди, радіоактивність</h2></div>
+      <p>Половина завдань — вибрати відповідь, половина — порахувати й вписати число. Можна користуватися чернеткою і таблицею Менделєєва. Між завданнями можна повертатися. Результат прийде вчителю після кнопки «Завершити».</p>
+      <div class="row"><label class="field">Ім'я та прізвище<input id="s-name" value="${esc(S.name)}" autocomplete="name"></label><label class="field">Клас<input id="s-cls" value="${esc(S.cls)}" inputmode="numeric"></label></div>
+      <div class="err" id="s-err"></div><div class="actions"><button class="btn" id="s-go">Почати</button></div></div>`;
+    $('s-go').onclick = () => { S.name = $('s-name').value.trim(); S.cls = $('s-cls').value.trim();
+      if (!S.name) { $('s-err').textContent = "Впиши ім'я та прізвище."; return; }
+      try { localStorage.setItem('nova_name', S.name); } catch (e) {}
+      S.tasks = TASKS.map(t => ({ ...t, opts:t.t === 'c' ? shuffle(t.o.map((h, i) => ({ h, r:i === 0 }))) : null, a2:null }));
+      S.phase = 'run'; S.i = 0; render(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  if (S.phase === 'run') {
+    const t = S.tasks[S.i], N = S.tasks.length, last = S.i === N - 1;
+    const answered = x => x.t === 'c' ? x.a2 != null : x.a2 != null && x.a2 !== '';
+    v.innerHTML = `<div class="dots">${S.tasks.map((x, j) => `<button class="dot ${answered(x) ? 'done' : ''} ${j === S.i ? 'cur' : ''}" data-j="${j}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${t.t === 'c' ? 'var(--c-stru)' : 'var(--c-calc)'}"><div class="tline"><span class="tag">${t.t === 'c' ? 'Вибери відповідь' : 'Порахуй'}</span><span class="count">${S.i + 1} / ${N}</span></div>
+      <div class="q">${t.q}</div>
+      ${t.t === 'c' ? `<div class="opts">${t.opts.map((o, i) => `<button class="opt ${t.a2 === i ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o.h}</span></button>`).join('')}</div>`
+        : `<div class="inrow"><input id="s-in" inputmode="decimal" autocomplete="off" placeholder="Відповідь — число" value="${esc(t.a2 ?? '')}"></div>`}
+      <div class="actions"><button class="btn ghost" id="s-prev" ${S.i ? '' : 'disabled'}>Назад</button>${last ? '<button class="btn" id="s-fin">Завершити</button>' : '<button class="btn" id="s-next">Далі</button>'}</div></div>`;
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => { S.i = +b.dataset.j; render(); });
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.a2 = +b.dataset.i; if (!last) S.i++; render(); });
+    const inp = $('s-in'); if (inp) { inp.oninput = () => { t.a2 = inp.value; }; inp.onkeydown = e => { if (e.key === 'Enter' && !last) { S.i++; render(); } }; inp.focus({ preventScroll:true }); }
+    $('s-prev').onclick = () => { S.i--; render(); };
+    if ($('s-next')) $('s-next').onclick = () => { S.i++; render(); };
+    if ($('s-fin')) $('s-fin').onclick = () => {
+      const left = S.tasks.filter(x => !answered(x)).length;
+      if (left && !S.warned) { S.warned = true; $('s-fin').textContent = `Без відповіді: ${left}. Все одно завершити`; return; }
+      S.phase = 'done'; render(); send(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  const got = S.tasks.filter(isOk).length, N = S.tasks.length, mark = Math.max(1, Math.round(got / N * 12));
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">${esc(S.name)}${S.cls ? ' · ' + esc(S.cls) + ' клас' : ''}</div><div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+    <div class="hint">Правильно ${got} з ${N}</div><div class="send ${S.sent || 'wait'}">${S.sent === 'ok' ? 'Результат надіслано вчителю.' : S.sent === 'fail' ? 'Не вдалося надіслати. <button class="btn ghost" id="s-resend">Ще раз</button>' : 'Надсилаю результат…'}</div></div>
+    <div class="card stack"><h2>Розбір</h2><ol class="review">${S.tasks.map((t, i) => { const ok = isOk(t);
+      return `<li class="${ok ? 'ok' : 'bad'}"><span class="m">${ok ? '✓' : '✗'}</span><div class="rb"><b>${i + 1}.</b> ${t.q}${ok ? '' : `<div class="yours">Твоя відповідь: ${esc(ansTxt(t))}</div><div class="why">Правильно: <b>${t.t === 'c' ? t.o[0] : t.a}</b>. ${t.e}</div>`}</div></li>`; }).join('')}</ol></div>`;
+  if ($('s-resend')) $('s-resend').onclick = send;
+}
+function send() {
+  const got = S.tasks.filter(isOk).length, N = S.tasks.length;
+  const details = S.tasks.map((t, i) => `${isOk(t) ? '✓' : '✗'} ${i + 1}. ${plain(t.q)}${isOk(t) ? '' : `\n     відповів: «${ansTxt(t)}» → правильно: «${rightTxt(t)}»`}`).join('\n');
+  S.sent = 'wait';
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name:S.name, cls:S.cls, topic:'Самостійна: будова атома, нукліди, радіоактивність', score:`${got}/${N}`, mark:Math.max(1, Math.round(got / N * 12)), details }) })
+    .then(() => { S.sent = 'ok'; if (S.phase === 'done') render(); }).catch(() => { S.sent = 'fail'; if (S.phase === 'done') render(); });
+}
+render();
+</script>
+
+</html>
