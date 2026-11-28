@@ -1,0 +1,506 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Коефіцієнти і закон збереження маси</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.eqb{display:flex;flex-wrap:wrap;align-items:center;gap:8px 6px;font:700 19px var(--mono)}
+.eqb .sp{display:inline-flex;align-items:center;gap:4px}
+.eqb .op{color:var(--muted);padding:0 2px}
+.stepper{display:inline-flex;flex-direction:column;align-items:center;border:2px solid var(--ink);border-radius:10px;overflow:hidden;line-height:1}
+.stepper button{font:700 14px var(--mono);width:34px;height:22px;border:0;background:var(--card);color:var(--ink);cursor:pointer}
+.stepper button:disabled{opacity:.3;cursor:default}
+.stepper span{font:700 18px var(--mono);padding:2px 0;min-width:34px;text-align:center;background:var(--oh-bg);color:var(--oh)}
+.stepper span.one{color:var(--muted);background:transparent}
+.cnt{border-collapse:collapse;font:600 15px var(--mono)}
+.cnt th,.cnt td{padding:5px 12px;border-bottom:1px solid var(--line);text-align:center}
+.cnt th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cnt td.okc{color:var(--ok)}
+.cnt td.badc{color:var(--bad)}
+.balw{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.scale{width:100%;max-width:300px;height:auto;display:block}
+.scale text{font:700 12px var(--mono);fill:var(--ink)}
+.beam{transition:transform .5s cubic-bezier(.3,1.4,.6,1);transform-origin:150px 40px}
+@media (max-width:620px){.balw{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Хімія · 7–8 клас · Хімічні рівняння</div>
+    <div class="brand"><h1>Коефіцієнти і закон збереження маси</h1><span class="ohbadge" aria-hidden="true">4Al + 3O₂</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="zadachi" aria-selected="false">Задачі</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+    </nav>
+  </header>
+
+  <section id="v-teoriya" class="stack">
+    <div class="card sec">
+      <h2>1. Закон збереження маси</h2>
+      <div class="def"><span class="lbl">Закон</span><span><b>Маса речовин, що вступили в реакцію, дорівнює масі речовин, що утворилися.</b></span></div>
+      <p>Його експериментально довів французький хімік Антуан Лавуазьє (1789): він проводив реакції в запаяних посудинах і зважував їх до і після — маса не змінювалась.</p>
+      <p><b>Чому так?</b> Під час реакції атоми не зникають і не з'являються — вони лише перегруповуються в нові молекули. Скільки атомів кожного елемента було — стільки й лишилось, а отже й маса та сама.</p>
+      <div class="example"><b>Приклад:</b> 12 г вуглецю згоріли в 32 г кисню. Маса вуглекислого газу: 12 + 32 = <b>44 г</b>.</div>
+      <p class="note">«Але свічка ж зменшується, коли горить!» — продукти горіння (CO₂ і водяна пара) — гази, вони йдуть у повітря. Якщо зібрати їх, маса буде такою самою. А іржавий цвях важчає, бо до заліза приєднується кисень із повітря.</p>
+    </div>
+
+    <div class="card sec">
+      <h2>2. Схема і рівняння реакції</h2>
+      <p><b>Схема</b> показує лише, що з чим реагує: <span class="f">H₂ + O₂ → H₂O</span>. Тут ліворуч 2 атоми O, а праворуч 1 — закон збереження порушено.</p>
+      <p><b>Рівняння</b> — схема, у якій кількість атомів кожного елемента ліворуч і праворуч однакова: <span class="f">2H₂ + O₂ → 2H₂O</span>.</p>
+      <div class="tblw"><table>
+        <tr><th></th><th>Де пишеться</th><th>Що показує</th><th>Чи можна змінювати?</th></tr>
+        <tr><td><b>Коефіцієнт</b></td><td class="f"><b>3</b>H₂O</td><td>скільки молекул</td><td>так — саме його й підбираємо</td></tr>
+        <tr><td><b>Індекс</b></td><td class="f">H<b>₂</b>O</td><td>скільки атомів у молекулі</td><td>ні! інакше це вже інша речовина</td></tr>
+      </table></div>
+      <div class="example"><b>Як рахувати атоми:</b> коефіцієнт множиться на кожен індекс. У <span class="f">3Ca(NO₃)₂</span>: Ca — 3·1 = 3, N — 3·2 = 6, O — 3·3·2 = 18.</div>
+    </div>
+
+    <div class="card sec">
+      <h2>3. Як розставити коефіцієнти</h2>
+      <ol class="steps">
+        <li>Порахуй атоми кожного елемента ліворуч і праворуч.</li>
+        <li>Почни з елемента, якого найбільше або в якого індекси різні. Метали — спершу, Гідроген і Оксиген — наприкінці.</li>
+        <li>Зрівнюй через найменше спільне кратне (НСК) індексів.</li>
+        <li>Перераховуй після кожного кроку — новий коефіцієнт міняє й інші елементи.</li>
+        <li>Перевір: усі елементи зрівнялися, а коефіцієнти не мають спільного дільника.</li>
+      </ol>
+      <div class="example"><b>Приклад: Al + O₂ → Al₂O₃</b>
+        <ol class="steps"><li>Оксиген: ліворуч 2, праворуч 3. НСК(2, 3) = 6 → <span class="f">3O₂</span> і <span class="f">2Al₂O₃</span>.</li>
+          <li>Тепер праворуч Al: 2·2 = 4 → ліворуч <span class="f">4Al</span>.</li>
+          <li>Рівняння: <b class="f">4Al + 3O₂ → 2Al₂O₃</b>. Перевірка: Al 4 = 4, O 6 = 6 ✓</li></ol></div>
+      <div class="example"><b>Приклад: CH₄ + O₂ → CO₂ + H₂O</b>
+        <ol class="steps"><li>C: 1 = 1 — уже рівно.</li><li>H: ліворуч 4 → праворуч <span class="f">2H₂O</span>.</li>
+          <li>O праворуч: 2 + 2 = 4 → ліворуч <span class="f">2O₂</span>.</li><li><b class="f">CH₄ + 2O₂ → CO₂ + 2H₂O</b> ✓</li></ol></div>
+      <p class="note">Групи атомів, що не змінюються (SO₄, NO₃, PO₄, OH), зручно зрівнювати як одне ціле: <span class="f">3NaOH + H₃PO₄ → Na₃PO₄ + 3H₂O</span>.</p>
+    </div>
+
+    <div class="card sec">
+      <h2>4. Спробуй сам: терези</h2>
+      <p>Збільшуй і зменшуй коефіцієнти. Ліва шалька — маса реагентів, права — продуктів (у а. о. м.). Коли рівняння зрівняне, терези врівноважуються — це і є закон збереження маси.</p>
+      <div id="demo"></div>
+    </div>
+  </section>
+
+  <section id="v-zadachi" class="stack" hidden>
+    <div class="card stack"><div class="seg" id="pseg"></div><div class="hint" id="pstat"></div></div>
+    <div class="card task" id="ptask"></div>
+  </section>
+  <section id="v-test" class="stack" hidden></section>
+  <footer>Хімія з Артуром Валентиновичем · NovaШкола</footer>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const fH = f => String(f).replace(/(\d+)/g, '<sub>$1</sub>');
+const SUBD = '₀₁₂₃₄₅₆₇₈₉', fU = f => String(f).replace(/\d/g, d => SUBD[d]);
+const nf = x => String(Math.round(x * 100) / 100).replace('.', ',');
+const LETTERS = 'АБВГ';
+const AR = { H:1, C:12, N:14, O:16, Na:23, Mg:24, Al:27, P:31, S:32, Cl:35.5, K:39, Ca:40, Mn:55, Fe:56, Cu:64, Zn:65, Ag:108, Ba:137, Hg:201 };
+function parse(f) { let i = 0; const g = () => { const m = {}; while (i < f.length && f[i] !== ')') { let sub; if (f[i] === '(') { i++; sub = g(); i++; } else { const s = /^[A-Z][a-z]?/.exec(f.slice(i))[0]; i += s.length; sub = { [s]:1 }; } const d = /^\d+/.exec(f.slice(i)); const k = d ? +d[0] : 1; if (d) i += d[0].length; for (const x in sub) m[x] = (m[x] || 0) + sub[x] * k; } return m; }; return g(); }
+const Mr = f => { const m = parse(f); return Object.keys(m).reduce((s, e) => s + AR[e] * m[e], 0); };
+
+/* рівняння: [реагенти, продукти, правильні коефіцієнти, рівень] */
+const EQ = [
+ [['H2', 'O2'], ['H2O'], [2, 1, 2], 1], [['Mg', 'O2'], ['MgO'], [2, 1, 2], 1], [['Na', 'Cl2'], ['NaCl'], [2, 1, 2], 1], [['Ca', 'O2'], ['CaO'], [2, 1, 2], 1],
+ [['H2O'], ['H2', 'O2'], [2, 2, 1], 1], [['HgO'], ['Hg', 'O2'], [2, 2, 1], 1], [['H2O2'], ['H2O', 'O2'], [2, 2, 1], 1], [['Zn', 'HCl'], ['ZnCl2', 'H2'], [1, 2, 1, 1], 1],
+ [['CuO', 'H2'], ['Cu', 'H2O'], [1, 1, 1, 1], 1], [['SO2', 'O2'], ['SO3'], [2, 1, 2], 1], [['N2', 'H2'], ['NH3'], [1, 3, 2], 1], [['Ca', 'H2O'], ['Ca(OH)2', 'H2'], [1, 2, 1, 1], 1],
+ [['Al', 'O2'], ['Al2O3'], [4, 3, 2], 2], [['Fe', 'Cl2'], ['FeCl3'], [2, 3, 2], 2], [['P', 'O2'], ['P2O5'], [4, 5, 2], 2], [['Al', 'S'], ['Al2S3'], [2, 3, 1], 2],
+ [['Fe', 'O2'], ['Fe3O4'], [3, 2, 1], 2], [['KClO3'], ['KCl', 'O2'], [2, 2, 3], 2], [['Na', 'H2O'], ['NaOH', 'H2'], [2, 2, 2, 1], 2], [['CH4', 'O2'], ['CO2', 'H2O'], [1, 2, 1, 2], 2],
+ [['P2O5', 'H2O'], ['H3PO4'], [1, 3, 2], 2], [['NaOH', 'H2SO4'], ['Na2SO4', 'H2O'], [2, 1, 1, 2], 2], [['Ca(OH)2', 'HCl'], ['CaCl2', 'H2O'], [1, 2, 1, 2], 2], [['CuSO4', 'NaOH'], ['Cu(OH)2', 'Na2SO4'], [1, 2, 1, 1], 2],
+ [['Fe(OH)3'], ['Fe2O3', 'H2O'], [2, 1, 3], 2], [['Al(OH)3'], ['Al2O3', 'H2O'], [2, 1, 3], 2], [['AgNO3', 'BaCl2'], ['AgCl', 'Ba(NO3)2'], [2, 1, 2, 1], 2], [['KMnO4'], ['K2MnO4', 'MnO2', 'O2'], [2, 1, 1, 1], 2],
+ [['Al', 'HCl'], ['AlCl3', 'H2'], [2, 6, 2, 3], 3], [['Fe2O3', 'H2'], ['Fe', 'H2O'], [1, 3, 2, 3], 3], [['C3H8', 'O2'], ['CO2', 'H2O'], [1, 5, 3, 4], 3], [['C2H4', 'O2'], ['CO2', 'H2O'], [1, 3, 2, 2], 3],
+ [['C2H6', 'O2'], ['CO2', 'H2O'], [2, 7, 4, 6], 3], [['NH3', 'O2'], ['N2', 'H2O'], [4, 3, 2, 6], 3], [['Al', 'Fe2O3'], ['Al2O3', 'Fe'], [2, 1, 1, 2], 3], [['NaOH', 'H3PO4'], ['Na3PO4', 'H2O'], [3, 1, 1, 3], 3],
+ [['Al', 'H2SO4'], ['Al2(SO4)3', 'H2'], [2, 3, 1, 3], 3], [['Fe(OH)3', 'H2SO4'], ['Fe2(SO4)3', 'H2O'], [2, 3, 1, 6], 3], [['FeS2', 'O2'], ['Fe2O3', 'SO2'], [4, 11, 2, 8], 3],
+];
+const eqObj = e => ({ L:e[0], R:e[1], ans:e[2], lvl:e[3], all:[...e[0], ...e[1]] });
+function counts(eq, c) {
+  const L = {}, R = {};
+  eq.L.forEach((f, i) => { const m = parse(f); for (const x in m) L[x] = (L[x] || 0) + m[x] * c[i]; });
+  eq.R.forEach((f, i) => { const m = parse(f); for (const x in m) R[x] = (R[x] || 0) + m[x] * c[eq.L.length + i]; });
+  return { L, R, els:[...new Set([...Object.keys(L), ...Object.keys(R)])] };
+}
+const balanced = (eq, c) => { const k = counts(eq, c); return k.els.every(e => k.L[e] === k.R[e]); };
+const eqText = (eq, c) => eq.L.map((f, i) => (c && c[i] > 1 ? c[i] : '') + fU(f)).join(' + ') + ' → ' + eq.R.map((f, i) => (c && c[eq.L.length + i] > 1 ? c[eq.L.length + i] : '') + fU(f)).join(' + ');
+const eqHTML = (eq, c) => eq.L.map((f, i) => (c && c[i] > 1 ? c[i] : '') + fH(f)).join(' + ') + ' → ' + eq.R.map((f, i) => (c && c[eq.L.length + i] > 1 ? c[eq.L.length + i] : '') + fH(f)).join(' + ');
+
+/* ---------- віджет зрівнювання ---------- */
+function balUI(eq, c, opts = {}) {
+  const k = counts(eq, c), mL = eq.L.reduce((s, f, i) => s + Mr(f) * c[i], 0), mR = eq.R.reduce((s, f, i) => s + Mr(f) * c[eq.L.length + i], 0);
+  const sp = (f, i) => `<span class="sp"><span class="stepper"><button data-c="${i}" data-d="1" aria-label="Більше" ${opts.lock ? 'disabled' : ''}>▲</button><span class="${c[i] === 1 ? 'one' : ''}">${c[i]}</span><button data-c="${i}" data-d="-1" aria-label="Менше" ${opts.lock || c[i] < 2 ? 'disabled' : ''}>▼</button></span>${fU(f)}</span>`;
+  const eqh = eq.L.map((f, i) => sp(f, i)).join('<span class="op">+</span>') + '<span class="op">→</span>' + eq.R.map((f, i) => sp(f, eq.L.length + i)).join('<span class="op">+</span>');
+  let tbl = '';
+  if (opts.table !== false) tbl = `<table class="cnt"><tr><th>Елемент</th><th>Ліворуч</th><th>Праворуч</th></tr>${k.els.map(e => { const ok = k.L[e] === k.R[e]; return `<tr><td>${e}</td><td class="${ok ? 'okc' : 'badc'}">${k.L[e] || 0}</td><td class="${ok ? 'okc' : 'badc'}">${k.R[e] || 0}</td></tr>`; }).join('')}</table>`;
+  const diff = Math.max(-1, Math.min(1, (mR - mL) / Math.max(mL, mR))), ang = diff * 14;
+  const sc = opts.scale === false ? '' : `<svg class="scale" viewBox="0 0 300 150" role="img" aria-label="Терези: ліворуч ${nf(mL)}, праворуч ${nf(mR)}">
+    <path d="M150 40 L150 128 M118 132 L182 132" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><circle cx="150" cy="40" r="6" fill="var(--ink)"/>
+    <g class="beam" style="transform:rotate(${ang}deg)"><line x1="40" y1="40" x2="260" y2="40" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
+      <g style="transform:rotate(${-ang}deg);transform-origin:40px 40px"><path d="M40 40 L18 88 M40 40 L62 88" stroke="var(--muted)" stroke-width="1.5"/><path d="M10 88 Q40 106 70 88 Z" fill="var(--oh-bg)" stroke="var(--oh)" stroke-width="2"/><text x="40" y="122" text-anchor="middle">${nf(mL)}</text></g>
+      <g style="transform:rotate(${-ang}deg);transform-origin:260px 40px"><path d="M260 40 L238 88 M260 40 L282 88" stroke="var(--muted)" stroke-width="1.5"/><path d="M230 88 Q260 106 290 88 Z" fill="var(--oh-bg)" stroke="var(--oh)" stroke-width="2"/><text x="260" y="122" text-anchor="middle">${nf(mR)}</text></g></g>
+    <text x="40" y="16" text-anchor="middle" style="fill:var(--muted)">реагенти</text><text x="260" y="16" text-anchor="middle" style="fill:var(--muted)">продукти</text></svg>`;
+  return `<div class="eqb">${eqh}</div><div class="balw">${tbl}${sc}</div>`;
+}
+function wireBal(box, c, re) { box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { const i = +b.dataset.c; c[i] = Math.max(1, Math.min(12, c[i] + +b.dataset.d)); re(); }); }
+
+/* демо в теорії */
+const D = { eq:eqObj(EQ[12]), c:null }; D.c = D.eq.all.map(() => 1);
+function demo() {
+  const ok = balanced(D.eq, D.c), g = D.c.reduce(gcd);
+  $('demo').innerHTML = balUI(D.eq, D.c) + `<div class="fb ${ok && g === 1 ? 'ok' : ok ? 'bad' : ''}" style="margin-top:10px">${ok ? (g === 1 ? '<b>Зрівняно!</b> Маси однакові — закон збереження маси виконується.' : 'Зрівняно, але всі коефіцієнти можна скоротити.') : 'Ще не зрівняно — червоні числа в таблиці різні.'}</div>
+    <div class="actions" style="margin-top:10px"><button class="btn ghost" id="d-new">Інше рівняння</button></div>`;
+  wireBal($('demo'), D.c, demo);
+  $('d-new').onclick = () => { D.eq = eqObj(pick(EQ.filter(e => e[3] < 3))); D.c = D.eq.all.map(() => 1); demo(); };
+}
+demo();
+
+/* ---------- генератори ---------- */
+const KINDS = { bal:{ n:'Розстав коефіцієнти', c:'var(--c-stru)' }, atoms:{ n:'Порахуй атоми', c:'var(--c-nom)' }, mass:{ n:'Закон збереження маси', c:'var(--c-calc)' }, sum:{ n:'Сума коефіцієнтів', c:'var(--c-prop)' }, th:{ n:'Теорія', c:'var(--c-react)' } };
+function gBal(lvl, test) { const e = eqObj(pick(EQ.filter(x => (!lvl || x[3] === lvl) && (!test || x[2].some(v => v > 1))))); return { k:'bal', eq:e, c:e.all.map(() => 1), q:'Розстав коефіцієнти, щоб кількість атомів кожного елемента зрівнялась.', right:eqText(e, e.ans), sol:[`${eqText(e, e.ans)}.`] }; }
+const AF = ['H2SO4', 'Ca(NO3)2', 'Al2(SO4)3', 'Fe(OH)3', 'Na3PO4', 'C2H5OH', 'Ca3(PO4)2', 'Ba(NO3)2', 'CuSO4', 'Al(OH)3', 'H3PO4', 'Na2CO3', 'C6H12O6', 'K2MnO4', 'Mg(OH)2', 'Fe2O3'];
+function gAtoms() {
+  const f = pick(AF), c = 2 + (Math.random() * 4 | 0), m = parse(f), els = Object.keys(m);
+  if (Math.random() < .3) { const tot = els.reduce((s, e) => s + m[e], 0) * c; return { k:'atoms', num:1, q:`Скільки всього атомів у записі <b class="f">${c}${fH(f)}</b>?`, a:tot, right:String(tot), sol:[`В одній молекулі ${els.map(e => `${e} — ${m[e]}`).join(', ')}: разом ${tot / c}.`, `${c} · ${tot / c} = ${tot}.`] }; }
+  const e = pick(els); const NAMES = { H:'Гідрогену', O:'Оксигену', N:'Нітрогену', S:'Сульфуру', P:'Фосфору', C:'Карбону', Ca:'Кальцію', Al:'Алюмінію', Fe:'Феруму', Na:'Натрію', Ba:'Барію', Cu:'Купруму', K:'Калію', Mn:'Мангану', Mg:'Магнію' };
+  return { k:'atoms', num:1, q:`Скільки атомів ${NAMES[e]} у записі <b class="f">${c}${fH(f)}</b>?`, a:c * m[e], right:String(c * m[e]), sol:[`В одній молекулі ${fH(f)} атомів ${e}: ${m[e]}.`, `Коефіцієнт ${c}: ${c} · ${m[e]} = ${c * m[e]}.`] };
+}
+const MT = [
+ { t:'вугілля C згоріло в кисні O₂, утворився вуглекислий газ CO₂', s:[['вугілля', 12], ['кисню', 32]], p:[['вуглекислого газу', 44]], eq:'C + O₂ → CO₂' },
+ { t:'вапняк CaCO₃ розклали при нагріванні на негашене вапно CaO і вуглекислий газ CO₂', s:[['вапняку', 100]], p:[['негашеного вапна', 56], ['вуглекислого газу', 44]], eq:'CaCO₃ → CaO + CO₂' },
+ { t:'залізо Fe прореагувало із сіркою S, утворився ферум(II) сульфід FeS', s:[['заліза', 56], ['сірки', 32]], p:[['ферум(II) сульфіду', 88]], eq:'Fe + S → FeS' },
+ { t:'магній Mg згорів у кисні O₂, утворився магній оксид MgO', s:[['магнію', 48], ['кисню', 32]], p:[['магній оксиду', 80]], eq:'2Mg + O₂ → 2MgO' },
+ { t:'воду H₂O розклали електричним струмом на водень H₂ і кисень O₂', s:[['води', 36]], p:[['водню', 4], ['кисню', 32]], eq:'2H₂O → 2H₂ + O₂' },
+ { t:'купрум(II) гідроксид Cu(OH)₂ розклали при нагріванні на купрум(II) оксид CuO і воду H₂O', s:[['купрум(II) гідроксиду', 98]], p:[['купрум(II) оксиду', 80], ['води', 18]], eq:'Cu(OH)₂ → CuO + H₂O' },
+ { t:'водень H₂ згорів у кисні O₂, утворилась вода H₂O', s:[['водню', 4], ['кисню', 32]], p:[['води', 36]], eq:'2H₂ + O₂ → 2H₂O' },
+];
+function gMass() {
+  const T = pick(MT), k = pick([.1, .5, 1, 2, 3, .2, 5]), all = [...T.s.map(x => [...x, 'L']), ...T.p.map(x => [...x, 'R'])];
+  const ui = Math.random() * all.length | 0, u = all[ui], val = x => Math.round(x * k * 100) / 100;
+  const known = all.filter((_, i) => i !== ui).map(x => `${nf(val(x[1]))} г ${x[0]}`);
+  const tail = u[2] === 'R' && T.p.length === 1 ? `Яка маса ${u[0]} утворилась?` : u[2] === 'L' ? `Яка маса ${u[0]} ${T.s.length > 1 ? 'прореагувала' : 'була взята'}?` : `Яка маса ${u[0]} утворилась?`;
+  const sL = T.s.map(x => val(x[1])), sR = T.p.map(x => val(x[1]));
+  return { k:'mass', num:1, q:`Хімік з'ясував, що ${T.t}. Відомо: ${known.join(', ')}. ${tail} (у грамах)`, a:val(u[1]), right:nf(val(u[1])) + ' г',
+    sol:[`За законом збереження маси: m(реагентів) = m(продуктів).`, `${T.s.map(x => 'm(' + x[0] + ')').join(' + ')} = ${T.p.map(x => 'm(' + x[0] + ')').join(' + ')}`, `${sL.map(nf).join(' + ')} = ${sR.map(nf).join(' + ')} → шукана маса ${nf(val(u[1]))} г.`] };
+}
+function gSum() {
+  const e = eqObj(pick(EQ.filter(x => x[3] >= 2))), s = e.ans.reduce((a, b) => a + b, 0);
+  const w = [...new Set([s + 1, s - 1, s + 2, s - 2, e.all.length, s + 3].filter(x => x > 1 && x !== s))];
+  const o = shuffle([s, ...shuffle(w).slice(0, 3)]);
+  return { k:'sum', q:`Розставте коефіцієнти й обчисліть їх суму: <b class="f">${eqHTML(e)}</b>`, opts:o.map(String), ri:o.indexOf(s), right:String(s), sol:[`${eqText(e, e.ans)}.`, `Сума: ${e.ans.join(' + ')} = ${s} (коефіцієнт 1 теж рахується).`] };
+}
+const TH = [
+ ['Хто експериментально довів закон збереження маси, зважуючи речовини в запаяних посудинах?', ['Антуан Лавуазьє', 'Джон Дальтон', 'Амедео Авогадро', 'Йєнс Берцеліус'], 'Лавуазьє, 1789 рік.'],
+ ['Закон збереження маси стверджує, що:', ['маса речовин до реакції дорівнює масі речовин після реакції', 'маса продуктів завжди більша за масу реагентів', 'маса не змінюється тільки в реакціях розкладу', 'кількість молекул до і після реакції однакова'], 'Однакова маса й кількість атомів, а кількість молекул може змінюватись: 2H₂ + O₂ → 2H₂O (3 молекули → 2).'],
+ ['Чому під час хімічної реакції маса не змінюється?', ['атоми не зникають і не виникають, а лише перегруповуються', 'молекули не змінюються', 'речовини не змінюють агрегатного стану', 'енергія не виділяється'], 'Змінюються молекули, але атоми лишаються ті самі.'],
+ ['Що показує коефіцієнт перед формулою?', ['кількість молекул (формульних одиниць)', 'кількість атомів у молекулі', 'валентність елемента', 'масу речовини'], 'Кількість атомів у молекулі показує індекс.'],
+ ['Чи можна змінювати індекси у формулах, розставляючи коефіцієнти?', ['ні — зміниться сама речовина', 'так, якщо так простіше', 'так, але лише в продуктах', 'тільки в простих речовинах'], 'H₂O і H₂O₂ — різні речовини.'],
+ ['Свічка горить і стає легшою. Чи порушує це закон збереження маси?', ['ні — продукти горіння (CO₂ і H₂O) — гази, що йдуть у повітря', 'так, маса зникає', 'так, бо віск плавиться', 'ні, бо свічка не реагує з киснем'], 'Якщо зібрати гази, сума мас збережеться.'],
+ ['Залізний цвях після іржавіння став важчим. Чому?', ['до заліза приєднались кисень і вода з повітря', 'залізо поглинуло тепло', 'закон збереження маси тут не діє', 'збільшилась кількість атомів Феруму'], 'Маса іржі = маса заліза + маса кисню й води, що прореагували.'],
+ ['Яке з рівнянь записано правильно?', ['2H₂ + O₂ → 2H₂O', 'H₂ + O₂ → H₂O', 'H₂ + O → H₂O', 'H₂ + O₂ → H₂O₂'], 'Ліворуч і праворуч по 4 атоми H і 2 атоми O. Варіант з H₂O₂ — це вже інша речовина.'],
+];
+function gTh() { const [q, o, e] = pick(TH); const so = shuffle(o); return { k:'th', q, opts:so, ri:so.indexOf(o[0]), right:o[0], sol:[e] }; }
+const GEN = { bal:() => gBal(), atoms:gAtoms, mass:gMass, sum:gSum, th:gTh };
+
+const num = s => { const v = parseFloat(String(s ?? '').replace(',', '.').replace(/\s/g, '')); return isNaN(v) ? null : v; };
+const okOf = t => t.k === 'bal' ? balanced(t.eq, t.c) && t.c.reduce(gcd) === 1 : t.num ? num(t.a2) !== null && Math.abs(num(t.a2) - t.a) < .011 : t.a2 === t.ri;
+const ansTxt = t => t.k === 'bal' ? eqText(t.eq, t.c) : t.num ? (t.a2 || '—') : t.a2 == null ? '—' : t.opts[t.a2];
+const ansUI = (t, pre) => t.k === 'bal' ? balUI(t.eq, t.c, { lock:t.lock }) : t.num ? `<div class="inrow"><input id="${pre}-in" inputmode="decimal" autocomplete="off" placeholder="Відповідь — число" value="${esc(t.a2 ?? '')}"></div>`
+  : `<div class="opts">${t.opts.map((o, i) => `<button class="opt ${t.a2 === i ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o}</span></button>`).join('')}</div>`;
+
+/* ---------- практика ---------- */
+const P = { kind:'bal', lvl:0, t:null, done:false, got:0, all:0 };
+$('pseg').innerHTML = Object.entries(KINDS).map(([k, v]) => `<button class="segb" data-k="${k}" aria-pressed="${k === 'bal'}">${v.n}</button>`).join('') +
+  `<span style="flex-basis:100%"></span>` + [[0, 'Усі рівні'], [1, 'Легкі'], [2, 'Середні'], [3, 'Складні']].map(([l, n]) => `<button class="segb lv" data-l="${l}" aria-pressed="${l === 0}">${n}</button>`).join('');
+$('pseg').querySelectorAll('.segb:not(.lv)').forEach(b => b.onclick = () => { P.kind = b.dataset.k; $('pseg').querySelectorAll('.segb:not(.lv)').forEach(x => x.setAttribute('aria-pressed', x === b)); newP(); });
+$('pseg').querySelectorAll('.lv').forEach(b => b.onclick = () => { P.lvl = +b.dataset.l; P.kind = 'bal'; $('pseg').querySelectorAll('.segb').forEach(x => x.setAttribute('aria-pressed', x === b || x.dataset.k === 'bal')); newP(); });
+function newP() { P.t = P.kind === 'bal' ? gBal(P.lvl) : GEN[P.kind](); P.t.a2 = null; P.done = false; renderP(); }
+function renderP() {
+  const t = P.t, box = $('ptask'); $('pstat').textContent = `Правильно: ${P.got} з ${P.all}`;
+  box.style.setProperty('--c', KINDS[t.k].c);
+  box.innerHTML = `<div class="tline"><span class="tag">${KINDS[t.k].n}</span></div><div class="q">${t.q}</div>${ansUI(t, 'p')}
+    <div id="p-fb"></div><div class="actions">${t.k === 'th' || t.k === 'sum' ? '' : '<button class="btn" id="p-check">Перевірити</button>'}<button class="btn ghost" id="p-next">Наступне завдання</button>${t.k === 'bal' && !P.done ? '<button class="btn ghost" id="p-reset">Скинути</button>' : ''}</div>`;
+  if (t.k === 'bal' && !P.done) { wireBal(box, t.c, renderP); $('p-reset').onclick = () => { t.c = t.eq.all.map(() => 1); renderP(); }; }
+  if ($('p-in')) { $('p-in').oninput = e => t.a2 = e.target.value; $('p-in').onkeydown = e => { if (e.key === 'Enter') check(); }; }
+  box.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (P.done) return; t.a2 = +b.dataset.i; check(); });
+  if ($('p-check')) $('p-check').onclick = check; $('p-next').onclick = newP;
+  if (P.done) fb();
+}
+function check() {
+  const t = P.t; if (P.done) return;
+  if (t.num && (t.a2 == null || t.a2 === '')) { $('p-fb').innerHTML = '<div class="fb bad">Впиши відповідь.</div>'; return; }
+  if (t.k === 'bal' && !balanced(t.eq, t.c)) { $('p-fb').innerHTML = '<div class="fb bad"><b>Ще не зрівняно.</b> Подивись на червоні числа в таблиці.</div>'; return; }
+  if (t.k === 'bal' && t.c.reduce(gcd) > 1) { $('p-fb').innerHTML = '<div class="fb bad"><b>Майже!</b> Зрівняно, але всі коефіцієнти мають спільний дільник — скороти їх.</div>'; return; }
+  P.done = true; P.all++; if (okOf(t)) P.got++; t.lock = true;
+  renderP();
+}
+function fb() {
+  const t = P.t, ok = okOf(t);
+  if (t.k !== 'bal' && !t.num) $('ptask').querySelectorAll('.opt').forEach(b => { b.disabled = true; if (+b.dataset.i === t.ri) b.classList.add('ok'); else if (+b.dataset.i === t.a2) b.classList.add('bad'); });
+  $('p-fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? 'Правильно!' : 'Не зовсім.'}</b> ${ok ? '' : 'Правильно: <b>' + t.right + '</b>'}</div>
+    <div class="solbox"><b>Розв'язання</b><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
+}
+
+/* ---------- тест ---------- */
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, sent:'' };
+try { T.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function makeTest() {
+  const out = [], seen = new Set(), add = t => { const s = t.q + (t.eq ? eqText(t.eq) : ''); if (seen.has(s)) return false; seen.add(s); t.a2 = null; out.push(t); return true; };
+  [1, 1, 2, 2, 2, 3].forEach(l => { let g = 0; while (g++ < 50 && !add(gBal(l, true))); });
+  [['atoms', 2], ['mass', 3], ['sum', 1], ['th', 3]].forEach(([k, n]) => { let g = 0; while (n > 0 && g++ < 100) if (add(GEN[k]())) n--; });
+  return out;
+}
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">15 завдань · 15 балів</div><h2 style="margin-top:4px">Тест: коефіцієнти і закон збереження маси</h2></div>
+      <p>6 рівнянь на розставлення коефіцієнтів (від легких до складних), підрахунок атомів, задачі на закон збереження маси й теорія. Результат прийде вчителю.</p>
+      <div class="row"><label class="field">Ім'я та прізвище<input id="t-name" value="${esc(T.name)}" autocomplete="name"></label><label class="field">Клас<input id="t-cls" value="${esc(T.cls)}" inputmode="numeric"></label></div>
+      <div class="err" id="t-err"></div><div class="actions"><button class="btn" id="t-go">Почати тест</button></div></div>`;
+    $('t-go').onclick = () => { T.name = $('t-name').value.trim(); T.cls = $('t-cls').value.trim();
+      if (!T.name) { $('t-err').textContent = "Впиши ім'я та прізвище."; return; }
+      try { localStorage.setItem('nova_name', T.name); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.phase = 'run'; T.sent = ''; renderTest(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], N = T.tasks.length, last = T.i === N - 1;
+    const done = x => x.k === 'bal' ? x.touched : x.a2 != null && x.a2 !== '';
+    v.innerHTML = `<div class="dots">${T.tasks.map((x, j) => `<button class="dot ${done(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${KINDS[t.k].c}"><div class="tline"><span class="tag">${KINDS[t.k].n}</span><span class="count">${T.i + 1} / ${N}</span></div>
+      <div class="q">${t.q}</div>${t.k === 'bal' ? balUI(t.eq, t.c, { scale:false }) : ansUI(t, 't')}
+      <div class="actions"><button class="btn ghost" id="t-prev" ${T.i ? '' : 'disabled'}>Назад</button>${last ? '<button class="btn" id="t-fin">Завершити тест</button>' : '<button class="btn" id="t-next">Далі</button>'}</div></div>`;
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => { T.i = +b.dataset.j; renderTest(); });
+    if (t.k === 'bal') wireBal(v, t.c, () => { t.touched = true; renderTest(); });
+    v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.a2 = +b.dataset.i; if (!last) T.i++; renderTest(); });
+    const inp = $('t-in'); if (inp) { inp.oninput = () => t.a2 = inp.value; inp.onkeydown = e => { if (e.key === 'Enter' && !last) { T.i++; renderTest(); } }; }
+    $('t-prev').onclick = () => { T.i--; renderTest(); };
+    if ($('t-next')) $('t-next').onclick = () => { T.i++; renderTest(); };
+    if ($('t-fin')) $('t-fin').onclick = () => { T.phase = 'done'; renderTest(); send(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  const got = T.tasks.filter(okOf).length, N = T.tasks.length, mark = Math.max(1, Math.round(got / N * 12));
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">${esc(T.name)}${T.cls ? ' · ' + esc(T.cls) + ' клас' : ''}</div><div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+    <div class="hint">Правильно ${got} з ${N}</div><div class="send ${T.sent || 'wait'}">${T.sent === 'ok' ? 'Результат надіслано вчителю.' : T.sent === 'fail' ? 'Не вдалося надіслати. <button class="btn ghost" id="t-resend">Ще раз</button>' : 'Надсилаю результат…'}</div>
+    <div class="actions"><button class="btn ghost" id="t-again">Пройти ще раз</button></div></div>
+    <div class="card stack"><h2>Розбір</h2><ol class="review">${T.tasks.map((t, i) => { const ok = okOf(t);
+      return `<li class="${ok ? 'ok' : 'bad'}"><span class="m">${ok ? '✓' : '✗'}</span><div class="rb"><b>${i + 1}.</b> ${t.k === 'bal' ? 'Розстав коефіцієнти: ' + eqHTML(t.eq) : t.q}${ok ? '' : `<div class="yours">Твоя відповідь: ${esc(ansTxt(t))}</div><div class="why">Правильно: <b>${t.right}</b>. ${t.k === 'bal' ? '' : t.sol.join(' ')}</div>`}</div></li>`; }).join('')}</ol></div>`;
+  if ($('t-resend')) $('t-resend').onclick = send;
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+function send() {
+  const got = T.tasks.filter(okOf).length, N = T.tasks.length;
+  const details = T.tasks.map((t, i) => { const ok = okOf(t), q = t.k === 'bal' ? 'Розстав коефіцієнти: ' + eqText(t.eq) : plain(t.q);
+    return `${ok ? '✓' : '✗'} ${i + 1}. [${KINDS[t.k].n}] ${q}${ok ? '' : `\n     відповів: «${ansTxt(t)}» → правильно: «${plain(t.right)}»`}`; }).join('\n');
+  T.sent = 'wait';
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name:T.name, cls:T.cls, topic:'Коефіцієнти. Закон збереження маси', score:`${got}/${N}`, mark:Math.max(1, Math.round(got / N * 12)), details }) })
+    .then(() => { T.sent = 'ok'; if (T.phase === 'done') renderTest(); }).catch(() => { T.sent = 'fail'; if (T.phase === 'done') renderTest(); });
+}
+
+/* ---------- вкладки ---------- */
+const VIEWS = ['teoriya', 'zadachi', 'test'];
+function showV(v) { if (!VIEWS.includes(v)) v = 'teoriya'; VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'zadachi' && !P.t) newP(); if (v === 'test' && T.phase === 'start') renderTest(); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { showV(b.dataset.v); try { history.replaceState(null, '', '#' + b.dataset.v); } catch (e) {} window.scrollTo({ top:0 }); });
+window.addEventListener('hashchange', () => showV(location.hash.slice(1)));
+showV(location.hash.slice(1));
+</script>
+
+</html>
