@@ -471,12 +471,12 @@ const T = { phase:'start', name:'', cls:'', tasks:[], i:0, sent:'' };
 try { T.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
 function makeTest() {
   const out = [], seen = new Set(), push = (k, n) => { let g = 0; while (n > 0 && g++ < 100) { const t = GEN[k](false); const s = k + key(t.p) + t.q; if (seen.has(s)) continue; seen.add(s); t.st = { a:null, m:0, n:0 }; t.a = null; out.push(t); n--; } };
-  push('graph', 4); push('pick', 3); push('shift', 2); push('prop', 5); return out;
+  push('graph', 3); push('pick', 2); push('shift', 2); push('prop', 3); return out;
 }
 function renderTest() {
   const v = $('v-test');
   if (T.phase === 'start') {
-    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">14 завдань · 14 балів</div><h2 style="margin-top:4px">Тест: графіки y = a(x − m)² + n</h2></div>
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">10 завдань · 10 балів</div><h2 style="margin-top:4px">Тест: графіки y = a(x − m)² + n</h2></div>
       <p>Формула за графіком, графік за формулою, зсуви й властивості функції. Результат прийде вчителю.</p>
       <div class="row"><label class="field">Ім'я та прізвище<input id="t-name" value="${esc(T.name)}" autocomplete="name"></label><label class="field">Клас<input id="t-cls" value="${esc(T.cls)}" inputmode="numeric"></label></div>
       <div class="err" id="t-err"></div><div class="actions"><button class="btn" id="t-go">Почати тест</button></div></div>`;
