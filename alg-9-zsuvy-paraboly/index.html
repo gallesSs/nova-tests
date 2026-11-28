@@ -1,0 +1,533 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style>
+<title>Зсуви параболи</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column on graph paper; three tabs (theory, problems, test); hydroxyl teal as the single accent */
+:root{
+  --paper:#f5f8f8; --grid:#e0e8e8; --ink:#13201f; --muted:#576867; --card:#ffffff; --line:#d1dcdb;
+  --oh:#0b7a74; --oh-bg:#def1ef;
+  --ok:#1f8f55; --ok-bg:#e3f5eb; --bad:#c9373a; --bad-bg:#fbe7e7; --warn-bg:#fff4dc; --warn:#9a6200;
+  --c-stru:#2f6fd6; --c-nom:#8a4fd8; --c-prop:#2f8f5b; --c-react:#d47a1f; --c-prod:#9a6329; --c-calc:#0b7a74;
+  --display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111716; --grid:#1b2423; --ink:#ecf3f2; --muted:#98a9a7; --card:#182120; --line:#2a3634;
+  --oh:#4fc6bd; --oh-bg:#143331;
+  --ok:#4fcf8a; --ok-bg:#15342a; --bad:#f07477; --bad-bg:#3a1c1f; --warn-bg:#3a2d12; --warn:#f2c46b;
+  --c-stru:#6aa0f5; --c-nom:#b48af2; --c-prop:#5fc28c; --c-react:#f0a35a; --c-prod:#d9a066; --c-calc:#4fc6bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;min-height:100vh}
+.wrap{max-width:780px;margin:0 auto;padding-block:28px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1}
+h2{font-size:21px;line-height:1.25}
+h3{font-size:15px;margin-top:6px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:22px;box-shadow:5px 5px 0 var(--ink);min-width:0}
+.hint{font-size:13.5px;color:var(--muted)}
+.f{font-family:var(--mono);font-weight:500;font-size:.94em}
+sub,sup{font-size:.7em;line-height:0}
+.hl{color:var(--oh);font-weight:700}
+
+/* header + tabs */
+.head{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.ohbadge{font:700 clamp(18px,4.4vw,24px)/1 var(--mono);color:var(--oh);border:2px solid var(--oh);border-radius:10px;padding:6px 10px;background:var(--oh-bg)}
+.tabs{display:flex;gap:0;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--card);align-self:flex-start;max-width:100%}
+.tab{font:700 15px var(--body);color:var(--ink);background:transparent;border:0;border-right:2px solid var(--ink);padding:10px 20px;cursor:pointer}
+.tab:last-child{border-right:0}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-visible,.segb:focus-visible,.dot:focus-visible,.toc button:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+
+/* theory */
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc button,.segb{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.toc button:hover,.segb:hover{border-color:var(--ink)}
+.segb[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.sec{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.sec ul,.sec ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.def{border:2px solid var(--oh);background:var(--oh-bg);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.def .big{font:700 clamp(24px,6vw,30px)/1.2 var(--mono);color:var(--ink)}
+.lbl{font:700 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sf{margin:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sf pre{margin:0;font:500 15px/1.25 var(--mono);overflow-x:auto}
+.sf figcaption{font-size:13px;color:var(--muted)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);white-space:nowrap}
+.example{border-left:4px solid var(--oh);padding:6px 0 6px 14px}
+.note{border:2px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.warn{background:var(--warn-bg);color:var(--ink);border:2px solid var(--warn);border-radius:12px;padding:12px 16px;font-size:15px}
+.warn b{color:var(--warn)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;align-items:center;font-size:14px}
+.bar .tr{position:relative;height:22px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .tr i{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:5px 0 0 5px}
+.bar.hot .tr i{background:var(--oh)}
+.bar .tr span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:700 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:minmax(92px,150px) 1fr;gap:10px;font:500 11.5px var(--mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.rx{display:grid;grid-template-columns:1fr;gap:10px}
+.rxi{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rxn{font-weight:700;font-size:14.5px}
+.eq{font-family:var(--mono);font-weight:500;font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.arr{display:inline-flex;flex-direction:column;align-items:center;line-height:1;vertical-align:-2px;margin:0 3px}
+.arr small{font:500 10.5px var(--mono);color:var(--muted);white-space:nowrap}
+.uses{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.use{border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.use b{display:block;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--mono);border:2px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--card)}
+
+/* tasks */
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.task{display:flex;flex-direction:column;gap:14px}
+.tline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:7px;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.tag::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.count{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.q{font-size:18px;font-weight:700;line-height:1.5}
+.q .f{font-size:.95em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:500 16px/1.45 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font:700 13px var(--mono);border:2px solid currentColor;border-radius:6px;min-width:26px;height:26px;display:grid;place-items:center;color:var(--muted);flex-shrink:0}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)} .opt.sel .k{color:var(--card);background:var(--ink);border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)} .opt.ok .k{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)} .opt.bad .k{color:var(--bad)}
+.inrow{display:flex;align-items:stretch;max-width:360px;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.inrow:focus-within{border-color:var(--ink)}
+.inrow input{flex:1;min-width:0;font:500 17px var(--mono);color:var(--ink);background:transparent;border:0;padding:11px 14px;outline:none}
+.unit{display:grid;place-items:center;padding:0 14px;font:700 14px var(--mono);color:var(--muted);border-left:2px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
+.field input{font:500 16px var(--body);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+.field input:focus{outline:none;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:520px){.row{grid-template-columns:1fr}}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:15px;color:var(--muted)}
+.fb{border-left:4px solid var(--ink);padding:4px 0 4px 14px;font-size:15.5px}
+.fb.ok{border-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.bad{border-color:var(--bad)} .fb.bad b{color:var(--bad)}
+.solbox{border:2px dashed var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15.5px}
+.steps li::marker{font:700 13px var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:700 15.5px var(--body);border:2px solid var(--ink);background:var(--ink);color:var(--card);border-radius:10px;padding:10px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--muted);transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--muted)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--muted)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:34px;height:34px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:700 13px var(--mono);color:var(--muted);cursor:pointer;font-variant-numeric:tabular-nums}
+.dot.done{background:var(--oh-bg);border-color:var(--oh);color:var(--ink)}
+.dot.cur{border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:700 clamp(58px,15vw,84px)/1 var(--display)}
+.score .of{font:700 20px var(--mono);color:var(--muted)}
+.send{font-weight:700;font-size:14.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.send.ok{color:var(--ok)} .send.fail{color:var(--bad)} .send.wait{color:var(--muted)}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.review li{display:grid;grid-template-columns:26px 1fr;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 14px}
+.review li.bad{border-color:var(--bad)}
+.review .m{font:700 16px var(--mono)}
+.review li.ok .m{color:var(--ok)} .review li.bad .m{color:var(--bad)}
+.review .rb{display:flex;flex-direction:column;gap:3px;font-size:15px;min-width:0}
+.review .yours{color:var(--bad)} .review .right{color:var(--ok)}
+.review .why{margin-top:4px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+footer{font-size:13px;color:var(--muted);text-align:center}
+
+/* чернетка (signature_pad) */
+.draft-fab{position:fixed;z-index:40;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  font:700 15px var(--body);display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:var(--oh);color:#fff;border-radius:999px;padding:11px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.draft-fab svg{width:18px;height:18px}
+.draft-fab:focus-visible,.dt:focus-visible{outline:3px solid var(--oh);outline-offset:2px}
+.draft{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--card);border-left:2px solid var(--ink);box-shadow:-6px 0 0 rgba(0,0,0,.08);
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.draft-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.draft-bar .ttl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.draft-bar .sp{flex:1}
+.dt svg{width:17px;height:17px}
+.draft-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt{font:700 13.5px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:9px;min-width:36px;height:36px;padding:0 10px;cursor:pointer;display:inline-grid;place-items:center}
+.dt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dt i{display:block;width:16px;height:16px;border-radius:50%}
+.dt.warn{border-color:var(--bad);color:var(--bad)}
+.draft-area{position:relative;flex:1;min-height:0;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.draft-area canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.draft-msg{position:absolute;inset:auto 16px 16px 16px;background:var(--card);border:2px solid var(--bad);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.draft-hint{position:absolute;left:12px;bottom:14px;font-size:12.5px;color:var(--muted);pointer-events:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:4px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:3px;z-index:2}
+.zoombar .dt{min-width:32px;height:32px;border:0}
+.zoombar .zl{font:700 12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:52px}
+.draft-area.hand canvas{cursor:grab}
+.draft-area.panning canvas{cursor:grabbing}
+@media (max-width:700px){
+  .draft{top:auto;left:0;width:auto;height:60vh;border-left:0;border-top:2px solid var(--ink);border-radius:16px 16px 0 0;box-shadow:0 -6px 0 rgba(0,0,0,.08);padding-left:env(safe-area-inset-left,0px)}
+  body.draft-on .wrap{padding-bottom:62vh}
+}
+@media (min-width:701px){ body.draft-on{padding-right:460px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+.plot{width:100%;max-width:400px;height:auto;display:block;margin:0 auto;background:var(--card);border-radius:12px}
+.plot .gl{stroke:var(--line);stroke-width:1}
+.plot .ax{stroke:var(--ink);stroke-width:1.6}
+.plot .tk{font:600 10px var(--mono);fill:var(--muted)}
+.plot .base{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5;opacity:.7}
+.plot .cv{fill:none;stroke:var(--oh);stroke-width:3.2;stroke-linecap:round}
+.plot .try{fill:none;stroke:var(--c-react);stroke-width:2.6;stroke-dasharray:7 5}
+.plot .vx{fill:var(--oh);stroke:var(--card);stroke-width:2}
+.plot .zr{fill:var(--card);stroke:var(--c-react);stroke-width:2.4}
+.plot .axs{stroke:var(--oh);stroke-width:1.5;stroke-dasharray:3 4}
+.figw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.sl{display:flex;flex-direction:column;gap:4px;font:600 15px var(--body)}
+.sl input{width:100%;accent-color:var(--oh)}
+.sl b{font-family:var(--mono)}
+.fbig{font:700 clamp(20px,5vw,26px)/1.3 var(--mono);background:var(--oh-bg);border-radius:10px;padding:8px 12px;overflow-x:auto;white-space:nowrap}
+.props{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:15px}
+.props b{font-family:var(--mono)}
+.g4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.g4 .opt{flex-direction:column;align-items:stretch;padding:8px;gap:4px}
+.g4 .opt .plot{max-width:none}
+.builder{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font:700 22px var(--mono)}
+.stepper{display:inline-flex;align-items:center;border:2px solid var(--ink);border-radius:10px;overflow:hidden;font:700 17px var(--mono)}
+.stepper button{font:700 18px var(--mono);width:36px;height:40px;border:0;background:var(--card);color:var(--ink);cursor:pointer}
+.stepper span{min-width:42px;text-align:center}
+.asel{display:inline-flex;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.asel button{font:700 16px var(--mono);padding:8px 10px;border:0;background:var(--card);color:var(--ink);cursor:pointer}
+.asel button+button{border-left:2px solid var(--ink)}
+.asel button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.toggle{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:15px;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--oh)}
+@media (max-width:640px){.figw{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Алгебра · 9 клас · Квадратична функція</div>
+    <div class="brand"><h1>Зсуви параболи</h1><span class="ohbadge" aria-hidden="true">y = (x − m)² + n</span></div>
+    <nav class="tabs" role="tablist" aria-label="Розділи">
+      <button class="tab" role="tab" data-v="teoriya" aria-selected="true">Теорія</button>
+      <button class="tab" role="tab" data-v="zadachi" aria-selected="false">Задачі</button>
+      <button class="tab" role="tab" data-v="test" aria-selected="false">Тест</button>
+    </nav>
+  </header>
+
+  <section id="v-teoriya" class="stack">
+    <div class="card sec">
+      <h2>Конструктор параболи</h2>
+      <p>Рухай повзунки й дивись, як парабола <span class="f">y = x²</span> (пунктир) зсувається, перевертається й розтягується.</p>
+      <div class="figw">
+        <div id="cPlot"></div>
+        <div class="stack">
+          <div class="fbig" id="cF"></div>
+          <label class="sl">a = <b id="cAv"></b><input type="range" id="cA" min="-4" max="4" step="1" value="2"></label>
+          <label class="sl">m (зсув уздовж Ox) = <b id="cMv"></b><input type="range" id="cM" min="-6" max="6" step="1" value="4"></label>
+          <label class="sl">n (зсув уздовж Oy) = <b id="cNv"></b><input type="range" id="cN" min="-6" max="6" step="1" value="-4"></label>
+          <div class="props" id="cP"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sec">
+      <h2>1. Зсув уздовж осі Oy: y = x² + n</h2>
+      <p>Кожна точка параболи піднімається на n одиниць (якщо n > 0) або опускається (якщо n < 0). Вершина переходить у точку <b class="f">(0; n)</b>.</p>
+      <div class="example">y = x² + 3 — на 3 вгору, вершина (0; 3). y = x² − 5 — на 5 вниз, вершина (0; −5).</div>
+    </div>
+    <div class="card sec">
+      <h2>2. Зсув уздовж осі Ox: y = (x − m)²</h2>
+      <p>Парабола зсувається <b>вправо на m</b>, якщо m > 0, і вліво — якщо m < 0. Вершина — <b class="f">(m; 0)</b>.</p>
+      <div class="def"><span class="lbl">Пастка</span><span>Знак «навпаки»: <span class="f">y = (x − 3)²</span> — вправо на 3, а <span class="f">y = (x + 3)²</span> — вліво на 3, бо x + 3 = x − (−3), тобто m = −3.</span></div>
+      <p class="note">Як перевірити: вершина там, де дужка дорівнює нулю. (x + 3)² = 0 при x = −3.</p>
+    </div>
+    <div class="card sec">
+      <h2>3. Обидва зсуви: y = (x − m)² + n</h2>
+      <p>Спершу зсув на m уздовж Ox, потім на n уздовж Oy. Вершина параболи — <b class="f">(m; n)</b>, вісь симетрії — пряма <b class="f">x = m</b>.</p>
+      <div class="example"><b>Приклад: y = (x − 4)² − 4.</b> Вершина (4; −4): графік y = x² зсуваємо на 4 вправо й на 4 вниз.</div>
+    </div>
+    <div class="card sec">
+      <h2>4. Знак і коефіцієнт a: y = a(x − m)² + n</h2>
+      <ul>
+        <li><b>a > 0</b> — вітки вгору, <b>a < 0</b> — вітки вниз (парабола перевернута: y = −x²).</li>
+        <li>|a| > 1 — парабола «вужча» (крутіша), 0 < |a| < 1 — «ширша».</li>
+        <li>Від вершини: на 1 вбік — на |a| вгору/вниз, на 2 вбік — на 4|a|, на 3 вбік — на 9|a|.</li>
+      </ul>
+    </div>
+    <div class="card sec">
+      <h2>5. Як читати властивості з графіка</h2>
+      <p>На прикладі <span class="f">y = (x − 4)² − 4</span>:</p>
+      <div id="exPlot"></div>
+      <ol class="steps">
+        <li><b>Нулі функції</b> — де графік перетинає Ox: (x − 4)² = 4 → x − 4 = ±2 → <b class="f">x = 2, x = 6</b>.</li>
+        <li><b>Від'ємні значення</b> — де графік нижче Ox: <b class="f">x ∈ (2; 6)</b>.</li>
+        <li><b>Спадає</b> до вершини: <b class="f">(−∞; 4]</b>, <b>зростає</b> після: <b class="f">[4; +∞)</b>.</li>
+        <li><b>Область значень</b> — від вершини вгору: <b class="f">[−4; +∞)</b>.</li>
+      </ol>
+      <p class="note">Для a < 0 усе навпаки: спершу зростає, потім спадає, а область значень — (−∞; n].</p>
+    </div>
+  </section>
+
+  <section id="v-zadachi" class="stack" hidden>
+    <div class="card stack"><div class="seg" id="pseg"></div>
+      <label class="toggle"><input type="checkbox" id="hard"> Складніше: a = ±2 і ±½</label>
+      <div class="hint" id="pstat"></div></div>
+    <div class="card task" id="ptask"></div>
+  </section>
+  <section id="v-test" class="stack" hidden></section>
+  <footer>Математика з Артуром Валентиновичем</footer>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwJt0FC8AbiZQi9ZByBeCdRuD8BOnVZMpK2fuoZ2KJNqt8k7bayhczqiv_50-ftWhumeA/exec';
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent.replace(/\s+/g, ' ').trim(); };
+const LETTERS = 'АБВГ';
+const N = x => (x < 0 ? '−' + Math.abs(x) : String(x)).replace('.', ',');
+
+/* ---------- формула ---------- */
+function aStr(a) { return a === 1 ? '' : a === -1 ? '−' : a === .5 ? '½' : a === -.5 ? '−½' : N(a); }
+function F(p) {
+  const { a, m, n } = p; let s = 'y = ' + aStr(a);
+  s += m === 0 ? 'x²' : `(x ${m > 0 ? '−' : '+'} ${Math.abs(m)})²`;
+  if (n) s += ` ${n > 0 ? '+' : '−'} ${Math.abs(n)}`;
+  return s;
+}
+const key = p => `${p.a}|${p.m}|${p.n}`;
+
+/* ---------- графік ---------- */
+function plot(curves, o = {}) {
+  const R = o.R || 8, S = o.small ? 11 : 20, W = R * S, X = x => x * S, Y = y => -y * S;
+  let s = `<svg class="plot" viewBox="${-W - 6} ${-W - 6} ${2 * W + 12} ${2 * W + 12}" role="img" aria-label="Графік">`;
+  const id = 'c' + Math.random().toString(36).slice(2, 8);
+  s += `<defs><clipPath id="${id}"><rect x="${-W}" y="${-W}" width="${2 * W}" height="${2 * W}"/></clipPath></defs>`;
+  for (let i = -R; i <= R; i++) s += `<line class="gl" x1="${X(i)}" y1="${-W}" x2="${X(i)}" y2="${W}"/><line class="gl" x1="${-W}" y1="${Y(i)}" x2="${W}" y2="${Y(i)}"/>`;
+  s += `<line class="ax" x1="${-W}" y1="0" x2="${W}" y2="0"/><line class="ax" x1="0" y1="${-W}" x2="0" y2="${W}"/>`;
+  s += `<path class="ax" fill="var(--ink)" d="M${W} 0 l-7 -4 v8 z M0 ${-W} l-4 7 h8 z"/>`;
+  if (!o.small) { for (let i = -R + 1; i < R; i++) if (i && i % 2 === 0) s += `<text class="tk" x="${X(i)}" y="14" text-anchor="middle">${N(i)}</text><text class="tk" x="-6" y="${Y(i) + 3.5}" text-anchor="end">${N(i)}</text>`;
+    s += `<text class="tk" x="${W - 4}" y="-8" text-anchor="end" style="font-size:12px;fill:var(--ink)">x</text><text class="tk" x="8" y="${-W + 10}" style="font-size:12px;fill:var(--ink)">y</text><text class="tk" x="-5" y="13" text-anchor="end">0</text>`; }
+  else s += `<text class="tk" x="${X(1)}" y="11" text-anchor="middle" style="font-size:9px">1</text><text class="tk" x="-4" y="${Y(1) + 3}" text-anchor="end" style="font-size:9px">1</text>`;
+  s += `<g clip-path="url(#${id})">`;
+  for (const c of curves) {
+    let d = ''; for (let x = -R - 1; x <= R + 1.001; x += .05) { const y = c.a * (x - c.m) ** 2 + c.n; if (Math.abs(y) > R + 3) { d += ' '; continue; } d += (d.endsWith(' ') || !d ? 'M' : 'L') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1); }
+    d = d.replace(/ +/g, ' ').replace(/ M/g, 'M').replace(/ L/g, 'M');
+    s += `<path class="${c.cls || 'cv'}" d="${d.trim()}"/>`;
+    if (c.vertex) s += `<circle class="vx" cx="${X(c.m)}" cy="${Y(c.n)}" r="${o.small ? 3.5 : 5}"/>`;
+    if (c.axis) s += `<line class="axs" x1="${X(c.m)}" y1="${-W}" x2="${X(c.m)}" y2="${W}"/>`;
+    if (c.zeros) zeros(c).forEach(z => s += `<circle class="zr" cx="${X(z)}" cy="0" r="5"/>`);
+  }
+  return s + '</g></svg>';
+}
+function zeros(p) { const t = -p.n / p.a; if (t < 0) return []; if (t === 0) return [p.m]; const r = Math.sqrt(t); return [p.m - r, p.m + r]; }
+
+/* ---------- властивості ---------- */
+const fn = x => Number.isInteger(x) ? N(x) : N(Math.round(x * 100) / 100);
+function props(p) {
+  const z = zeros(p), up = p.a > 0;
+  const zs = z.length ? z.map(x => 'x = ' + fn(x)).join(', ') : 'немає';
+  const range = up ? `[${N(p.n)}; +∞)` : `(−∞; ${N(p.n)}]`;
+  const inc = up ? `[${N(p.m)}; +∞)` : `(−∞; ${N(p.m)}]`, dec = up ? `(−∞; ${N(p.m)}]` : `[${N(p.m)}; +∞)`;
+  let neg;
+  if (z.length === 2) neg = up ? `(${fn(z[0])}; ${fn(z[1])})` : `(−∞; ${fn(z[0])}) ∪ (${fn(z[1])}; +∞)`;
+  else if (z.length === 1) neg = up ? 'таких x немає' : `(−∞; ${fn(z[0])}) ∪ (${fn(z[0])}; +∞)`;
+  else neg = up ? 'таких x немає' : '(−∞; +∞)';
+  return { vertex:`(${N(p.m)}; ${N(p.n)})`, axis:`x = ${N(p.m)}`, zeros:zs, range, inc, dec, neg };
+}
+
+/* ---------- конструктор у теорії ---------- */
+const AV = [-2, -1, -.5, .5, 1, 2]; const aFromSlider = v => ({ '-4':-2, '-3':-1, '-2':-1, '-1':-.5, '0':.5, '1':1, '2':1, '3':2, '4':2 })[v];
+function cUpd() {
+  const p = { a:aFromSlider($('cA').value), m:+$('cM').value, n:+$('cN').value };
+  $('cAv').textContent = N(p.a); $('cMv').textContent = N(p.m); $('cNv').textContent = N(p.n);
+  $('cF').textContent = F(p);
+  $('cPlot').innerHTML = plot([{ a:1, m:0, n:0, cls:'base' }, { ...p, vertex:1, axis:1, zeros:1 }]);
+  const q = props(p);
+  $('cP').innerHTML = `<span>Вершина</span><b>${q.vertex}</b><span>Вісь симетрії</span><b>${q.axis}</b><span>Нулі</span><b>${q.zeros}</b>
+    <span>Зростає</span><b>${q.inc}</b><span>Спадає</span><b>${q.dec}</b><span>Область значень</span><b>${q.range}</b><span>y < 0 при</span><b>${q.neg}</b>`;
+}
+['cA', 'cM', 'cN'].forEach(id => $(id).oninput = cUpd); cUpd();
+$('exPlot').innerHTML = plot([{ a:1, m:0, n:0, cls:'base' }, { a:1, m:4, n:-4, vertex:1, axis:1, zeros:1 }]);
+
+/* ---------- генератори ---------- */
+const KINDS = { graph:{ n:'Функція за графіком', c:'var(--c-stru)' }, pick:{ n:'Графік за функцією', c:'var(--c-nom)' }, shift:{ n:'Зсув словами', c:'var(--c-calc)' }, prop:{ n:'Властивості', c:'var(--c-react)' } };
+function rp(hard) { const a = hard ? pick([1, -1, 2, -2, .5, -.5]) : pick([1, -1]); let m, n; do { m = ri(-5, 5); n = ri(-5, 5); } while (m === 0 && n === 0 || Math.abs(n) + (Math.abs(a) >= 1 ? 0 : 0) > 6); return { a, m, n }; }
+function distract(p) {
+  const cand = [{ ...p, m:-p.m }, { ...p, n:-p.n }, { ...p, a:-p.a }, { ...p, m:-p.m, n:-p.n }, { ...p, m:p.n, n:p.m }, { ...p, a:-p.a, m:-p.m }, { ...p, m:p.m + 1 }, { ...p, n:p.n - 2 }];
+  const seen = new Set([key(p)]), out = [];
+  for (const c of cand) { const k = key(c); if (!seen.has(k)) { seen.add(k); out.push(c); } if (out.length === 3) break; }
+  return out;
+}
+function gGraph(hard) {
+  const p = rp(hard);
+  return { k:'graph', p, q:'Запиши формулу функції, графік якої зображено. Вершина — у вузлі сітки.', fig:plot([{ ...p, vertex:1 }]), right:F(p),
+    sol:[`Вершина параболи — (${N(p.m)}; ${N(p.n)}), отже m = ${N(p.m)}, n = ${N(p.n)}.`, `Вітки ${p.a > 0 ? 'вгору' : 'вниз'} → a ${p.a > 0 ? '>' : '<'} 0; від вершини на 1 вбік графік ${p.a > 0 ? 'піднімається' : 'опускається'} на ${N(Math.abs(p.a))} → a = ${N(p.a)}.`, `Відповідь: ${F(p)}.`], hard };
+}
+function gPick(hard) {
+  const p = rp(hard), o = shuffle([p, ...distract(p)]);
+  return { k:'pick', p, q:`Який графік відповідає функції <b class="f">${F(p)}</b>?`, gopts:o, ri:o.findIndex(x => key(x) === key(p)), right:'графік з вершиною (' + N(p.m) + '; ' + N(p.n) + ')',
+    sol:[`Вершина: (${N(p.m)}; ${N(p.n)}) — дужка дорівнює нулю при x = ${N(p.m)}.`, `Вітки ${p.a > 0 ? 'вгору' : 'вниз'}, бо a ${p.a > 0 ? '>' : '<'} 0.`] };
+}
+function gShift() {
+  const p = rp(false); const neg = p.a < 0;
+  const words = [p.m ? `на ${Math.abs(p.m)} ${p.m > 0 ? 'вправо' : 'вліво'}` : '', p.n ? `на ${Math.abs(p.n)} ${p.n > 0 ? 'вгору' : 'вниз'}` : ''].filter(Boolean).join(' і ');
+  const o = shuffle([p, ...distract({ ...p }).filter(x => x.a === p.a).concat(distract(p)).filter((x, i, arr) => arr.findIndex(y => key(y) === key(x)) === i).slice(0, 3)]);
+  return { k:'shift', p, q:`Графік функції <b class="f">y = ${neg ? '−' : ''}x²</b> перенесли ${words}. Графік якої функції отримали?`, opts:o.map(F), ri:o.findIndex(x => key(x) === key(p)), right:F(p),
+    sol:[`Вправо на k → (x − k)², вліво на k → (x + k)²; вгору на k → + k, вниз → − k.`, `Отримуємо ${F(p)}.`] };
+}
+function niceP() { const a = pick([1, -1]), m = ri(-4, 5), k = pick([1, 2, 3]), n = -a * k * k; return { a, m, n }; }
+function gProp() {
+  const p = Math.random() < .8 ? niceP() : rp(false), q = props(p), alt = props({ ...p, a:-p.a }), alt2 = props({ ...p, m:-p.m }), alt3 = props({ ...p, n:-p.n });
+  const t = pick(['vertex', 'zeros', 'range', 'inc', 'dec', 'neg']);
+  const L = { vertex:'Знайдіть координати вершини параболи', zeros:'Знайдіть нулі функції', range:'Знайдіть область значень функції', inc:'Знайдіть проміжок зростання функції', dec:'Знайдіть проміжок спадання функції', neg:'При яких значеннях x функція набуває від\'ємних значень?' };
+  const pool = [q[t], alt[t], alt2[t], alt3[t], q[{ inc:'dec', dec:'inc', range:'inc', vertex:'axis', zeros:'neg', neg:'zeros' }[t]] || '', t === 'vertex' ? `(${N(p.n)}; ${N(p.m)})` : '', t === 'range' ? `[${N(p.m)}; +∞)` : '', t === 'neg' ? `[${q.zeros.replace(/x = /g, '').replace(', ', '; ')}]` : ''];
+  const o = [q[t]]; for (const x of pool) if (x && !o.includes(x) && o.length < 4) o.push(x);
+  let fill = 1; while (o.length < 4) { const f = t === 'vertex' ? `(${N(p.m + fill)}; ${N(p.n)})` : `(−∞; ${N(p.n + fill)}]`; if (!o.includes(f)) o.push(f); fill++; }
+  const so = shuffle(o);
+  return { k:'prop', p, q:`${L[t]} <b class="f">${F(p)}</b>.`, opts:so, ri:so.indexOf(q[t]), right:q[t],
+    sol:[`Вершина (${N(p.m)}; ${N(p.n)}), вітки ${p.a > 0 ? 'вгору' : 'вниз'}.`, ...(t === 'zeros' || t === 'neg' ? [`Нулі: ${q.zeros}.`] : []), `Відповідь: ${q[t]}.`], fig2:plot([{ ...p, vertex:1, zeros:1, axis:1 }]) };
+}
+const GEN = { graph:gGraph, pick:gPick, shift:gShift, prop:gProp };
+
+/* ---------- поле відповіді ---------- */
+function builderUI(st, hard) {
+  const As = hard ? [1, -1, 2, -2, .5, -.5] : [1, -1];
+  return `<div class="builder"><span>y =</span><span class="asel" role="group" aria-label="Коефіцієнт a">${As.map(a => `<button data-a="${a}" aria-pressed="${st.a === a}">${a === 1 ? '+' : aStr(a)}</button>`).join('')}</span>
+    <span>(x −</span><span class="stepper"><button data-s="m" data-d="-1" aria-label="Менше">−</button><span>${N(st.m)}</span><button data-s="m" data-d="1" aria-label="Більше">+</button></span><span>)² +</span>
+    <span class="stepper"><button data-s="n" data-d="-1" aria-label="Менше">−</button><span>${N(st.n)}</span><button data-s="n" data-d="1" aria-label="Більше">+</button></span></div>
+    <div class="hint">Твоя формула: <b class="f">${st.a == null ? 'обери знак a' : F(st)}</b></div>`;
+}
+function wireBuilder(box, st, onChange) {
+  box.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { st.a = +b.dataset.a; onChange(); });
+  box.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { st[b.dataset.s] = Math.max(-8, Math.min(8, st[b.dataset.s] + +b.dataset.d)); onChange(); });
+}
+function choiceUI(t, sel) {
+  if (t.k === 'pick') return `<div class="g4">${t.gopts.map((p, i) => `<button class="opt ${sel === i ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span>${plot([{ ...p, vertex:1 }], { small:1, R:7 })}</button>`).join('')}</div>`;
+  return `<div class="opts">${t.opts.map((o, i) => `<button class="opt ${sel === i ? 'sel' : ''}" data-i="${i}"><span class="k">${LETTERS[i]}</span><span class="f">${o}</span></button>`).join('')}</div>`;
+}
+const okOf = t => t.k === 'graph' ? t.st && t.st.a != null && key(t.st) === key(t.p) : t.a === t.ri;
+const ansTxt = t => t.k === 'graph' ? (t.st && t.st.a != null ? F(t.st) : '—') : t.a == null ? '—' : t.k === 'pick' ? `графік ${LETTERS[t.a]}: ${F(t.gopts[t.a])}` : t.opts[t.a];
+
+/* ---------- практика ---------- */
+const P = { kind:'graph', t:null, done:false, got:0, all:0 };
+$('pseg').innerHTML = Object.entries(KINDS).map(([k, v]) => `<button class="segb" data-k="${k}" aria-pressed="${k === 'graph'}">${v.n}</button>`).join('');
+$('pseg').querySelectorAll('.segb').forEach(b => b.onclick = () => { P.kind = b.dataset.k; $('pseg').querySelectorAll('.segb').forEach(x => x.setAttribute('aria-pressed', x === b)); newP(); });
+$('hard').onchange = newP;
+function newP() { P.t = GEN[P.kind]($('hard').checked); P.t.st = { a:null, m:0, n:0 }; P.t.a = null; P.done = false; renderP(); }
+function renderP() {
+  const t = P.t, box = $('ptask'); $('pstat').textContent = `Правильно: ${P.got} з ${P.all}`;
+  box.style.setProperty('--c', KINDS[t.k].c);
+  const fig = t.k === 'graph' ? plot([{ ...t.p, vertex:1 }, ...(t.st.a != null ? [{ ...t.st, cls:'try' }] : [])]) : '';
+  box.innerHTML = `<div class="tline"><span class="tag">${KINDS[t.k].n}</span></div><div class="q">${t.q}</div>${fig}
+    ${t.k === 'graph' ? builderUI(t.st, t.hard) + '<p class="hint">Пунктиром — твоя парабола. Сумісти її з графіком.</p>' : choiceUI(t, t.a)}
+    <div id="p-fb"></div><div class="actions">${t.k === 'graph' ? '<button class="btn" id="p-check">Перевірити</button>' : ''}<button class="btn ghost" id="p-next">Наступне завдання</button></div>`;
+  if (t.k === 'graph') { if (!P.done) wireBuilder(box, t.st, renderP); $('p-check').onclick = check; if (P.done) showFb(); }
+  else box.querySelectorAll('.opt').forEach(b => b.onclick = () => { if (P.done) return; t.a = +b.dataset.i; check(); });
+  $('p-next').onclick = newP;
+}
+function check() {
+  const t = P.t; if (P.done) return;
+  if (t.k === 'graph' && t.st.a == null) { $('p-fb').innerHTML = '<div class="fb bad">Обери знак (або значення) a.</div>'; return; }
+  P.done = true; P.all++; if (okOf(t)) P.got++;
+  if (t.k !== 'graph') $('ptask').querySelectorAll('.opt').forEach(b => { b.disabled = true; if (+b.dataset.i === t.ri) b.classList.add('ok'); else if (+b.dataset.i === t.a) b.classList.add('bad'); });
+  else $('ptask').querySelectorAll('[data-a],[data-s]').forEach(b => b.disabled = true);
+  $('pstat').textContent = `Правильно: ${P.got} з ${P.all}`; showFb();
+}
+function showFb() {
+  const t = P.t, ok = okOf(t);
+  $('p-fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><b>${ok ? 'Правильно!' : 'Не зовсім.'}</b> ${ok ? '' : 'Правильно: <span class="f">' + (t.k === 'pick' ? F(t.p) : t.right) + '</span>'}</div>
+    <div class="solbox"><b>Розв'язання</b><ol class="steps">${t.sol.map(s => `<li>${s}</li>`).join('')}</ol>${t.fig2 ? t.fig2 : ''}</div>`;
+}
+
+/* ---------- тест ---------- */
+const T = { phase:'start', name:'', cls:'', tasks:[], i:0, sent:'' };
+try { T.name = localStorage.getItem('nova_name') || ''; } catch (e) {}
+function makeTest() {
+  const out = [], seen = new Set(), push = (k, n) => { let g = 0; while (n > 0 && g++ < 100) { const t = GEN[k](false); const s = k + key(t.p) + t.q; if (seen.has(s)) continue; seen.add(s); t.st = { a:null, m:0, n:0 }; t.a = null; out.push(t); n--; } };
+  push('graph', 4); push('pick', 3); push('shift', 2); push('prop', 5); return out;
+}
+function renderTest() {
+  const v = $('v-test');
+  if (T.phase === 'start') {
+    v.innerHTML = `<div class="card stack"><div><div class="eyebrow">14 завдань · 14 балів</div><h2 style="margin-top:4px">Тест: графіки y = a(x − m)² + n</h2></div>
+      <p>Формула за графіком, графік за формулою, зсуви й властивості функції. Результат прийде вчителю.</p>
+      <div class="row"><label class="field">Ім'я та прізвище<input id="t-name" value="${esc(T.name)}" autocomplete="name"></label><label class="field">Клас<input id="t-cls" value="${esc(T.cls)}" inputmode="numeric"></label></div>
+      <div class="err" id="t-err"></div><div class="actions"><button class="btn" id="t-go">Почати тест</button></div></div>`;
+    $('t-go').onclick = () => { T.name = $('t-name').value.trim(); T.cls = $('t-cls').value.trim();
+      if (!T.name) { $('t-err').textContent = "Впиши ім'я та прізвище."; return; }
+      try { localStorage.setItem('nova_name', T.name); } catch (e) {}
+      T.tasks = makeTest(); T.i = 0; T.phase = 'run'; T.sent = ''; renderTest(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  if (T.phase === 'run') {
+    const t = T.tasks[T.i], Nn = T.tasks.length, last = T.i === Nn - 1;
+    const done = x => x.k === 'graph' ? x.st.a != null : x.a != null;
+    v.innerHTML = `<div class="dots">${T.tasks.map((x, j) => `<button class="dot ${done(x) ? 'done' : ''} ${j === T.i ? 'cur' : ''}" data-j="${j}">${j + 1}</button>`).join('')}</div>
+      <div class="card task" style="--c:${KINDS[t.k].c}"><div class="tline"><span class="tag">${KINDS[t.k].n}</span><span class="count">${T.i + 1} / ${Nn}</span></div>
+      <div class="q">${t.q}</div>${t.k === 'graph' ? plot([{ ...t.p, vertex:1 }]) + builderUI(t.st, false) : choiceUI(t, t.a)}
+      <div class="actions"><button class="btn ghost" id="t-prev" ${T.i ? '' : 'disabled'}>Назад</button>${last ? '<button class="btn" id="t-fin">Завершити тест</button>' : '<button class="btn" id="t-next">Далі</button>'}</div></div>`;
+    v.querySelectorAll('.dot').forEach(b => b.onclick = () => { T.i = +b.dataset.j; renderTest(); });
+    if (t.k === 'graph') wireBuilder(v, t.st, renderTest);
+    else v.querySelectorAll('.opt').forEach(b => b.onclick = () => { t.a = +b.dataset.i; if (!last) T.i++; renderTest(); });
+    $('t-prev').onclick = () => { T.i--; renderTest(); };
+    if ($('t-next')) $('t-next').onclick = () => { T.i++; renderTest(); };
+    if ($('t-fin')) $('t-fin').onclick = () => { T.phase = 'done'; renderTest(); send(); window.scrollTo({ top:0 }); };
+    return;
+  }
+  const got = T.tasks.filter(okOf).length, Nn = T.tasks.length, mark = Math.max(1, Math.round(got / Nn * 12));
+  v.innerHTML = `<div class="card stack"><div class="eyebrow">${esc(T.name)}${T.cls ? ' · ' + esc(T.cls) + ' клас' : ''}</div><div class="score"><span class="big">${mark}</span><span class="of">з 12</span></div>
+    <div class="hint">Правильно ${got} з ${Nn}</div><div class="send ${T.sent || 'wait'}">${T.sent === 'ok' ? 'Результат надіслано вчителю.' : T.sent === 'fail' ? 'Не вдалося надіслати. <button class="btn ghost" id="t-resend">Ще раз</button>' : 'Надсилаю результат…'}</div>
+    <div class="actions"><button class="btn ghost" id="t-again">Пройти ще раз</button></div></div>
+    <div class="card stack"><h2>Розбір</h2><ol class="review">${T.tasks.map((t, i) => { const ok = okOf(t);
+      return `<li class="${ok ? 'ok' : 'bad'}"><span class="m">${ok ? '✓' : '✗'}</span><div class="rb"><b>${i + 1}.</b> ${t.k === 'graph' ? `Формула за графіком (вершина (${N(t.p.m)}; ${N(t.p.n)}))` : t.q}${ok ? '' : `<div class="yours">Твоя відповідь: <span class="f">${ansTxt(t)}</span></div><div class="why">Правильно: <b class="f">${t.k === 'pick' ? F(t.p) : t.right}</b>. ${t.sol.join(' ')}</div>`}</div></li>`; }).join('')}</ol></div>`;
+  if ($('t-resend')) $('t-resend').onclick = send;
+  $('t-again').onclick = () => { T.phase = 'start'; renderTest(); };
+}
+function send() {
+  const got = T.tasks.filter(okOf).length, Nn = T.tasks.length;
+  const details = T.tasks.map((t, i) => { const ok = okOf(t); const q = t.k === 'graph' ? `Формула за графіком (правильна: ${F(t.p)})` : plain(t.q);
+    return `${ok ? '✓' : '✗'} ${i + 1}. [${KINDS[t.k].n}] ${q}${ok ? '' : `\n     відповів: «${plain(ansTxt(t))}» → правильно: «${t.k === 'pick' ? F(t.p) : plain(t.right)}»`}`; }).join('\n');
+  T.sent = 'wait';
+  fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ name:T.name, cls:T.cls, topic:'Алгебра: зсуви параболи y = a(x − m)² + n', score:`${got}/${Nn}`, mark:Math.max(1, Math.round(got / Nn * 12)), details }) })
+    .then(() => { T.sent = 'ok'; if (T.phase === 'done') renderTest(); }).catch(() => { T.sent = 'fail'; if (T.phase === 'done') renderTest(); });
+}
+
+/* ---------- вкладки ---------- */
+const VIEWS = ['teoriya', 'zadachi', 'test'];
+function showV(v) { if (!VIEWS.includes(v)) v = 'teoriya'; VIEWS.forEach(x => $('v-' + x).hidden = x !== v);
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  if (v === 'zadachi' && !P.t) newP(); if (v === 'test' && T.phase === 'start') renderTest(); }
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { showV(b.dataset.v); try { history.replaceState(null, '', '#' + b.dataset.v); } catch (e) {} window.scrollTo({ top:0 }); });
+window.addEventListener('hashchange', () => showV(location.hash.slice(1)));
+showV(location.hash.slice(1));
+</script>
+
+</html>
